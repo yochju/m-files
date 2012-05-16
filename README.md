@@ -7,6 +7,16 @@ This repository contains a collection of working, unfinished as well as
 abandoned functions. They serve various tasks although most of them are related
 to image processing tasks.
 
+Note that the functions have been designed for usability and not necessarily for
+speed and memory efficiency. The functions do some thorough checks of all the
+passed arguments and are very flexible when it comes to parameter settings,
+without cluttering the the function calls with countless of necessary
+parameters. Also note, that most functions are not necessarily compatible to GNU
+Octave, Scilab and/or other software that tries to offer a free alternative to
+Matlab. Although it often would only require trivial changes to make it
+compatible. Concerning GNU octave, one could probably obtain almost complete
+compatibility by simply removing the input parser.
+
 * Function Listing
 
   The functions are grouped (by theme) into different folders. The Tag indicates
