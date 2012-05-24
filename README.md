@@ -1,5 +1,5 @@
 -*- mode: org -*-
-#+TAGS: Complete UnDocumented InComplete Obsolete
+#+TAGS: Complete UnDocumented InComplete Obsolete Planned
 
 * About
 
@@ -10,7 +10,7 @@ to image processing tasks.
 Note that the functions have been designed for usability and not necessarily for
 speed and memory efficiency. The functions do some thorough checks of all the
 passed arguments and are very flexible when it comes to parameter settings,
-without cluttering the the function calls with countless of necessary
+without cluttering the the function calls with countless unnecessary
 parameters. Also note, that most functions are not necessarily compatible to GNU
 Octave, Scilab and/or other software that tries to offer a free alternative to
 Matlab. Although it often would only require trivial changes to make it
@@ -50,6 +50,8 @@ compatibility by simply removing the input parser.
 
 ** ImageAnalysis
 
+*** ImageAdjust 						    :Planned:
+*** ImageClip							    :Planned:
 *** ImageDeriv							   :Complete:
 *** ImageDiv							   :Complete:
 *** ImageDx							   :Complete:
@@ -63,7 +65,9 @@ compatibility by simply removing the input parser.
 *** ImageLapl							   :Complete:
 *** ImagePad							   :Complete:
 *** ImagePyramid						   :Complete:
+*** ImageQuantize						    :Planned:
 *** ImageSmooth							   :Complete:
+*** ImageThreshold						    :Planned:
 *** ImageToVector						   :Complete:
 *** IsImage							   :Complete:
 *** MeanSquareError						   :Complete:
