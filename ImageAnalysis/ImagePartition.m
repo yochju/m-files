@@ -1,7 +1,7 @@
 function out = ImagePartition( in, blockSize, varargin )
 %% Partitions the input matrix into blocks.
 %
-% out = ImagePartition( in, br, bc )
+% out = ImagePartition( in, blockSize, varargin )
 %
 % Input parameters (required):
 %
@@ -44,7 +44,7 @@ function out = ImagePartition( in, blockSize, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 20.05.2012 11:45
+% Last revision on: 25.05.2012 13:57
 
 %% Check Input and Output Arguments
 
