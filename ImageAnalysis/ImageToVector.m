@@ -84,7 +84,7 @@ opts = parser.Results;
 
 %% Algorithm
 
-if isvector(in)
+if iscolumn(in)
     assert( ~isequal(opts.size, [0 0]), ...
         ['ImageAnalysis:' mfilename ':BadInput'], ...
         'Backtransformation requires that the image size is specified.');
