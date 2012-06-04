@@ -1,4 +1,4 @@
-function out = ImageThreshold( in , T )
+function out = ImageGammaCorrection( in , gamma )
 %% Short description.
 %
 % out = NewFunction( in )
@@ -41,13 +41,13 @@ function out = ImageThreshold( in , T )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 24.05.2012 19:47
+% Last revision on: 04.06.2012 16:21
 
 %% Check Input and Output Arguments
 
 %% Algorithm
 
-fun = @(x) x>T;
+fun = @(x) x.^(1/gamma);
 out = ImagePointTransform(in,fun);
 
 end

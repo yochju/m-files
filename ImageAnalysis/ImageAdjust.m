@@ -1,4 +1,4 @@
-function out = ImageAdjust( in )
+function out = ImageAdjust( in , min , max , gamma )
 %% Short description.
 %
 % out = ImageAdjust( in )
@@ -47,5 +47,6 @@ function out = ImageAdjust( in )
 
 %% Algorithm
 
+% imadjust;
 
 end
