@@ -1,4 +1,4 @@
-function out = ImageAdjust( in , min , max , gamma )
+function out = ImageAdjust( in , Imin , Imax , gamma )
 %% Short description.
 %
 % out = ImageAdjust( in )
@@ -47,6 +47,12 @@ function out = ImageAdjust( in , min , max , gamma )
 
 %% Algorithm
 
-% imadjust;
+xMin = ImageMin(in);
+xMax = ImageMax(in);
+yMin = Imin;
+yMax = Imax;
+fun = @(x) ((yMax-yMin)./(xMax-xMin).*x + ...
+    (xMax.*yMin-xMin.*yMax)./(xMax-xMin)).^gamma;
+out = ImagePointTransform(in,fun);
 
 end
