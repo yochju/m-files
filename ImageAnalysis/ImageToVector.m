@@ -90,17 +90,17 @@ if iscolumn(in)
         'Backtransformation requires that the image size is specified.');
     switch opts.ordering
         case 'row-wise'
-            out = reshape(in, opts.size(2), opts.size(1))';
+            out = transpose(reshape(in, opts.size(2), opts.size(1)));
         case 'column-wise'
             out = reshape(in, opts.size(1), opts.size(2));
     end
 else
     switch opts.ordering
         case 'row-wise'
-            temp = in';
-            out = temp(:);
+            out = transpose( ...
+                subsref(transpose(in), substruct( '()', {1:numel(in)} ) ));
         case 'column-wise'
-            out = in(:);
+            out = subsref(in, substruct( '()', {1:numel(in)} ) );
     end
 end
 
