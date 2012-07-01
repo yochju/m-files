@@ -80,3 +80,7 @@ compatibility by simply removing the input parser.
 *** UpdateFunction					       :UnDocumented:
 *** CreateTemplate					       :UnDocumented:
 *** InsertDocString					       :UnDocumented:
+
+* Notes:
+
+  http://www.mathworks.de/help/techdoc/matlab_prog/brubzjb-1.html#brubz7_-1
