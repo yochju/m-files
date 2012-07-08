@@ -7,7 +7,7 @@ classdef Image < double
     % Image Properties:
     %    padding - The padding at the boundaries of the image.
     %
-    % Image Method:
+    % Image Methods:
     %
     
     properties

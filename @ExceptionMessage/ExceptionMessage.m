@@ -19,17 +19,27 @@ classdef ExceptionMessage
     %
     %    See also: warning, error
     
+    % ExceptionMessage Properties:
+    % id - identifier for the message.
+    % message - Corresponding message.
+    %
+    % ExceptionMessage Methods:
+    % ExceptionMessage - This is the constructor.
+    % Exceptions - Returns a struct containing all valid messages.
+    % ExceptionTypes - returns a cell array containing all valid types.
+    
     properties
-        id = '';
-        message = '';
+        id = ''; % Identifier for the message.
+        message = ''; % Corresponding message.
     end
     
     properties (Constant, GetAccess = private)
-        ExceptionCode = ExceptionMessage.Exceptions();
+        ExceptionCode = ExceptionMessage.Exceptions(); % Struct with messages.
     end
     
     methods
         function obj = ExceptionMessage(type,varargin)
+            % Constructor.
             
             error(nargchk(1, 3, nargin));
             error(nargoutchk(0, 1, nargout));
