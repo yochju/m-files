@@ -1,92 +1,69 @@
-classdef Image
+classdef Image < double
     %Image Represents an image in form of an n-D array.
-
+    %    Image is a subclass of double. The first two indices contain the pixel
+    %    location. All the following indices refer to channels. By default, it
+    %    is assumed that the image has only a single channel.
+    
+    % Image Properties:
+    %    padding - The padding at the boundaries of the image.
+    %
+    % Image Method:
+    %
+    
     properties
-        data = [];
+        padding % [top left bottom right]
     end
     
-    properties (GetAccess = public, SetAccess = private)
-        rows = 0;
-        cols = 0;
-        chan = 0;
-    end
-    
-    properties (Dependent = true, SetAccess = private)
-        pixelType
-    end
-        
     methods
-        function obj = Image(rows,columns,varargin)
-            
-            error(nargchk(3, 4, nargin));
-            error(nargoutchk(0, 1, nargout));
+        function obj = Image(varargin)
+            % Same usage as e.g. 'ones'. Last argument will be padding.
+            switch nargin
+                case 0
+                    data = [];
+                    pad = [0 0 0 0];
+                case 1
+                    % FIXME: This isn't perfect. The following case is
+                    % ambiguous: Image([3 4 5])
+                    if isscalar(varargin{1}) || ...
+                            (isrow(varargin{1}) && ...
+                            (floor(varargin{1}) == ceil(varargin{1})))
+                        data = zeros(varargin{1});
+                    elseif ismatrix(varargin{1})
+                        data = varargin{1};
+                    end
+                        pad = [0 0 0 0];
+                case 2
+                    if isscalar(varargin{1})
+                        data = zeros(varargin{1},varargin{2});
+                        pad = [0 0 0 0];
+                    else
+                        ExcM = ExceptionMessage('Input');
+                        
+                        assert(isvector(varargin{1}) && ...
+                            isvector(varargin{2}) && ...
+                            length(varargin{2}) == 4, ...
+                            ExcM.id,ExcM.message);
+                        
+                        data = zeros(varargin{1});
+                        pad = varargin{2};
+                    end
+                otherwise
+                    ExcM = ExceptionMessage('Input');
+                        
+                    for i = 1:(length(varargin)-1)
+                        assert(isscalar(varargin{i}),ExcM.id,ExcM.message);
+                    end
+                    
+                    assert(isvector(varargin{end}) && ...
+                        length(varargin{end}) == 4, ...
+                        ExcM.id,ExcM.message);
 
-            parser = inputParser;
-            
-            parser.addRequired('rows', ...
-                @(x) validateattributes( x, ...
-                {'numeric'}, ...
-                {'integer','nonnegative','scalar'}, ...
-                'Image', 'rows'));
-            
-            parser.addRequired('columns', ...
-                @(x) validateattributes( x, ...
-                {'numeric'}, ...
-                {'integer','nonnegative','scalar'}, ...
-                'Image', 'columns'));
-            
-            parser.addOptional('channels', 1, ...
-                @(x) validateattributes( x, ...
-                {'numeric'}, ...
-                {'integer','positive','scalar'}, ...
-                'Image', 'channels'));
-            
-            parser.addOptional('type','double', ...
-                @(x) validateattributes( x, ...
-                {'char'}, ...
-                {'vector'}, ...
-                'Image', 'type'));
-            
-            parser.parse(rows,columns,varargin{:});
-            parameters = parser.Results;
-            
-            try
-                validatestring(parameters.type, ...
-                    {'double', 'single', 'int8', 'uint8', ...
-                    'int16', 'uint16', 'int32', 'uint32', 'int64', 'uint64'});
-            catch
-                ExcM = ExceptionMessage('BadClass', ...
-                    horzcat( ...
-                    'Cannot create image with pixels of type ', ...
-                    parameters.type, ...
-                    '. Will use double as fallback.'));
-                warning(ExcM.id,ExcM.message);
-                parameters.type = 'double';
+                    data = zeros(varargin{1:(end-1)});
+                    pad = varargin{end};
             end
-            
-            obj.rows = parameters.rows;
-            obj.cols = parameters.columns;
-            obj.chan = parameters.channels;
-            
-            obj.data = squeeze(zeros( ...
-                parameters.rows, parameters.columns, ...
-                parameters.channels, parameters.type));
+            obj = obj@double(data);
+            obj.padding = pad;
         end
-        
-        function pType = get.pixelType(obj)
-            pType = class(obj.data);
-        end
-
     end
-    
-
-    methods
-        [rows cols channels] = size(obj)
-    end
-    
-    methods (Access = private)
-        bool = compatible(obj1,obj2)
-    end
-    
 end
 
