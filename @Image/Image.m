@@ -12,55 +12,28 @@ classdef Image < double
     
     properties
         padding % [top left bottom right]
+        colorSpace % FIXME: Gray, RGB, HSV, ...
+        quantization % FIXME: uint8, ...
     end
     
     methods
         function obj = Image(varargin)
-            % Same usage as e.g. 'ones'. Last argument will be padding.
-            switch nargin
-                case 0
-                    data = [];
-                    pad = [0 0 0 0];
-                case 1
-                    % FIXME: This isn't perfect. The following case is
-                    % ambiguous: Image([3 4 5])
-                    if isscalar(varargin{1}) || ...
-                            (isrow(varargin{1}) && ...
-                            (floor(varargin{1}) == ceil(varargin{1})))
-                        data = zeros(varargin{1});
-                    elseif ismatrix(varargin{1})
-                        data = varargin{1};
-                    end
-                        pad = [0 0 0 0];
-                case 2
-                    if isscalar(varargin{1})
-                        data = zeros(varargin{1},varargin{2});
-                        pad = [0 0 0 0];
-                    else
-                        ExcM = ExceptionMessage('Input');
-                        
-                        assert(isvector(varargin{1}) && ...
-                            isvector(varargin{2}) && ...
-                            length(varargin{2}) == 4, ...
-                            ExcM.id,ExcM.message);
-                        
-                        data = zeros(varargin{1});
-                        pad = varargin{2};
-                    end
-                otherwise
-                    ExcM = ExceptionMessage('Input');
-                        
-                    for i = 1:(length(varargin)-1)
-                        assert(isscalar(varargin{i}),ExcM.id,ExcM.message);
-                    end
-                    
-                    assert(isvector(varargin{end}) && ...
-                        length(varargin{end}) == 4, ...
-                        ExcM.id,ExcM.message);
-
-                    data = zeros(varargin{1:(end-1)});
-                    pad = varargin{end};
+            % Same usage as e.g. 'ones'. If more than one argument is specified
+            % and if the last argument is a vector of length 4 with a class
+            % different from char, then it is assumed to be the padding.
+            % Otherwise it will be assumed to belong to the specification for
+            % data.
+            
+            if nargin > 1 && ...
+                    isvector(varargin{end}) && length(varargin{end}) == 4 && ...
+                    ~ischar(varargin{end})
+                data = zeros(varargin{1:(end-1)});
+                pad = varargin{end};
+            else
+                data = zeros(varargin{1:end});
+                pad = [0 0 0 0];
             end
+            
             obj = obj@double(data);
             obj.padding = pad;
         end
