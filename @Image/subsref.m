@@ -3,19 +3,16 @@ function sref = subsref(obj,s)
 ExcMU = ExceptionMessage('Unsupported');
 assert(length(s)==1,ExcMU.id,ExcMU.message);
 
-% FIXME: I(:) has meaningless padding data.
-
 switch s(1).type
     case '.'
-        sref = builtin('subsref',obj,s);
-        %{
         switch s(1).subs
+            case 'type'
+                sref = obj.type;
             case 'padding'
                 sref = obj.padding;
             otherwise
-                error(ExcMI.id,ExcMI.message);
+                sref = builtin('subsref',obj,s);
         end
-        %}
     case '()'
         sf = double(obj);
         if ~isempty(s(1).subs)

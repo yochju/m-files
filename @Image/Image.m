@@ -3,37 +3,31 @@ classdef Image < double
     %    Image is a subclass of double. The first two indices contain the pixel
     %    location. All the following indices refer to channels. By default, it
     %    is assumed that the image has only a single channel.
-    
+    %
     % Image Properties:
-    %    padding - The padding at the boundaries of the image.
+    %    padding      - The padding at the boundaries of the image.
+    %    colorSpace   - The underlying colorspace of the data. [not implemented]
+    %    quantization - The underlying quantization [not implemented]
     %
     % Image Methods:
+    %    pad         - pads data at the boundaries.
+    %    dimChannels - returns the dimensions of the channels.
     %
     
     properties
-        padding % [top left bottom right]
-        colorSpace % FIXME: Gray, RGB, HSV, ...
+        padding      % [top left bottom right]
+        colorSpace   % FIXME: Gray, RGB, HSV, ...
         quantization % FIXME: uint8, ...
     end
     
     methods
-        function obj = Image(varargin)
-            % Same usage as e.g. 'ones'. If more than one argument is specified
-            % and if the last argument is a vector of length 4 with a class
-            % different from char, then it is assumed to be the padding.
-            % Otherwise it will be assumed to belong to the specification for
-            % data.
-            
-            if nargin > 1 && ...
-                    isvector(varargin{end}) && length(varargin{end}) == 4 && ...
-                    ~ischar(varargin{end})
-                data = zeros(varargin{1:(end-1)});
-                pad = varargin{end};
-            else
-                data = zeros(varargin{1:end});
+        function obj = Image(data,pad)
+            if nargin == 0
+                data = [];
+                pad = [0 0 0 0];
+            elseif nargin == 1
                 pad = [0 0 0 0];
             end
-            
             obj = obj@double(data);
             obj.padding = pad;
         end

@@ -1,3 +1,3 @@
 function ind = subsindex(obj)
-ind = double(obj);
+ind = builtin('subsindex',obj);
 end
