@@ -18,7 +18,7 @@ classdef ExceptionMessage
     %    queried using the static methods Exceptions and ExceptionsTypes.
     %
     %    See also: warning, error
-    
+    %
     % ExceptionMessage Properties:
     % id - identifier for the message.
     % message - Corresponding message.
