@@ -10,7 +10,8 @@ classdef Image < double
     %
     % Image Methods:
     %    pad         - pads data at the boundaries.
-    %    dimChannels - returns the dimensions of the channels.
+    %    mirror      - mirrors the boundaries of an image.
+    %    imread      - reads an image file. (Static)
     %
     
     properties
@@ -68,5 +69,10 @@ classdef Image < double
             obj.colorSpace = color;
         end
     end
+    
+    methods (Static)
+        varargout = imread(varargin)
+    end
+    
 end
 
