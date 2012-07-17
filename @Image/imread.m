@@ -14,10 +14,10 @@ switch nargout
         warning(ExcM.id,ExcM.message);
     case 1
         pixel = imread(varargin{:});
-        varargout(1) = {Image(pixel,[0 0 0 0])};
+        varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
     case 2
         [pixel map] = imread(varargin{:});
-        varargout(1) = {Image(pixel,[0 0 0 0])};
+        varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
         varargout(2) = {map};
 end
 end
