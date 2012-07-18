@@ -12,11 +12,28 @@ classdef Image < double
     %    pad         - pads data at the boundaries.
     %    mirror      - mirrors the boundaries of an image.
     %    imread      - reads an image file. (Static)
+
+    % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
+    % This program is free software; you can redistribute it and/or modify it
+    % under the terms of the GNU General Public License as published by the Free
+    % Software Foundation; either version 3 of the License, or (at your option)
+    % any later version.
+    %
+    % This program is distributed in the hope that it will be useful, but
+    % WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    % or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    % for more details.
+    %
+    % You should have received a copy of the GNU General Public License along
+    % with this program; if not, write to the Free Software Foundation, Inc., 51
+    % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+    % Last revision on: 18.07.2012 06:51
     
     properties
-        padding
-        colorSpace        
+        padding     % Amount of padded pixels. [top left bottom right]
+        colorSpace  % Colorspace in which the pixel values are stored.        
     end
     
     methods
@@ -68,10 +85,21 @@ classdef Image < double
             obj.padding = pad;
             obj.colorSpace = color;
         end
+        
+        sref = subsref(obj, s)
+        sref = subsasgn(obj, s, val)
+        ind = subsindex(obj)
+    end
+    
+    methods
+        out = pad(obj, varargin)      % pad image at boundaries with data.
+        out = mirror(obj, size)       % extend image at boundaries by mirroring.
+        bool = compatible(obj1, obj2) % check if two images have sime size.
+        imwrite(obj, varargin)        % writes an image to disk.
     end
     
     methods (Static)
-        varargout = imread(varargin)
+        varargout = imread(varargin) % Reads an image from a file.
     end
     
 end

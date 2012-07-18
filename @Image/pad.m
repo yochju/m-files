@@ -1,7 +1,7 @@
-function out = pad( obj, varargin )
-%% Pads the image at the boundaries.
+function out = pad(obj, varargin)
+%Image/pad extends the image at the boundaries by specified data.
 %
-% out = pad( obj, ... )
+% out = pad(obj, ... )
 %
 % Input parameters (required):
 %
@@ -40,11 +40,11 @@ function out = pad( obj, varargin )
 %
 % Description:
 %
-%
+% TODO
 %
 % Example:
 %
-%
+% TODO
 %
 % See also padarray
 
