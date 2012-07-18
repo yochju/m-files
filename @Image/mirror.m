@@ -1,4 +1,27 @@
-function sref = subsref(obj, s)
+function out = mirror(obj,size)
+%Image/mirror pads the image by reflecting size pixels along each bound.
+%
+%   Input parameters (required):
+%
+% TODO
+%
+%   Input parameters (optional):
+%
+% TODO
+%
+%   Output parameters:
+%
+% TODO
+%
+%   Description:
+%
+% TODO
+%
+%   Example:
+%
+% TODO
+%
+%   See also pad, padarray
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -18,33 +41,10 @@ function sref = subsref(obj, s)
 
 % Last revision on: 18.07.2012 07:01
 
-% ExcMI = ExceptionMessage('Internal');
-ExcMU = ExceptionMessage('Unsupported');
-assert(length(s)==1,ExcMU.id,ExcMU.message);
-
-switch s(1).type
-    case '.'
-        switch s(1).subs
-            case 'type'
-                sref = obj.type;
-            case 'padding'
-                sref = obj.padding;
-            otherwise
-                sref = builtin('subsref',obj,s);
-        end
-    case '()'
-        sf = double(obj);
-        if ~isempty(s(1).subs)
-            sf = subsref(sf,s);
-        else
-            sf = obj;
-        end
-        sref = Image(sf);
-        sref.padding = obj.padding;
-    case '{}'
-        error(ExcMU.id,ExcMU.message);
-    otherwise
-        ExcMO=ExceptionMessage('UnknownOp');
-        error(ExcMO.id,ExcMO.message);
-end
+l_data = double(obj(:,1:size));
+t_data = double(obj(1:size,:));
+r_data = double(obj(:,(end-size+1):end));
+b_data = double(obj((end-size+1):end,:));
+out = obj.pad('left',l_data,'right',r_data,'top',t_data,'bottom',b_data);
+out.padding = size*ones(1,4);
 end

@@ -1,4 +1,29 @@
-function ind = subsindex(obj)
+function imwrite(obj,varargin)
+%Image/imwrite writes an image file.
+%   This is wrapper function for the builtin imwrite function. It uses the same
+%   calling structure.
+%
+%   Input parameters (required):
+%
+% TODO
+%
+%   Input parameters (optional):
+%
+% TODO
+%
+%   Output parameters:
+%
+% TODO
+%
+%   Description:
+%
+% TODO
+%
+%   Example:
+%
+% TODO
+%
+%   See also imread, imwrite
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,7 +41,8 @@ function ind = subsindex(obj)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 18.07.2012 07:01
+% Last revision on: 18.07.2012 07:20
 
-ind = builtin('subsindex',obj);
+imwrite(double(obj),varargin{:});
+
 end
