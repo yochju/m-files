@@ -44,7 +44,7 @@ function varargout = imread(varargin)
 
 % Last revision on: 18.07.2012 06:46
 
-error(nargoutchk(0,2,nargout));
+error(nargoutchk(0,3,nargout));
 
 switch nargout
     case 0
@@ -56,7 +56,7 @@ switch nargout
         pixel = imread(varargin{:});
         varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
     case 1
-        %% Just return image
+        %% Just return image.
         pixel = imread(varargin{:});
         varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
     case 2
@@ -64,6 +64,12 @@ switch nargout
         [pixel map] = imread(varargin{:});
         varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
         varargout(2) = {map};
+    case 3
+        %% Some specific image types allow the extraction of an alpha channel.
+        [pixel map alpha] = imread(varargin{:});
+        varargout(1) = {Image(im2double(pixel),[0 0 0 0])};
+        varargout(2) = {map};
+        varargout(3) = {alpha};
 end
 
 end
