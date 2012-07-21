@@ -10,6 +10,7 @@ classdef Image < double
     %
     % Image Methods:
     %    pad         - pads data at the boundaries.
+    %    partition   - partiton an image into blocks.
     %    mirror      - mirrors the boundaries of an image.
     %    imread      - reads an image file. (Static)
 
@@ -93,6 +94,7 @@ classdef Image < double
     
     methods
         out = pad(obj, varargin)      % pad image at boundaries with data.
+        out = partition(obj, blockSize, varargin ) % partition an image.
         out = mirror(obj, size)       % extend image at boundaries by mirroring.
         bool = compatible(obj1, obj2) % check if two images have sime size.
         imwrite(obj, varargin)        % writes an image to disk.
