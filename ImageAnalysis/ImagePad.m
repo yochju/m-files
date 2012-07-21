@@ -66,6 +66,10 @@ function out = ImagePad( in, varargin )
 
 % Last revision on: 06.05.2012 15:31
 
+%% Notes
+
+% Has been implemented in @Image.
+
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.

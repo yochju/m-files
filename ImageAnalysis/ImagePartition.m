@@ -46,6 +46,10 @@ function out = ImagePartition( in, blockSize, varargin )
 
 % Last revision on: 25.05.2012 13:57
 
+%% Notes
+
+% Has been implemented in @Image.
+
 %% Check Input and Output Arguments
 
 error(nargchk(2, 3, nargin));

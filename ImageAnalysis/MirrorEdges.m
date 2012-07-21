@@ -39,6 +39,10 @@ function out = MirrorEdges(in, varargin)
 
 % Last revision on: 07.05.2012 22:07
 
+%% Notes
+
+% Has been implemented in @Image.
+
 %% Perform argument checks
 
 error(nargchk(1, 2, nargin));
