@@ -39,6 +39,15 @@ function x = SoftShrinkage(lambda,theta,A,B)
 %
 %   Example:
 %
+%   lambda = [3.5 3.5 3.5 3.5];
+%   theta  = 1;
+%   A      = [1 ; 1 ; 1 ; 1];
+%   B      = [3 ; 4 ; 5 ; 6];
+%   x = Softhrinkage(lambda,theta,A,B) will return
+%   x = [0 0.5 1.5 2.5];
+%   which is the minimizer of the energy functional
+%   lambda*||x||_1 + 1/2*||x - [3 ; 4 ; 5 ; 6]||_2^2;
+%
 %   lambda = [4 0.02 6];
 %   theta  = [1 10]; 
 %   A      = [7 2 ; 0 -6 ; 1 6];
@@ -66,10 +75,31 @@ function x = SoftShrinkage(lambda,theta,A,B)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 13.08.2012 11:15
+% Last revision on: 13.08.2012 16:00
+
+error(nargchk(4, 4, nargin));
+error(nargoutchk(0, 1, nargout));
+
+ExcM = ExceptionMessage('Input');
+
+ExcM.message = 'Input does not have the correct structure.';
+assert( isvector(lambda) , ExcM.id, ExcM.message);
+assert( isvector(theta) , ExcM.id, ExcM.message);
+assert( ismatrix(A) , ExcM.id, ExcM.message);
+assert( ismatrix(B) , ExcM.id, ExcM.message);
+
+ExcM.message = 'Weights must all be positive.';
+assert( all( lambda >= 0 ) , ExcM.id, ExcM.message );
+assert( all( theta >= 0 ) , ExcM.id, ExcM.message );
 
 lambda = lambda(:);
 k = length(lambda);
+N = length(theta);
+
+ExcM.message = 'Number of weights and coefficients does not conincide.';
+assert( isequal(size(A),[k N]), ExcM.id, ExcM.message);
+assert( isequal(size(B),[k N]), ExcM.id, ExcM.message);
+
 x = zeros(k,1);
 for i = 1:k
     x(i) = SoftShrinkage1D(lambda(i),theta,A(i,:),B(i,:));

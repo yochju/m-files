@@ -23,6 +23,11 @@ function x = SoftShrinkage1D(lambda,theta,A,B)
 %
 %   x = SoftShrinkage1D(3,5,2,8) solves the problem
 %   argmin_{x} 3*abs(x) + 5/2 * ( 2*x - 8 )^2;
+%   (= 3.85)
+%
+%   x = SoftShrinkage1D(3,[5 6],[1 2],[8 7]) solves the problem
+%   argmin_{x} 3*abs(x) + 5/2 * ( x - 8 )^2 + 6/2 * ( 2*x - 7 ); 
+%   (= 4.1724)
 %
 %   See also fminunc
 
@@ -42,11 +47,31 @@ function x = SoftShrinkage1D(lambda,theta,A,B)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 10.08.2012 16:00
+% Last revision on: 13.08.2012 15:20
+
+error(nargchk(4, 4, nargin));
+error(nargoutchk(0, 1, nargout));
+
+ExcM = ExceptionMessage('Input');
+
+ExcM.message = 'Input does not have the correct structure.';
+assert( isscalar(lambda) , ExcM.id, ExcM.message);
+assert( isvector(theta) , ExcM.id, ExcM.message);
+assert( isvector(A) , ExcM.id, ExcM.message);
+assert( isvector(B) , ExcM.id, ExcM.message);
+
+ExcM.message = 'Weights must all be positive.';
+assert( lambda >= 0 , ExcM.id, ExcM.message );
+assert( all( theta >= 0 ) , ExcM.id, ExcM.message );
+
+ExcM.message = 'Number of weights and coefficients does not conincide.';
+assert( length(theta)==length(A), ExcM.id, ExcM.message);
+assert( length(theta)==length(B), ExcM.id, ExcM.message);
 
 theta = theta(:);
 A = A(:);
 B = B(:);
+
 [a b c] = CollectCoeffs(theta,A,B);
 [a b ~] = QuadraticCompletion(a,b,c);
 x = softshrink(b,lambda/a);
