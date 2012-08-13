@@ -81,7 +81,7 @@ ExcM2 = ExceptionMessage('BadDim');
 for i = 1:N
     assert( ismatrix(A{i}), ExcM.id, ExcM.message);
     assert( iscolumn(b{i}), ExcM.id, ExcM.message);
-    assert( isequal( size(A{i},1), size(b{i}) ), ExcM2.id, ExcM2.message);
+    assert( isequal( size(A{i},1), size(b{i},1) ), ExcM2.id, ExcM2.message);
 end
 
 LHS = theta(1)*transpose(A{1})*A{1};
