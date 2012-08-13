@@ -4,7 +4,7 @@ function x = SoftShrinkage(lambda,theta,A,B)
 %   Input parameters (required):
 %
 %   lambda: weight in front of the absolute value. (vector)
-%   theta : weights in front of the quadratic terms. (matrix)
+%   theta : weights in front of the quadratic terms. (vector)
 %   A     : weights in front of the unknown inside the quad. terms. (matrix)
 %   B     : weights inside the quadratic terms. (matrix)
 %
@@ -17,20 +17,20 @@ function x = SoftShrinkage(lambda,theta,A,B)
 %   SoftShrinkage solves the following multivariate unconstrained optimization
 %   problem: 
 %
-%   argmin_{x} lambda*||x||_1 + sum_{i=1:N} theta(i)/2 * ||A(i)*x-B(i)||^2_2;
+%   argmin_{x} ||lambda*x||_1 + sum_{i=1:N} theta(i)/2*||A(:,i)*x-B(:,i)||^2_2;
 %
 %   where:
 %   lambda is a diagonal matrix with positive entries.
-%   theta(i) is a diagonal matrix with positive entries for all i.
-%   A(i) is a diagonal matrix for all i.
-%   B(i) is a vector for all i.
+%   theta(i) is a positive weight for all i.
+%   A(:,i) is a diagonal matrix for all i.
+%   B(:,i) is a vector for all i.
 %
 %   Note that the problem decouples and can be treated componentwise.Thus, if
 %   the solution is sought in R^k, and we have N quadratic terms, then the input
 %   variables should have the following structure:
 %
 %   lambda : vector in R^k.
-%   theta  : matrix in R^(k,N); 
+%   theta  : vector in R^(N); 
 %   A      : matrix in R^(k,N);
 %   B      : matrix in R^(k,N);
 %
@@ -39,8 +39,14 @@ function x = SoftShrinkage(lambda,theta,A,B)
 %
 %   Example:
 %
-%   x = SoftShrinkage1D(3,5,2,8) solves the problem
-%   argmin_{x} 3*abs(x) + 5/2 * ( 2*x - 8 )^2;
+%   lambda = [4 0.02 6];
+%   theta  = [1 10]; 
+%   A      = [7 2 ; 0 -6 ; 1 6];
+%   B      = [2 6 ; 2 4 ; 3 8 ];
+%   x = Softhrinkage(lambda,theta,A,B) will return
+%   x = [ 1.4067 ; - 0.6666 ; 1.3213 ];
+%   which is the minimizer of the energy functional
+%   ||diag(lambda)*x||_1 + sum_{i=1:2} theta(i)/2*||A(:,i)*x-B(:,i)||_2^2
 %
 %   See also SoftShrinkage1D
 
@@ -60,13 +66,13 @@ function x = SoftShrinkage(lambda,theta,A,B)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 10.08.2012 17:00
+% Last revision on: 13.08.2012 11:15
 
 lambda = lambda(:);
 k = length(lambda);
 x = zeros(k,1);
 for i = 1:k
-    x(i) = SoftShrinkage1D(lambda(i),theta(i,:),A(i,:),B(i,:));
+    x(i) = SoftShrinkage1D(lambda(i),theta,A(i,:),B(i,:));
 end
 
 end
