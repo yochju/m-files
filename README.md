@@ -1,10 +1,7 @@
--*- mode: org -*-
-#+TAGS: Complete UnDocumented InComplete Obsolete Planned
-
-* About
+# About
 
 This repository contains a collection of working, unfinished as well as
-abandoned functions. They serve various tasks although most of them are related
+abandoned functions. They serve various tasks although many of them are related
 to image processing tasks.
 
 Note that the functions have been designed for usability and not necessarily for
@@ -17,70 +14,28 @@ Matlab. Although it often would only require trivial changes to make it
 compatible. Concerning GNU octave, one could probably obtain almost complete
 compatibility by simply removing the input parser.
 
-* Function Listing
+# License
 
-  The functions are grouped (by theme) into different folders. The Tag indicates
-  the current status of the file.
+Unless specified otherwise, all the files are licensed under GPLv3 and contain
+the following license information
 
-** Generic
+Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 
-*** FindAbsLargest						 :InComplete:
-*** FindAbsSmallest						 :InComplete:
-*** FindLargest							 :InComplete:
-*** FindSmallest						 :InComplete:
-*** FirmShrink							 :InComplete:
-*** GarroteShrink						 :InComplete:
-*** HardShrink							 :InComplete:
-*** LinearShrink						 :InComplete:
-*** SoftShrink							 :InComplete:
-*** Threshold							 :InComplete:
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 3 of the License, or (at your option) any later
+version.
 
-** LinearAlgebra
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-*** CanonicBasisVector						   :Complete:
-*** CircShift							   :Complete:
-*** DiffFilter1D						   :Complete:
-*** ExtractEntries						   :Complete:
-*** FiniteDiff1DM						   :Complete:
-*** GradientM							   :Complete:
-*** IsInteger							   :Complete:
-*** IsSquareMatrix						   :Complete:
-*** KroneckerSum						   :Complete:
-*** LaplaceM							   :Complete:
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
+Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-** ImageAnalysis
+# Comments
 
-*** ImageAdjust 						    :Planned:
-*** ImageClip							    :Planned:
-*** ImageDeriv							   :Complete:
-*** ImageDiv							   :Complete:
-*** ImageDx							   :Complete:
-*** ImageDxx							   :Complete:
-*** ImageDxy							   :Complete:
-*** ImageDy							   :Complete:
-*** ImageDyy							   :Complete:
-*** ImageGrad							   :Complete:
-*** ImageGradMag						   :Complete:
-*** ImageHess							   :Complete:
-*** ImageLapl							   :Complete:
-*** ImagePad							   :Complete:
-*** ImagePyramid						   :Complete:
-*** ImageQuantize						    :Planned:
-*** ImageSmooth							   :Complete:
-*** ImageThreshold						    :Planned:
-*** ImageToVector						   :Complete:
-*** IsImage							   :Complete:
-*** MeanSquareError						   :Complete:
-*** MirrorEdges							   :Complete:
-*** PeakSignalToNoiseRatio					   :Complete:
-
-** System
-
-*** ReturnDocString					       :UnDocumented:
-*** UpdateFunction					       :UnDocumented:
-*** CreateTemplate					       :UnDocumented:
-*** InsertDocString					       :UnDocumented:
-
-* Notes:
-
-  http://www.mathworks.de/help/techdoc/matlab_prog/brubzjb-1.html#brubz7_-1
+Many parts are work in progress and subject to change in the future. This is
+especially true for the structure of the repository. In the long term, it is
+planned to achieve a reasonable layout using toolboxes and classes.
