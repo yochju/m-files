@@ -1,4 +1,4 @@
-function x = ThomasSolver(a,b,c,k,f)
+function x = ThomasSolver(a, b, c, k, f)
 %% Thomas algorithm for solving tridiagonal linear systems.
 %
 % x = ThomasSolver(a,b,c,k,f)
@@ -45,6 +45,9 @@ function x = ThomasSolver(a,b,c,k,f)
 % Last revision on: 25.08.2012 20:00
 
 %% Check Input and Output Arguments
+
+narginchk(5, 5);
+nargoutchk(0, 1);
 
 N = length(f);
 

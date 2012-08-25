@@ -1,7 +1,7 @@
-function y = LinearShrink ( x , gam )
-% Performs linear shrinkage with threshold gamma.
+function y = LinearShrink ( x, gam )
+%% Performs linear shrinkage with threshold gamma.
 %
-% See also GarroteShrink, HardShrink, FirmShrink, SoftShrink
+% See also GarroteShrink, HardShrink, FirmShrink, SoftShrinkage
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -19,14 +19,15 @@ function y = LinearShrink ( x , gam )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 17:10
+% Last revision: 25.08.2012 20:25
 
 %% Check input parameters
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 %% Compute shrinkage.
 
 y = gam .* x;
+
 end

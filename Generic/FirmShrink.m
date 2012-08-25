@@ -21,12 +21,12 @@ function y = FirmShrink( x, gam1, gam2 )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 17:10
+% Last revision: 25.08.2012 20:28
 
 %% Check input parameters
 
-error(nargchk(3, 3, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(3, 3);
+nargoutchk(0, 1);
 
 %% Compute shrinkage.
 

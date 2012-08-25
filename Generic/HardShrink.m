@@ -3,7 +3,7 @@ function y = HardShrink( x, gam )
 %
 % y = HardShrink( x, gam )
 %
-% See also GarroteShrink, FirmShrink, LinearShrink, SoftShrink
+% See also GarroteShrink, FirmShrink, LinearShrink, SoftShrinkage
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -21,14 +21,16 @@ function y = HardShrink( x, gam )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 17:10
+% Last revision: 25.08.2012 20:20
 
 %% Check input parameters
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 %% Compute shrinkage.
 
-y = x.*(abs(x)>gam);
+y = x;
+y(abs(x)<=gam) = 0;
+
 end

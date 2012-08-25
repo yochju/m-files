@@ -1,4 +1,4 @@
-function y = GarroteShrink( x,gam )
+function y = GarroteShrink( x, gam )
 %% Performs garrote shrinkage with threshold gamma.
 %
 % y = GarroteShrink( x,gam )
@@ -21,16 +21,17 @@ function y = GarroteShrink( x,gam )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 17:10
+% Last revision: 25.08.2012 20:30
 
 %% Check input parameters
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 %% Compute shrinkage.
 
 z = x;
 z(abs(z)>gam) = gam^2./z(abs(z)>gam);
 y = (x.*(abs(x)>gam)-z).*(abs(x)>gam);
+
 end
