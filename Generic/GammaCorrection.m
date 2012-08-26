@@ -1,19 +1,16 @@
-function out = Normalise(in,gamma)
-%% Perform normalisation with optional gamma correction.
+function out = GammaCorrection(in,gamma)
+%% Perform gamma correction.
 %
 % out = Normalise(in,gamma)
 %
 % Input parameters (required):
 %
-% in     : input data.
-%
-% Input parameters (optional):
-%
-% gamma : optional gamma correction parameter. 
+% in    : input data.
+% gamma : gamma correction parameter. 
 %
 % Output parameters:
 %
-% out : normalised input data.
+% out : corrected input data.
 %
 % See also Rescale
 
@@ -33,12 +30,12 @@ function out = Normalise(in,gamma)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 26.08.2012 21:20
+% Last revision: 26.08.2012 21:30
 
 %% Check input parameters
 
-narginchk(1, 2);
+narginchk(2, 2);
 nargoutchk(0, 1);
 
-out = Rescale(in,0,1,gamma);
+out = Rescale(in,min(in(:)),max(in(:)),gamma);
 end
