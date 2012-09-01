@@ -44,7 +44,7 @@ classdef ExceptionMessage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-    % Last revision on: 19.07.2012 06:51
+    % Last revision on: 01.09.2012 11:16
     
     properties
         id = ''; % Identifier for the message.
@@ -59,8 +59,8 @@ classdef ExceptionMessage
         function obj = ExceptionMessage(type,varargin)
             % Constructor.
             
-            error(nargchk(1, 3, nargin));
-            error(nargoutchk(0, 1, nargout));
+            narginchk(1, 3);
+            nargoutchk(0, 1);
             
             parser = inputParser;
             
@@ -130,6 +130,8 @@ classdef ExceptionMessage
                 'BadDim',      'Data has wrong size.', ...
                 'BadClass',    'Unknown data class required.', ...
                 'Internal',    'An internal error occured.', ...
+                'NotFound',    'Cannot find file.', ...
+                'NoField',     'Not a field of this struct.', ...
                 'Unsupported', 'This operation is not yet supported.' ...
                 );
         end
