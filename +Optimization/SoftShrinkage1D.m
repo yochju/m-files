@@ -49,8 +49,8 @@ function x = SoftShrinkage1D(lambda,theta,A,B)
 
 % Last revision on: 13.08.2012 15:20
 
-error(nargchk(4, 4, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(4, 4);
+nargoutchk(0, 1);
 
 ExcM = ExceptionMessage('Input');
 
