@@ -77,7 +77,7 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
             A{3} = speye(length(f(:)),length(f(:)));
             b{3} = uOldI(:);
             
-            u = MinQuadraticEnergy(coeffs,A,b);
+            u = Optimization.MinQuadraticEnergy(coeffs,A,b);
             
             % Find optimal c.
             
@@ -85,7 +85,7 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
             theta = [ t cStep ];
             A = [ u(:) - f(:) + D2(length(u(:)))*u(:) cOldI(:) ];
             b = [ D2(length(u(:)))*u cOldI ];
-            c = SoftShrinkage(lambda,theta,A,b);
+            c = Optimization.SoftShrinkage(lambda,theta,A,b);
             
             EnerVal = [ EnerVal Energy(u,c,f,l) ];
             ResiVal = [ ResiVal Residual(u,c,f) ];
