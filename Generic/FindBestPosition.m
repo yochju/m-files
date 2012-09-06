@@ -12,7 +12,7 @@ function p = FindBestPosition(V, x, varargin)
 %
 % pos : either 'first' or 'last'. (case insensitive, default = 'first')
 %
-% Output paramaters:
+% Output parameters:
 %
 % p : position of the best approximation to x inside V. (scalar)
 %
