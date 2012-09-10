@@ -84,7 +84,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 
 %% Perform input and output argument checking.
 
-narginchk(1,28);
+narginchk(1,31);
 nargoutchk(2,7);
 
 parser = inputParser;
@@ -116,7 +116,7 @@ parser.addParamValue('PDEstep', 2, @(x) isscalar(x)&&(x>=0));
 
 parser.addParamValue('thresh', -1.0, @(x) isscalar(x)&&IsDouble(x));
 
-parser.parse(in,varargin{:})
+parser.parse(f,varargin{:})
 opts = parser.Results;
 
 % Initialise solution and mask.
@@ -141,6 +141,7 @@ LapM = LaplaceM(row, col, 'KnotsR', [-1 0 1], 'KnotsC', [-1 0 1], ...
     'Boundary', 'Neumann');
 
 k = 1;
+NumIter = 0;
 while k <= opts.MaxOuter
     %% Outer loop increases the penalization of deviations in the constraint.
     
@@ -160,7 +161,7 @@ while k <= opts.MaxOuter
         
         % Find optimal u by solving a least squares problem.
         
-        coeffs = [ 1 opts.penPDE opts.upenu ];
+        coeffs = [ 1 opts.penPDE opts.penu ];
         A = cell(3,1);
         b = cell(3,1);
         
@@ -188,12 +189,13 @@ while k <= opts.MaxOuter
         % Check if we can stop iterating and compute optional results.
         
         if nargout > 2
-            EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,f,l);
-            ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,f);
+            EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f,opts.lambda);
+            ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f);
             ItIn = ItIn + 1;
         end
         
         changeI = max([norm(uOldI-u,Inf) norm(cOldI-c,Inf)]);
+        NumIter = NumIter + 1;
         
         if changeI < opts.TolInner
             break;
@@ -226,6 +228,12 @@ if opts. thresh < 0
     u = SolvePde(f,c);
 else
     u = Threshold(SolvePde(f,c),opts.thresh);
+end
+
+if nargout > 2
+    EnerVal(EnerVal==Inf) = [];
+    ResiVal(ResiVal==Inf) = [];
+    IncPEN(IncPEN==Inf) = [];
 end
 
 switch nargout

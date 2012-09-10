@@ -126,7 +126,7 @@ parser.addParamValue('thresh', -1.0, @(x) isscalar(x)&&IsDouble(x));
 parser.addParamValue('scaling', 1.0, @(x) isscalar(x)&&(x>=0));
 parser.addParamValue('NSamples', 1, @(x) isscalar(x)&&IsInteger(x));
 
-parser.parse(in,varargin{:})
+parser.parse(f,varargin{:})
 opts = parser.Results;
 
 Scales = CoarseToFine(f,opts.scaling,opts.NSamples);
