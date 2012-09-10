@@ -66,8 +66,8 @@ function M = GradientM(r,c,varargin)
 
 %% Check input parameters
 
-error(nargchk(2, 14, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 14);
+nargoutchk(0, 1);
 
 optargin = size(varargin,2);
 stdargin = nargin - optargin;
