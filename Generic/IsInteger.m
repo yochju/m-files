@@ -31,12 +31,12 @@ function r = IsInteger(x)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 16:35
+% Last revision: 10.09.2012 11:04
 
 %% Check input parameters
 
-error(nargchk(1, 1, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 1);
+nargoutchk(0, 1);
 
 %% Compute result.
 

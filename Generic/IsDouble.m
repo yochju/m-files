@@ -1,24 +1,19 @@
-function r = IsSquarematrix(A)
-%% Checks if input is a square matrix.
+function r = IsDouble(x)
+%% Checks if input is of class double.
 %
-% r = IsSquarematrix(A)
+% r = IsDouble(x)
 %
-% Verifies whether input is a square matrix.
+% Returns true if input is of class double. False otherwise.
 %
-% Input Parameters (required):
+% Input Parameters (required)
 %
-% A : test candidate. (arbitrary)
-%
-% Output Parameters
-%
-% r : result. (boolean)
+% x : Array to test.
 %
 % Example
 %
-% A = [1 2 ; 3 4];
-% issquarematrix(A)
+% IsDouble([0.5 1 ; 2 3.5]) = 1
 %
-% See also ismatrix.
+% See also isreal, isscalar.
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -36,18 +31,15 @@ function r = IsSquarematrix(A)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/02/18 21:00
-
-%% Comments and Remarks.
-%
+% Last revision: 10.09.2012 11:04
 
 %% Check input parameters
 
-error(nargchk(1, 1, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 1);
+nargoutchk(0, 1);
 
-%% Perform test
+%% Compute result.
 
-r = ismatrix(A) && (diff(size(A))==0);
+r = isa(x,'double');
 
 end
