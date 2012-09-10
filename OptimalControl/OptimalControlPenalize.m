@@ -44,6 +44,10 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
     ResiVal = [];
     IncPEN = [];
     
+    [row col] = size(u);
+    LapM = LaplaceM(row, col, 'KnotsR', [-1 0 1], 'KnotsC', [-1 0 1], ...
+        'Boundary', 'Neumann');
+    
     while k <= MaxK
         %% Outer loop increases the penalization of deviations in the constraint.
         
@@ -71,7 +75,7 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
             A{1} = speye(length(f(:)),length(f(:)));
             b{1} = f(:);
             
-            A{2} = ConstructMat4u(cOldI);
+            A{2} = ConstructMat4u(cOldI,LapM);
             b{2} = cOldI(:).*f(:);
             
             A{3} = speye(length(f(:)),length(f(:)));
@@ -83,8 +87,8 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
             
             lambda = l*ones(length(c(:)),1);
             theta = [ t cStep ];
-            A = [ u(:) - f(:) + D2(length(u(:)))*u(:) cOldI(:) ];
-            b = [ D2(length(u(:)))*u cOldI ];
+            A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
+            b = [ LapM*u cOldI ];
             c = Optimization.SoftShrinkage(lambda,theta,A,b);
             
             EnerVal = [ EnerVal Energy(u,c,f,l) ];
@@ -120,7 +124,7 @@ function [u c NumIter EnerVal ResiVal IncPEN] = OptimalControlPenalize(f,l,t,Max
 end
 
 
-function out = ConstructMat4u(c)
+function out = ConstructMat4u(c,D)
     out = spdiags(c(:),0,length(c(:)),length(c(:))) - ...
-        spdiags(1-c(:),0,length(c(:)),length(c(:)))*D2(length(c(:)));
+        spdiags(1-c(:),0,length(c(:)),length(c(:)))*D;
 end
