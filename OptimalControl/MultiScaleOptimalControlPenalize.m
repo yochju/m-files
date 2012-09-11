@@ -91,7 +91,7 @@ function [u c varargout] = MultiScaleOptimalControlPenalize(f, varargin)
 
 %% Perform input and output argument checking.
 
-narginchk(1,28);
+narginchk(1,29);
 nargoutchk(2,7);
 
 parser = inputParser;
