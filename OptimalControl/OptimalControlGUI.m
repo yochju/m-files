@@ -22,7 +22,7 @@ function varargout = OptimalControlGUI(varargin)
     
     % Edit the above text to modify the response to help OptimalControlGUI
     
-    % Last Modified by GUIDE v2.5 16-Aug-2012 11:50:19
+    % Last Modified by GUIDE v2.5 11-Sep-2012 17:40:01
     
     % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -101,12 +101,12 @@ function RunButton_Callback(hObject, eventdata, handles)
     
     if ~isfield(handles.data,'N') || ...
             ~isfield(handles.data,'lambda') || ...
-            ~isfield(handles.data,'ItK') || ...
-            ~isfield(handles.data,'ItI') || ...
-            ~isfield(handles.data,'TolK') || ...
-            ~isfield(handles.data,'TolI') || ...
-            ~isfield(handles.data,'uStep') || ...
-            ~isfield(handles.data,'cStep') || ...
+            ~isfield(handles.data,'ItK')    || ...
+            ~isfield(handles.data,'ItI')    || ...
+            ~isfield(handles.data,'TolK')   || ...
+            ~isfield(handles.data,'TolI')   || ...
+            ~isfield(handles.data,'uStep')  || ...
+            ~isfield(handles.data,'cStep')  || ...
             ~isfield(handles.data,'theta')
         errordlg('Not all Fields have been filled out.','Error');
     else
@@ -118,6 +118,11 @@ function RunButton_Callback(hObject, eventdata, handles)
         TolI   = handles.data.TolI;
         uStep  = handles.data.uStep;
         cStep  = handles.data.cStep;
+        penPDE = handles.data.penPDE;
+        penu   = handles.data.penu;
+        penc   = handles.data.penc;
+        scaling= handles.data.scaling;
+        NSamples= handles.data.NSamples;
         theta  = handles.data.theta;
     end
     
@@ -152,24 +157,42 @@ function RunButton_Callback(hObject, eventdata, handles)
     tic();
     % TODO: Replace this with multiscale algorithm and add remaining parameters
     % to gui.
-    [u c ItIn ItOut EnerVal ResiVal IncPEN] = OptimalControlPenalize( ...
-        Sig(:), ...
-        'MaxOuter', itK, ...
-        'MaxInner', itI, ...
-        'TolOuter', TolK, ...
-        'TolInner', TolI, ...
-        'uInit', [], ...
-        'cInit', [], ...
-        'lambda', lambda, ...
-        'penPDE', theta, ...
-        'penPDE', 10, ...
-        'penu', 1e-3, ...
-        'penc', 1e-3, ...
-        'uStep', uStep, ...
-        'cStep', cStep, ...
-        'PDEstep', 2.0, ...
-        'thresh', -1 ...
+%     [u c ItIn ItOut EnerVal ResiVal IncPEN] = OptimalControlPenalize( ...
+%         Sig(:), ...
+%         'MaxOuter', itK, ...
+%         'MaxInner', itI, ...
+%         'TolOuter', TolK, ...
+%         'TolInner', TolI, ...
+%         'uInit', [], ...
+%         'cInit', [], ...
+%         'lambda', lambda, ...
+%         'penPDE', theta, ...
+%         'penPDE', penPDE, ...
+%         'penu', penu, ...
+%         'penc', penc, ...
+%         'uStep', uStep, ...
+%         'cStep', cStep, ...
+%         'PDEstep', 2.0, ...
+%         'thresh', -1 ...
+%     );
+[u c ItIn ItOut EnerVal ResiVal IncPEN] = MultiScaleOptimalControlPenalize( ...
+    Sig(:), ...
+    'MaxOuter', itK, ...
+    'MaxInner', itI, ...
+    'TolOuter', TolK, ...
+    'TolInner', TolI, ...
+    'lambda', lambda, ...
+    'penPDE', theta, ...
+    'penu', penu, ...
+    'penc', penc, ...
+    'uStep', uStep, ...
+    'cStep', cStep, ...
+    'PDEstep', penPDE, ...
+    'scaling', scaling, ...
+    'NSamples', NSamples, ...
+    'thresh', -1 ...
     );
+
     runtime = toc();
     
     NumIter = ItIn;
@@ -216,7 +239,8 @@ function RunButton_Callback(hObject, eventdata, handles)
     %xlabel('Position');
     %ylabel('Value');
     
-    set(handles.NumIts, 'String', NumIter);
+    set(handles.NumItsK, 'String', ItOut);
+    set(handles.NumItsI, 'String', ItIn);
     set(handles.runtime, 'String', runtime);
     set(handles.EneVal, 'String', Ener);
     set(handles.ResiVal, 'String', Resi);
@@ -253,6 +277,9 @@ function SigN_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.N = 128;
+    fprintf(1,'Set signal length to: 128.\n');
+    guidata(hObject,handles)
     
     
     
@@ -284,6 +311,9 @@ function TolK_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.TolK = 0.001;
+    fprintf(1,'Set outer tolerance to: %d.\n',0.001);
+    guidata(hObject,handles)
     
     
     
@@ -316,6 +346,9 @@ function ItK_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.ItK = 5;
+    fprintf(1,'Set outer iterations to: %d.\n',5);
+    guidata(hObject,handles)
     
     
     
@@ -347,6 +380,9 @@ function TolI_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.TolI = 0.001;
+    fprintf(1,'Set inner tolerance to: %d.\n',0.001);
+    guidata(hObject,handles)
     
     
     
@@ -378,6 +414,9 @@ function ItI_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.ItI = 15;
+    fprintf(1,'Set inner iterations to: %d.\n',15);
+    guidata(hObject,handles)
     
     
     
@@ -409,6 +448,9 @@ function lambda_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.lambda = 0.235;
+    fprintf(1,'Set lambda to: %d.\n',0.235);
+    guidata(hObject,handles)
     
     
     
@@ -440,6 +482,9 @@ function uStep_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    handles.data.uStep = 2;
+    fprintf(1,'Set proximal penalisation of solution to: %d.\n',2);
+    guidata(hObject,handles)
     
     
     
@@ -471,7 +516,9 @@ function cStep_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    
+    handles.data.cStep = 2;
+    fprintf(1,'Set proximal penalisation of mask to: %d.\n',2);
+    guidata(hObject,handles)
     
     
 function theta_Callback(hObject, eventdata, handles)
@@ -502,6 +549,10 @@ function theta_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    % Save the new volume value
+    handles.data.theta = 10;
+    fprintf(1,'Set penalisation of PDE to: %d.\n',10);
+    guidata(hObject,handles)
     
     
     % --- Executes when figure1 is resized.
@@ -519,6 +570,33 @@ function SelectSignal_Callback(hObject, eventdata, handles)
     
     % Hints: contents = cellstr(get(hObject,'String')) returns SelectSignal contents as cell array
     %        contents{get(hObject,'Value')} returns selected item from SelectSignal
+    popup_sel_index = get(handles.SelectSignal, 'Value');
+    switch popup_sel_index
+        case 1
+            Sig = MakeSignal('Piece-Polynomial',handles.data.N);
+        case 2
+            Sig = MakeSignal('Piece-Regular',handles.data.N);
+        case 3
+            Sig = linspace(-1,1,handles.data.N).^2;
+        case 4
+            Sig = -reallog(linspace(1/10,10,handles.data.N));
+    end
+    Sig = Sig - min(Sig(:));
+    Sig = Sig/max(Sig(:));
+    
+    axes(handles.Results);
+    cla;
+    plot( ...
+        1:length(Sig(:)), Sig(:), '-k', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'b', ...
+        'MarkerSize', 4 ...
+        );
+    title('Signal');
+    legend('Signal');
+    xlabel('Position');
+    ylabel('Value');
     
     
     % --- Executes during object creation, after setting all properties.
@@ -532,9 +610,174 @@ function SelectSignal_CreateFcn(hObject, eventdata, handles)
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
-    set(hObject, 'String', { ...
-        'Piece-Polynomial', ...
-        'Piece-Regular', ...
-        'x^2', ...
-        '-log(x)' ...
-        });
+
+
+function penuinc_Callback(hObject, eventdata, handles)
+% hObject    handle to penuinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of penuinc as text
+%        str2double(get(hObject,'String')) returns contents of penuinc as a double
+penu = str2double(get(hObject, 'String'));
+if isnan(penu)
+    set(hObject, 'String', 0);
+    errordlg('Input must be a number','Error');
+end
+% Save the new volume value
+handles.data.penu = penu;
+fprintf(1,'Set proximal penalisation increment of solution to: %d.\n',penu);
+guidata(hObject,handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function penuinc_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to penuinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+% Save the new volume value
+handles.data.penu = 1.5;
+fprintf(1,'Set proximal penalisation increment of solution to: %d.\n',1.5);
+guidata(hObject,handles)
+
+
+function pencinc_Callback(hObject, eventdata, handles)
+% hObject    handle to pencinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of pencinc as text
+%        str2double(get(hObject,'String')) returns contents of pencinc as a double
+penc = str2double(get(hObject, 'String'));
+if isnan(penc)
+    set(hObject, 'String', 0);
+    errordlg('Input must be a number','Error');
+end
+% Save the new volume value
+handles.data.penc = penc;
+fprintf(1,'Set proximal penalisation increment of mask to: %d.\n',penc);
+guidata(hObject,handles)
+
+% --- Executes during object creation, after setting all properties.
+function pencinc_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pencinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.data.penc = 1.5;
+fprintf(1,'Set proximal penalisation increment of mask to: %d.\n',1.5);
+guidata(hObject,handles)
+
+
+function penPDEinc_Callback(hObject, eventdata, handles)
+% hObject    handle to penPDEinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of penPDEinc as text
+%        str2double(get(hObject,'String')) returns contents of penPDEinc as a double
+penPDE = str2double(get(hObject, 'String'));
+if isnan(penPDE)
+    set(hObject, 'String', 0);
+    errordlg('Input must be a number','Error');
+end
+% Save the new volume value
+handles.data.penPDE = penPDE;
+fprintf(1,'Set proximal penalisation increment of PDE to: %d.\n',penPDE);
+guidata(hObject,handles)
+
+% --- Executes during object creation, after setting all properties.
+function penPDEinc_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to penPDEinc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.data.penPDE = 2.0;
+fprintf(1,'Set proximal penalisation increment of PDE to: %d.\n',2.0);
+guidata(hObject,handles)
+
+
+function ScalingFactor_Callback(hObject, eventdata, handles)
+% hObject    handle to ScalingFactor (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ScalingFactor as text
+%        str2double(get(hObject,'String')) returns contents of ScalingFactor as a double
+scaling = str2double(get(hObject, 'String'));
+if isnan(scaling)
+    set(hObject, 'String', 0);
+    errordlg('Input must be a number','Error');
+end
+% Save the new volume value
+handles.data.scaling = scaling;
+fprintf(1,'Set the Multiscale factor to: %d.\n',scaling);
+guidata(hObject,handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function ScalingFactor_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ScalingFactor (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+% Save the new volume value
+handles.data.scaling = 1.0;
+fprintf(1,'Set the Multiscale factor to: %d.\n',1.0);
+guidata(hObject,handles)
+
+
+
+function MinSamples_Callback(hObject, eventdata, handles)
+% hObject    handle to MinSamples (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of MinSamples as text
+%        str2double(get(hObject,'String')) returns contents of MinSamples as a double
+NSamples = str2double(get(hObject, 'String'));
+if isnan(NSamples)
+    set(hObject, 'String', 0);
+    errordlg('Input must be a number','Error');
+end
+% Save the new volume value
+handles.data.NSamples = NSamples;
+fprintf(1,'Set the min. number of samples to: %d.\n',NSamples);
+guidata(hObject,handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function MinSamples_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to MinSamples (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+handles.data.NSamples = 4;
+fprintf(1,'Set the min. number of samples to: %d.\n',4);
+guidata(hObject,handles)
