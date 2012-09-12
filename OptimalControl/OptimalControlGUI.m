@@ -22,7 +22,7 @@ function varargout = OptimalControlGUI(varargin)
     
     % Edit the above text to modify the response to help OptimalControlGUI
     
-    % Last Modified by GUIDE v2.5 11-Sep-2012 17:40:01
+    % Last Modified by GUIDE v2.5 12-Sep-2012 10:21:32
     
     % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -597,6 +597,7 @@ function SelectSignal_Callback(hObject, eventdata, handles)
     legend('Signal');
     xlabel('Position');
     ylabel('Value');
+    guidata(hObject,handles);
     
     
     % --- Executes during object creation, after setting all properties.
@@ -781,3 +782,88 @@ end
 handles.data.NSamples = 4;
 fprintf(1,'Set the min. number of samples to: %d.\n',4);
 guidata(hObject,handles)
+
+
+% --- Executes on selection change in optimal.
+function optimal_Callback(hObject, eventdata, handles)
+% hObject    handle to optimal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns optimal contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from optimal
+popup_sel_index = get(handles.optimal, 'Value');
+
+    axes(handles.EvoEne);
+    cla;
+    axes(handles.EvoResi);
+    cla;
+    switch popup_sel_index
+        case 1
+            handles.data.N = 128;
+            set(handles.SigN, 'string', 128);
+            handles.data.lambda = 0.235;
+            set(handles.lambda, 'string', 0.235);
+            handles.data.ItK = 5;
+            set(handles.ItK, 'string', 5);
+            handles.data.ItI = 15;
+            set(handles.ItI, 'string', 15);
+            handles.data.TolK = 0.001;
+            set(handles.TolK, 'string', 0.001);
+            handles.data.TolI = 0.001;
+            set(handles.TolI, 'string', 0.001);
+            handles.data.uStep = 2;
+            set(handles.uStep, 'string', 2);
+            handles.data.cStep = 2;
+            set(handles.cStep, 'string', 2);
+            handles.data.penPDE = 2;
+            set(handles.penPDEinc, 'string', 2);
+            handles.data.penu = 1.5;
+            set(handles.penuinc, 'string', 1.5);
+            handles.data.penc = 1.5;
+            set(handles.pencinc, 'string', 1.5);
+            handles.data.scaling = 1.0;
+            set(handles.ScalingFactor, 'string', 1.0);
+            handles.data.NSamples = 4;
+            set(handles.MinSamples, 'string', 4);
+            handles.data.theta = 10;
+            set(handles.theta, 'string', 10);
+            Sig = MakeSignal('Piece-Polynomial',handles.data.N);
+        case 2
+            Sig = MakeSignal('Piece-Regular',handles.data.N);
+        case 3
+            Sig = linspace(-1,1,handles.data.N).^2;
+        case 4
+            Sig = -reallog(linspace(1/10,10,handles.data.N));
+    end
+    
+    set(handles.SelectSignal, 'Value', popup_sel_index);
+    Sig = Sig - min(Sig(:));
+    Sig = Sig/max(Sig(:));
+    
+    axes(handles.Results);
+    cla;
+    plot( ...
+        1:length(Sig(:)), Sig(:), '-k', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'b', ...
+        'MarkerSize', 4 ...
+        );
+    title('Signal');
+    legend('Signal');
+    xlabel('Position');
+    ylabel('Value');
+    guidata(hObject,handles);
+
+% --- Executes during object creation, after setting all properties.
+function optimal_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to optimal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
