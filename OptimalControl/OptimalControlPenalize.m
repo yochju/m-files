@@ -122,9 +122,14 @@ opts = parser.Results;
 % Initialise solution and mask.
 if isempty(opts.uInit)
     u = f;
+else
+    u = opts.uInit;
 end
+
 if isempty(opts.cInit)
     c = rand(size(f));
+else
+    c = opts.cInit;
 end
 
 if nargout > 2
@@ -183,7 +188,7 @@ while k <= opts.MaxOuter
         lambda = opts.lambda*ones(length(c(:)),1);
         theta = [ opts.penPDE opts.penc ];
         A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
-        b = [ LapM*u cOldI ];
+        b = [ LapM*u(:) cOldI(:) ];
         c = Optimization.SoftShrinkage(lambda,theta,A,b);
         
         % Check if we can stop iterating and compute optional results.
@@ -194,7 +199,7 @@ while k <= opts.MaxOuter
             ItIn = ItIn + 1;
         end
         
-        changeI = max([norm(uOldI-u,Inf) norm(cOldI-c,Inf)]);
+        changeI = max([norm(uOldI(:)-u(:),Inf) norm(cOldI(:)-c(:),Inf)]);
         NumIter = NumIter + 1;
         
         if changeI < opts.TolInner
@@ -207,7 +212,7 @@ while k <= opts.MaxOuter
     
     % Check if we can end the algorithm and compute optional results.
     
-    changeK = max([norm(uOldK-u,Inf) norm(cOldK-c,Inf)]);
+    changeK = max([norm(uOldK(:)-u(:),Inf) norm(cOldK(:)-c(:),Inf)]);
     ItOut = ItOut + 1;
     
     if changeK < opts.TolOuter

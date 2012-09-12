@@ -133,6 +133,8 @@ Scales = CoarseToFine(f,opts.scaling,opts.NSamples);
 opts.uInit = [];
 opts.cInit = [];
 
+opts = rmfield(opts,'f');
+
 fprintf('Solving on 1 / %d\n',length(Scales));
 [u c ItIn ItOut EnerVal ResiVal IncPEN] = OptimalControlPenalize( ...
     Scales{1}, opts );
