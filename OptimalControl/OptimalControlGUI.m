@@ -124,8 +124,12 @@ function RunButton_Callback(hObject, eventdata, handles)
         scaling= handles.data.scaling;
         NSamples= handles.data.NSamples;
         theta  = handles.data.theta;
-        log    = handles.data.log;
-        logURL = handles.data.logURL;
+        if isfield(handles.data,'log')
+            log    = handles.data.log;
+            logURL = handles.data.logURL;
+        else
+            log = false;
+        end
     end
     
     popup_sel_index = get(handles.SelectSignal, 'Value');
