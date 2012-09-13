@@ -22,7 +22,7 @@ function varargout = OptimalControlGUI(varargin)
     
     % Edit the above text to modify the response to help OptimalControlGUI
     
-    % Last Modified by GUIDE v2.5 12-Sep-2012 10:21:32
+    % Last Modified by GUIDE v2.5 13-Sep-2012 11:14:49
     
     % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -124,6 +124,8 @@ function RunButton_Callback(hObject, eventdata, handles)
         scaling= handles.data.scaling;
         NSamples= handles.data.NSamples;
         theta  = handles.data.theta;
+        log    = handles.data.log;
+        logURL = handles.data.logURL;
     end
     
     popup_sel_index = get(handles.SelectSignal, 'Value');
@@ -194,7 +196,18 @@ function RunButton_Callback(hObject, eventdata, handles)
     );
 
     runtime = toc();
-    
+    if log
+        savedata = handles.data;
+        savedata.u = u;
+        savedata.c = c;
+        savedata.ItIn = ItIn;
+        savedata.ItOut = ItOut;
+        savedata.EnerVal = EnerVal;
+        savedata.ResiVal = ResiVal;
+        savedata.IncPEN = IncPEN;
+        savedata.Sig = Sig;
+        LogData(savedata,logURL);
+    end
     NumIter = ItIn;
     Ener = Energy(u,c,Sig(:),lambda);
     Resi = Residual(u,c,Sig(:));
@@ -867,3 +880,47 @@ function optimal_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in logbox.
+function logbox_Callback(hObject, eventdata, handles)
+% hObject    handle to logbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of logbox
+log = get(hObject,'Value');
+handles.data.log = log;
+fprintf(1,'Logging set to: %d.\n',log);
+guidata(hObject,handles)
+
+
+function logURL_Callback(hObject, eventdata, handles)
+% hObject    handle to logURL (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of logURL as text
+%        str2double(get(hObject,'String')) returns contents of logURL as a double
+logURL = str2double(get(hObject, 'String'));
+% Save the new volume value
+handles.data.logURL = logURL;
+fprintf(1,'Set the logging URL to: %s.\n',logURL);
+guidata(hObject,handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function logURL_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to logURL (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+% Save the new volume value
+handles.data.logURL = '~/Logs/';
+fprintf(1,'Set the logging URL to: %s.\n','~/Logs/');
+guidata(hObject,handles)
