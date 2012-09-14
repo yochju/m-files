@@ -22,7 +22,7 @@ function varargout = OptimalControlGUI(varargin)
     
     % Edit the above text to modify the response to help OptimalControlGUI
     
-    % Last Modified by GUIDE v2.5 13-Sep-2012 11:14:49
+    % Last Modified by GUIDE v2.5 14-Sep-2012 15:33:39
     
     % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -200,6 +200,10 @@ function RunButton_Callback(hObject, eventdata, handles)
     );
 
     runtime = toc();
+    
+    handles.data.solu = u;
+    handles.data.solc = c;
+    
     if log
         savedata = handles.data;
         savedata.u = u;
@@ -263,7 +267,7 @@ function RunButton_Callback(hObject, eventdata, handles)
     set(handles.ResiVal, 'String', Resi);
     
     fprintf(1,'Computation finished.\n');
-    
+    guidata(hObject, handles);
     
 function SigN_Callback(hObject, eventdata, handles)
     % hObject    handle to SigN (see GCBO)
@@ -849,6 +853,34 @@ popup_sel_index = get(handles.optimal, 'Value');
         case 2
             Sig = MakeSignal('Piece-Regular',handles.data.N);
         case 3
+            handles.data.N = 128;
+            set(handles.SigN, 'string', 128);
+            handles.data.lambda = 0.16305125;
+            set(handles.lambda, 'string', 0.16305125);
+            handles.data.ItK = 150;
+            set(handles.ItK, 'string', 150);
+            handles.data.ItI = 150;
+            set(handles.ItI, 'string', 150);
+            handles.data.TolK = 0.00001;
+            set(handles.TolK, 'string', 0.00001);
+            handles.data.TolI = 0.00001;
+            set(handles.TolI, 'string', 0.00001);
+            handles.data.uStep = 1.1;
+            set(handles.uStep, 'string', 1.1);
+            handles.data.cStep = 1.1;
+            set(handles.cStep, 'string', 1.1);
+            handles.data.penPDE = 1.1;
+            set(handles.penPDEinc, 'string', 1.1);
+            handles.data.penu = 1.1;
+            set(handles.penuinc, 'string', 1.1);
+            handles.data.penc = 1.1;
+            set(handles.pencinc, 'string', 1.1);
+            handles.data.scaling = 1.0;
+            set(handles.ScalingFactor, 'string', 1.0);
+            handles.data.NSamples = 4;
+            set(handles.MinSamples, 'string', 4);
+            handles.data.theta = 1.1;
+            set(handles.theta, 'string', 1.1);
             Sig = linspace(-1,1,handles.data.N).^2;
         case 4
             Sig = -reallog(linspace(1/10,10,handles.data.N));
@@ -928,3 +960,157 @@ end
 handles.data.logURL = '~/Logs/';
 fprintf(1,'Set the logging URL to: %s.\n','~/Logs/');
 guidata(hObject,handles)
+
+
+% --- Executes on button press in Continue.
+function Continue_Callback(hObject, eventdata, handles)
+% hObject    handle to Continue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+fprintf(1,'Starting Computation.\n');
+    
+    if ~isfield(handles.data,'solu') || ...
+            ~isfield(handles.data,'solc')
+        errordlg('Cannot continue previous computation.','Error');
+    else
+        N      = handles.data.N;
+        lambda = handles.data.lambda;
+        itK    = handles.data.ItK;
+        itI    = handles.data.ItI;
+        TolK   = handles.data.TolK;
+        TolI   = handles.data.TolI;
+        uStep  = handles.data.uStep;
+        cStep  = handles.data.cStep;
+        penPDE = handles.data.penPDE;
+        penu   = handles.data.penu;
+        penc   = handles.data.penc;
+        theta  = handles.data.theta;
+        uInit  = handles.data.solu;
+        cInit  = handles.data.solc;
+        if isfield(handles.data,'log')
+            log    = handles.data.log;
+            logURL = handles.data.logURL;
+        else
+            log = false;
+        end
+    end
+    
+    popup_sel_index = get(handles.SelectSignal, 'Value');
+    switch popup_sel_index
+        case 1
+            Sig = MakeSignal('Piece-Polynomial',N);
+        case 2
+            Sig = MakeSignal('Piece-Regular',N);
+        case 3
+            Sig = linspace(-1,1,N).^2;
+        case 4
+            Sig = -reallog(linspace(1/10,10,N));
+    end
+    Sig = Sig - min(Sig(:));
+    Sig = Sig/max(Sig(:));
+    
+    axes(handles.Results);
+    cla;
+    plot( ...
+        1:length(Sig(:)), Sig(:), '-k', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'b', ...
+        'MarkerSize', 4 ...
+        );
+    title('Signal');
+    legend('Signal');
+    xlabel('Position');
+    ylabel('Value');
+    
+    tic();
+    [u c ItIn ItOut EnerVal ResiVal IncPEN] = OptimalControlPenalize( ...
+        Sig(:), ...`
+    'MaxOuter', itK, ...
+    'MaxInner', itI, ...
+    'TolOuter', TolK, ...
+    'TolInner', TolI, ...
+    'lambda', lambda, ...
+    'penPDE', theta, ...
+    'penu', penu, ...
+    'penc', penc, ...
+    'uStep', uStep, ...
+    'cStep', cStep, ...
+    'PDEstep', penPDE, ...
+    'uInit', uInit, ...
+    'cInit', cInit, ...
+    'thresh', -1 ...
+    );
+
+    runtime = toc();
+    
+    handles.data.solu = u;
+    handles.data.solc = c;
+    
+    if log
+        savedata = handles.data;
+        savedata.u = u;
+        savedata.c = c;
+        savedata.ItIn = ItIn;
+        savedata.ItOut = ItOut;
+        savedata.EnerVal = EnerVal;
+        savedata.ResiVal = ResiVal;
+        savedata.IncPEN = IncPEN;
+        savedata.Sig = Sig;
+        savedata.uInit = uInit;
+        savedata.cInit = cInit;
+        LogData(savedata,logURL);
+    end
+    NumIter = ItIn;
+    Ener = Energy(u,c,Sig(:),lambda);
+    Resi = Residual(u,c,Sig(:));
+    
+    axes(handles.EvoEne);
+    cla;
+    plot(1:NumIter,EnerVal,'-k',IncPEN,EnerVal(IncPEN),'or', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'r', ...
+        'MarkerSize', 4 );
+    %title('Evolution of the Energy functional');
+    legend('Energy','Increasing Penalization');
+    %xlabel('Iteration');
+    %ylabel('Energy Value');
+    
+    axes(handles.EvoResi);
+    cla;
+    plot(1:NumIter,ResiVal,'-k',IncPEN,ResiVal(IncPEN),'or', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'r', ...
+        'MarkerSize', 4 );
+    %title('Evolution of the Residual of the PDE');
+    legend('Residual','Increasing Penalization');
+    %xlabel('Iteration');
+    %ylabel('Residual Value');
+    
+    axes(handles.Results);
+    cla;
+    plot( ...
+        1:length(Sig(:)), Sig(:), '-k', ...
+        1:length(Sig(:)), u, '--r', ...
+        1:length(Sig(:)), c, 'ob', ...
+        'LineWidth', 1, ...
+        'MarkerEdgeColor', 'k', ...
+        'MarkerFaceColor', 'b', ...
+        'MarkerSize', 4 ...
+        );
+    %title('Results from the optimization strategy');
+    legend('Signal','Reconstruction','Mask');
+    %xlabel('Position');
+    %ylabel('Value');
+    
+    set(handles.NumItsK, 'String', ItOut);
+    set(handles.NumItsI, 'String', ItIn);
+    set(handles.runtime, 'String', runtime);
+    set(handles.EneVal, 'String', Ener);
+    set(handles.ResiVal, 'String', Resi);
+    
+    fprintf(1,'Computation finished.\n');
+    guidata(hObject, handles);
