@@ -1,11 +1,10 @@
-function out = EnergyEvolInReg(c, f, varargin)
+function out = EnergyEvolInReg(f, varargin)
 %% Evaluates the Enery in function of the regularisation parameter
 %
-% out = EnergyEvolInReg(c, f, ...)
+% out = EnergyEvolInReg(f, ...)
 %
 % Input parameters (required):
 %
-% c : mask (double array).
 % f : initial image (double array).
 %
 % Input parameters (optional) (2 variants!)
@@ -26,30 +25,29 @@ function out = EnergyEvolInReg(c, f, varargin)
 % Description:
 %
 % Evaluates the energy that we consider in this optimal control framework for
-% varying values of lambda. The mask and the initial input data are always
-% required as input parameters. Additionnally either a third parameter
-% specifying the value(s) for the regulariser or three parameters specifying the
-% range to be used have to be specified. In case of a single third parameter it
-% is possible to specify a single value or an array of values. In that case, the
-% energy will be evaluated and the return value will have the same size as the
-% input parameter. If the three parameter variant is chosen, then a uniformly
-% distributed set (using linspace) between "min" and "max" will be computed. The
-% Energy will be evaluated for each of these values.
+% varying values of lambda. The initial input data is the only required as input
+% parameter. Additionnally either a third parameter specifying the value(s) for
+% the regulariser or three parameters specifying the range to be used have to be
+% specified. In case of a single third parameter it is possible to specify a
+% single value or an array of values. In that case, the energy will be evaluated
+% and the return value will have the same size as the input parameter. If the
+% three parameter variant is chosen, then a uniformly distributed set (using
+% linspace) between "min" and "max" will be computed. The Energy will be
+% evaluated for each of these values.
 %
 % Example:
 %
-% c = double(rand(100,100) > 0.6);
 % f = rand(100,100);
 % l = 0.73;
-% E = EnergyEvolInReg(c,f,l);
+% E = EnergyEvolInReg(f,l);
 %
 % or
 %
-% E = EnergyEvolInReg(c,f,[0.05, 0.1, 0.25]);
+% E = EnergyEvolInReg(f,[0.05, 0.1, 0.25]);
 %
 % or
 %
-% E = EnergyEvolInReg(c,f,0.03,0.97,136);
+% E = EnergyEvolInReg(f,0.03,0.97,136);
 %
 % See also norm.
 
@@ -69,9 +67,9 @@ function out = EnergyEvolInReg(c, f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 14.09.2012 14:37
+% Last revision on: 17.09.2012 10:50
 
-narginchk(3,5)
+narginchk(2,4)
 nargoutchk(0,1)
 
 parser = inputParser;
@@ -80,10 +78,9 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand  = true;
 
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
 parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
 
-if nargin == 3
+if nargin == 2
     parser.addOptional('lambda',1.0, @(x) isvector(x)&&IsDouble(x));
 else
     parser.addOptional('min', 0.0, @(x) isscalar(x)&&IsDouble(x));
@@ -91,15 +88,32 @@ else
     parser.addOptional('NSamples', 100, @(x) IsInteger(x)&&(x>=1));
 end
 
-parser.parse(c,f,varargin{:});
+parser.parse(f,varargin{:});
 opts = parser.Results;
 
-if nargin == 3
+if nargin == 2
     samples = opts.lambda;
 else
     samples = linspace(opts.min,opts.max,opts.NSamples);
 end
 
-out = arrayfun(@(x) Energy(SolvePde(f(:),c(:)), c(:), f(:), x), samples);
+out = inf(1,length(samples(:)));
+
+for i = 1:length(out)
+    parameters.MaxOuter = 15;
+    parameters.MaxInner = 50;
+    parameters.TolOuter = 0.0001;
+    parameters.TolInner = 0.0001;
+    parameters.lambda   = samples(i);
+    parameters.penPDE   = 1.1;
+    parameters.penu     = 1.1;
+    parameters.penc     = 1.1;
+    parameters.uStep    = 1.1;
+    parameters.cStep    = 1.1;
+    parameters.PDEstep  = 1.1;
+    parameters.thresh   = -1;
+    [u c] = OptimalControlPenalize(f, parameters);
+    out(i) = Energy(u(:), c(:), f(:), samples(i));
+end
 
 end
