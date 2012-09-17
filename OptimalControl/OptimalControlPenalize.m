@@ -25,7 +25,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 % penc     : initial penalisation on prox. term for c (double, default = 1.0).
 % uStep    : penalisation increment for u (double, default = 2.0).
 % cStep    : penalisation increment for c (double, default = 2.0).
-% PDEstep  : prnalisation increment for the PDE (double, default = 2.0).
+% PDEstep  : penalisation increment for the PDE (double, default = 2.0).
 % thresh   : value at which mask should be thresholded. If negative, no
 %            threshold will be done. (scalar, default = -1);
 %
@@ -213,7 +213,10 @@ while k <= opts.MaxOuter
     % Check if we can end the algorithm and compute optional results.
     
     changeK = max([norm(uOldK(:)-u(:),Inf) norm(cOldK(:)-c(:),Inf)]);
-    ItOut = ItOut + 1;
+    
+    if nargin > 2
+        ItOut = ItOut + 1;
+    end
     
     if changeK < opts.TolOuter
         break;
