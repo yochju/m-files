@@ -32,7 +32,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %            nothing will be done. Positive values imply a thresholding at the
 %            given level. Note that the latter two variants may yield unfeasible
 %            solutions with respect to the PDE. E.g the variables u and c may
-%            not necessarily solve the PDE at the same time. 
+%            not necessarily solve the PDE at the same time. (default = 0).
 %
 % Output parameters (required):
 %
@@ -119,7 +119,7 @@ parser.addParamValue('uStep',   2, @(x) isscalar(x)&&(x>=0));
 parser.addParamValue('cStep',   2, @(x) isscalar(x)&&(x>=0));
 parser.addParamValue('PDEstep', 2, @(x) isscalar(x)&&(x>=0));
 
-parser.addParamValue('thresh', -1.0, @(x) isscalar(x)&&IsDouble(x));
+parser.addParamValue('thresh', 0, @(x) isscalar(x)&&IsDouble(x));
 
 parser.parse(f,varargin{:})
 opts = parser.Results;
