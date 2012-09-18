@@ -111,7 +111,9 @@ for i = 1:length(out)
     parameters.uStep    = 1.1;
     parameters.cStep    = 1.1;
     parameters.PDEstep  = 1.1;
-    parameters.thresh   = -1;
+    parameters.thresh   = 0;
+    parameters.cInit = 0.5*ones(size(f));
+    parameters.uInit = f;
     [u c] = OptimalControlPenalize(f, parameters);
     out(i) = Energy(u(:), c(:), f(:), samples(i));
 end

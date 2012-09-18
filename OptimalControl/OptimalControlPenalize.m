@@ -27,7 +27,12 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 % cStep    : penalisation increment for c (double, default = 2.0).
 % PDEstep  : penalisation increment for the PDE (double, default = 2.0).
 % thresh   : value at which mask should be thresholded. If negative, no
-%            threshold will be done. (scalar, default = -1);
+%            threshold will be done. Instead the PDE will be solved another time
+%            to assert that the solution is feasible. A value of 0 means that
+%            nothing will be done. Positive values imply a thresholding at the
+%            given level. Note that the latter two variants may yield unfeasible
+%            solutions with respect to the PDE. E.g the variables u and c may
+%            not necessarily solve the PDE at the same time. 
 %
 % Output parameters (required):
 %
@@ -232,9 +237,13 @@ while k <= opts.MaxOuter
     
 end
 
-if opts. thresh < 0
+% If thresholding is positive, we use this value as a threshold.
+% 0 means we do nothing to the solution from the iterative strategy.
+% For negative values we solve the corresponding PDE in order to assert the the
+% solution is feasible.
+if opts.thresh < 0
     u = SolvePde(f,c);
-else
+elseif opts.thresh > 0
     u = Threshold(SolvePde(f,c),opts.thresh);
 end
 
