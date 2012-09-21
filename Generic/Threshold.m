@@ -17,7 +17,7 @@ function  [y varargout]  = Threshold( x , t )
 %
 % Description:
 %
-% Finds all values in x that are smaller or eequal in absolute value than t.
+% Finds all values in x that are smaller or equal in absolute value than t.
 %
 % Example:
 %
@@ -68,7 +68,9 @@ ExcM = ExceptionMessage('BadArg', '', ...
 
 % TODO: The id is not recognised. Because it contains no :? See doc.
 %warning(ExcM.id,ExcM.message);
-warning(ExcM.message);
+if opts.t < 0
+    warning(ExcM.message);
+end
 
 %% Compute thresholding
 
