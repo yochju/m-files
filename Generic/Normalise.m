@@ -43,6 +43,6 @@ nargoutchk(0, 1);
 if nargin == 2
     out = Rescale(in,0,1,gamma);
 else
-    out = Rescale(im,0,1,1.0);
+    out = Rescale(in,0,1,1.0);
 end
 end
