@@ -9,7 +9,7 @@ function out = Normalise(in,gamma)
 %
 % Input parameters (optional):
 %
-% gamma : optional gamma correction parameter. 
+% gamma : optional gamma correction parameter. (default = 1.0)
 %
 % Output parameters:
 %
@@ -40,5 +40,9 @@ function out = Normalise(in,gamma)
 narginchk(1, 2);
 nargoutchk(0, 1);
 
-out = Rescale(in,0,1,gamma);
+if nargin == 2
+    out = Rescale(in,0,1,gamma);
+else
+    out = Rescale(im,0,1,1.0);
+end
 end

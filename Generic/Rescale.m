@@ -46,5 +46,9 @@ inmin = min(in(:));
 inmax = max(in(:));
 a = (outmax - outmin)./(inmax-inmin);
 b = (inmax.*outmin-inmin.*outmax)./(inmax-inmin);
-out = (a.*in+b).^gamma;
+if nargin == 3
+    out = (a.*in+b);
+else
+    out = (a.*in+b).^gamma;
+end
 end
