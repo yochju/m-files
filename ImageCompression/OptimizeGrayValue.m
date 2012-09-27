@@ -106,7 +106,7 @@ parser.addParamValue('thrDiffMax',  1,  @(x) isscalar(x)&&IsDouble(x));
 parser.addParamValue('lsqrTol',        1e-8, @(x) isscalar(x)&&IsDouble(x));
 parser.addParamValue('lsqrMaxit',  20000,    @(x) isscalar(x)&&IsDouble(x));
 
-parser.parse(f, c, varargin{:})
+parser.parse(c, f, varargin{:})
 opts = parser.Results;
 
 M = PdeM(opts.c,opts);
