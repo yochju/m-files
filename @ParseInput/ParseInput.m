@@ -1,6 +1,9 @@
 classdef ParseInput < inputParser
     
     properties
+        % TODO Set Setaccess to private and getaccess to public.
+        % Add a NumArg property (dependent) that returns the total number of
+        % args.
         numReq = 0;
         numOpt = 0;
         numPar = 0;
@@ -8,6 +11,7 @@ classdef ParseInput < inputParser
     end
     
     methods
+        % TODO some of the methods could benefit from try catch blocks...
         function object = ParseInput(funName)
             
             narginchk(0,1);
