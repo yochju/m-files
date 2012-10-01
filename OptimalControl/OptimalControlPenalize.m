@@ -103,8 +103,10 @@ parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
 parser.addParamValue('MaxOuter', 1, @(x) isscalar(x)&&IsInteger(x));
 parser.addParamValue('MaxInner', 10, @(x) isscalar(x)&&IsInteger(x));
 
-parser.addParamValue('TolOuter', 1e-3, @(x) isscalar(x)&&(x>=0));
-parser.addParamValue('TolInner',1e-3, @(x) isscalar(x)&&(x>=0));
+% The rather large tolerance values are correct. See the implementation below
+% for more explanations. The point is that we are very tolerant here.
+parser.addParamValue('TolOuter', 1e3, @(x) isscalar(x)&&(x>=0));
+parser.addParamValue('TolInner',1e3, @(x) isscalar(x)&&(x>=0));
 
 parser.addParamValue('uInit', [], @(x) ismatrix(x)&&IsDouble(x));
 parser.addParamValue('cInit', [], @(x) ismatrix(x)&&IsDouble(x));
@@ -204,10 +206,30 @@ while k <= opts.MaxOuter
             ItIn = ItIn + 1;
         end
         
+        % While it might be unusual to have the following situation, we should
+        % still account for it:
+        %
+        % Assume x_k = 1e12; Then
+        % (xk + eps(xk)/2) - xk returns 0 although eps(xk)/2 is not 0.
+        % In fact eps(xk)/2 is roughly 10e-4. In this case, a convergence test
+        % of the form abs((xk + eps(xk)/2) - xk) < 1e-6 would always fail.
+        %
+        % A far better test would be:
+        % abs((xk + eps(xk)/2) - xk) < 10*E_TOL*eps(xk)
+        % where E_TOL is the tolerance measure and the factor 10 should allow
+        % rounding errors. With this formulation we have:
+        %
+        % abs((xk + 11*E_TOL*eps(xk)) - xk) < 10*E_TOL*eps(xk) -> FALSE
+        % abs((xk +  9*E_TOL*eps(xk)) - xk) < 10*E_TOL*eps(xk) -> TRUE
+        %
+        % This holds for any xk now.
+        
         changeI = max([norm(uOldI(:)-u(:),Inf) norm(cOldI(:)-c(:),Inf)]);
         NumIter = NumIter + 1;
         
-        if changeI < opts.TolInner
+        % Note that opts.TolInner should be chosen rather large for our usual
+        % data ranges.
+        if changeI < 10*opts.TolInner*eps(changeI)
             break;
         else
             i = i + 1;
@@ -223,7 +245,8 @@ while k <= opts.MaxOuter
         ItOut = ItOut + 1;
     end
     
-    if changeK < opts.TolOuter
+    % See the comments above changeI for details.
+    if changeK < 10*opts.TolOuter*eps(changeK)
         break;
     else
         opts.penPDE = opts.penPDE*opts.PDEstep;
