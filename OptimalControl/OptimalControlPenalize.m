@@ -149,7 +149,13 @@ end
 
 % TODO: these options are hardcoded throughout the framework.
 [row col] = size(u);
-LapM = LaplaceM(row, col, 'KnotsR', [-1 0 1], 'KnotsC', [-1 0 1], ...
+
+% TODO: make passing of options more flexible.
+% NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes
+% that the data is labeled row-wise. The standard MATLAB numbering is
+% column-wise, therefore, we switch the order of the dimensions to get the
+% (hopefully) correct behavior.
+LapM = LaplaceM(col, row, 'KnotsR', [-1 0 1], 'KnotsC', [-1 0 1], ...
     'Boundary', 'Neumann');
 
 k = 1;
@@ -229,7 +235,8 @@ while k <= opts.MaxOuter
         
         % Note that opts.TolInner should be chosen rather large for our usual
         % data ranges.
-        if changeI < 10*opts.TolInner*eps(changeI)
+        if ((changeI > 1e8) && (changeI < 10*opts.TolInner*eps(changeI) )) ...
+                || ((abs(changeI)<=1e8) && (changeI<opts.TolInner))
             break;
         else
             i = i + 1;
@@ -246,7 +253,8 @@ while k <= opts.MaxOuter
     end
     
     % See the comments above changeI for details.
-    if changeK < 10*opts.TolOuter*eps(changeK)
+    if ((changeK > 1e8) && (changeK < 10*opts.TolOuter*eps(changeK) )) ...
+                || (( changeK <=1e8) && (changeI < opts.TolOuter))
         break;
     else
         opts.penPDE = opts.penPDE*opts.PDEstep;
@@ -298,6 +306,9 @@ switch nargout
         varargout{4} = ResiVal;
         varargout{5} = IncPEN;
 end
+
+u = reshape(u,row,col);
+c = reshape(c,row,col);
 
 end
 
