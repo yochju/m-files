@@ -105,13 +105,39 @@ parser.addParamValue('lsqrMaxit',  20000,    @(x) isscalar(x)&&IsDouble(x));
 parser.parse(f, c, varargin{:})
 opts = parser.Results;
 
-[out flag relres iter] = lsqr( ...
-    PdeM(opts.c, opts), ...
-    subsref(Rhs(opts.c, f, opts),substruct('()',{':'})), ...
-    opts.lsqrTol, opts.lsqrMaxit, ...
-    speye(numel(opts.f), numel(opts.f)), speye(numel(opts.f), numel(f)), ...
-    opts.f(:) ...
-    );
+% This is an undocumented feature in MATLAB to turn non catchable warnings into
+% errors. Use with care!
+s = warning('error','MATLAB:singularMatrix');
+try
+    % Try out the backslash operator. Unless the mask is very spacres, this
+    % should work well.
+    flag = 0;
+    relres = -1;
+    iter = -1;
+    out = mldivide( PdeM(opts.c, opts), ...
+        subsref(Rhs(opts.c, f, opts),substruct('()',{':'})) );
+catch err
+    % If the backslash operator was unable to solve the problem, use the least
+    % square solver. Note that the lsqr solver returns wrong results for
+    % c = [0 0 0 1 1 0 0 1 1 0 0 0] and
+    % f = [0 0 0 0 1 1 1 1 0 0 0 0] namely
+    % u = [0 0 0 0 0 0 0 0 0 0 0 0].
+    if strcmp(err.identifier,'MATLAB:singularMatrix')
+        [out flag relres iter] = lsqr( ...
+            PdeM(opts.c, opts), ...
+            subsref(Rhs(opts.c, f, opts),substruct('()',{':'})), ...
+            opts.lsqrTol, opts.lsqrMaxit, ...
+            speye(numel(opts.f), numel(opts.f)), ...
+            speye(numel(opts.f), numel(f)), ...
+            opts.f(:) ...
+            );
+    else
+        % Whatever we caught was unrelated to the singularity of the matrix.
+        % Just rethrow that error.
+        rethrow(err)
+    end
+end
+warning(s);
 
 out = reshape(out,size(opts.f));
 
