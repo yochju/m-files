@@ -207,8 +207,8 @@ while k <= opts.MaxOuter
         % Check if we can stop iterating and compute optional results.
         
         if nargout > 2
-            EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f,opts.lambda);
-            ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f);
+            EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f(:),opts.lambda);
+            ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f(:));
             ItIn = ItIn + 1;
         end
         
@@ -268,6 +268,9 @@ while k <= opts.MaxOuter
     
 end
 
+u = reshape(u,row,col);
+c = reshape(c,row,col);
+
 % If thresholding is positive, we use this value as a threshold.
 % 0 means we do nothing to the solution from the iterative strategy.
 % For negative values we solve the corresponding PDE in order to assert the the
@@ -306,10 +309,6 @@ switch nargout
         varargout{4} = ResiVal;
         varargout{5} = IncPEN;
 end
-
-u = reshape(u,row,col);
-c = reshape(c,row,col);
-
 end
 
 function out = ConstructMat4u(c,D)
