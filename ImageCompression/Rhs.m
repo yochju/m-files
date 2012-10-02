@@ -42,7 +42,7 @@ function out = Rhs(c,f, varargin)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 24.09.2012 17:45
+% Last revision on: 02.10.2012 12:05
 
 narginchk(2, 8);
 nargoutchk(0, 1);
@@ -63,9 +63,9 @@ parser.addParamValue('thrDataMax',  1,  @(x) isscalar(x)&&IsDouble(x));
 parser.parse(c, f, varargin{:})
 opts = parser.Results;
 
-cData = Binarize(c, opts.threshData, ...
+cData = Binarize(opts.c, opts.threshData, ...
     'thrDataMin',opts.thrDataMin, ...
     'thrDataMax',opts.thrDataMax );
 
-out = cData.*opts.f(:);
+out = cData.*opts.f;
 end

@@ -76,7 +76,7 @@ function out = EvalPde(f, u, c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 21.09.2012 15:30
+% Last revision on: 02.10.2012 12:19
 
 narginchk(3, 7);
 nargoutchk(0, 1);
@@ -105,14 +105,17 @@ opts = parser.Results;
 % TODO: Add error string.
 assert(isequal(size(opts.f),size(opts.u),size(opts.c)));
 
-[row col] = size(u);
+[row col] = size(opts.u);
 
 % TODO: make passing of options more flexible.
-D = LaplaceM(row, col, ...
+% NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes
+% that the data is labeled row-wise. The standard MATLAB numbering is
+% column-wise, therefore, we switch the order of the dimensions to get the
+% (hopefully) correct behavior.
+D = LaplaceM(col, row, ...
     'KnotsR',[-1 0 1],'KnotsC',[-1 0 1], ...
     'Boundary', 'Neumann');
 
-% TODO: this will fail for 2D data sets.
 cData = Binarize(opts.c, opts.threshData, ...
     'min', opts.thrDataMin, ...
     'max', opts.thrDataMax);
@@ -122,6 +125,6 @@ cDiff = Binarize(opts.c, opts.threshDiff, ...
     'max', opts.thrDiffMax);
 
 % TODO: rewrite this as not to require the matrix construction.
-out = cData.*(u(:)-f(:)) - (1 - cDiff).*(D*u(:));
+out = cData.*(opts.u-opts.f) - (1 - cDiff).*reshape(D*opts.u(:),row,col);
 
 end

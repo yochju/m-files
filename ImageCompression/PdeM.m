@@ -96,16 +96,22 @@ parser.addParamValue('thrDiffMax',  1,  @(x) isscalar(x)&&IsDouble(x));
 parser.parse(c, varargin{:})
 opts = parser.Results;
 
+% TODO: make passing of options more flexible.
+% NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes
+% that the data is labeled row-wise. The standard MATLAB numbering is
+% column-wise, therefore, we switch the order of the dimensions to get the
+% (hopefully) correct behavior.
+
 [row col] = size(opts.c);
-D = LaplaceM(row, col, ...
+D = LaplaceM(col, row, ...
     'KnotsR',[-1 0 1],'KnotsC',[-1 0 1], ...
     'Boundary', 'Neumann');
 
-cData = Binarize(opts.c(:), opts.threshData, ...
+cData = Binarize(opts.c, opts.threshData, ...
     'min', opts.thrDataMin, 'max', opts.thrDataMax);
-cDiff = Binarize(opts.c(:), opts.threshDiff, ...
+cDiff = Binarize(opts.c, opts.threshDiff, ...
     'min', opts.thrDiffMin, 'max', opts.thrDiffMax);
 
-out = Mask(cData) - (speye(length(opts.c(:))) - Mask(cDiff))*D;
+out = Mask(cData) - (speye(numel(opts.c)) - Mask(cDiff))*D;
 
 end

@@ -38,6 +38,7 @@ function M = LaplaceM(r,c,varargin)
 % The implementation assumes that the points are number row-wise. This is in
 % conflict with the standard numbering scheme in MATLAB, which runs column-wise
 % over a matrix.
+% TODO: implement an option to make this behavior changeable.
 %
 % See also DiffFilter1DM.
 
@@ -57,10 +58,7 @@ function M = LaplaceM(r,c,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/02/18 20:00
-
-%% Comments and Remarks.
-%
+% Last revision: 02.10.2012 12:20
 
 %% Check input parameters
 
