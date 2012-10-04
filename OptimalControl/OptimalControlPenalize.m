@@ -5,7 +5,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %
 % Input parameters (required):
 %
-% f : the input image to be compressed.
+% f : The input image to be compressed.
 %
 % Input parameters (optional):
 %
@@ -13,20 +13,20 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 % corresponding values or option/value pairs, where the option is specified as a
 % string.
 %
-% MaxOuter : maximum number of outer iterations (scalar, default = 1).
-% MaxInner : maximum number of inner iterations (scalar, default = 10).
-% TolOuter : tolerance threshold for outer iterations (double, default = 1e-3).
-% TolInner : tolerance threshold for inner iterations (double, default = 1e-3).
-% uInit    : initial value for reconstruction. (array, default = f).
-% cInit    : initial value for reconstruction. (array, default = random mask).
-% lambda   : regularisation parameter. (double scalar, default = 1.0).
-% penPDE   : initial penalisation on the PDE (double, default = 1.0).
-% penu     : initial penalisation on prox. term for u (double, default = 1.0).
-% penc     : initial penalisation on prox. term for c (double, default = 1.0).
-% uStep    : penalisation increment for u (double, default = 2.0).
-% cStep    : penalisation increment for c (double, default = 2.0).
-% PDEstep  : penalisation increment for the PDE (double, default = 2.0).
-% thresh   : value at which mask should be thresholded. If negative, no
+% MaxOuter : Maximum number of outer iterations (scalar, default = 1).
+% MaxInner : Maximum number of inner iterations (scalar, default = 10).
+% TolOuter : Tolerance threshold for outer iterations (double, default = 1e-3).
+% TolInner : Tolerance threshold for inner iterations (double, default = 1e-3).
+% uInit    : Initial value for reconstruction. (array, default = f).
+% cInit    : Initial value for reconstruction. (array, default = random mask).
+% lambda   : Regularisation parameter. (double scalar, default = 1.0).
+% penPDE   : Initial penalisation on the PDE (double, default = 1.0).
+% penu     : Initial penalisation on prox. term for u (double, default = 1.0).
+% penc     : Initial penalisation on prox. term for c (double, default = 1.0).
+% uStep    : Penalisation increment for u (double, default = 2.0).
+% cStep    : Penalisation increment for c (double, default = 2.0).
+% PDEstep  : Penalisation increment for the PDE (double, default = 2.0).
+% thresh   : Value at which mask should be thresholded. If negative, no
 %            threshold will be done. Instead the PDE will be solved another time
 %            to assert that the solution is feasible. A value of 0 means that
 %            nothing will be done. Positive values imply a thresholding at the
@@ -36,16 +36,24 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %
 % Output parameters (required):
 %
-% u     : obtained reconstruction (array).
-% c     : corresponding mask (array).
+% u     : Obtained reconstruction (array).
+% c     : Corresponding mask (array).
 %
 % Output parameters (optional):
 %
-% ItIn  : number of inner iterations performed.
-% ItOut : number of outer iterations performed.
-% EnVal : energy at each iteration step.
-% ReVal : residual at each iteration step.
-% IncPe : iterations when a increase in the penalisation happened.
+% ItIn    : Number of inner iterations performed. (scalar)
+% ItOut   : Number of outer iterations performed. (scalar)
+% EnVal   : Energy at each iteration step. (array)
+% ReVal   : Residual at each iteration step. (array)
+% IncPe   : Iterations when a increase in the penalisation happened. (array)
+% SolHist : History of all solutions for every iteration. Note, that the last
+%           entry in SolHist can differ from the mandatory output u. The
+%           solution u may be subject to some further thresholding and is
+%           additionally recomputed at the end as the solution of the PDE. These
+%           steps are not performed for the entries in SolHist. They represent
+%           the raw output obtained when iterating and may not even yield
+%           feasible solutions. (cell array)
+% MasHist : History of all masks for every iteration. (cell array)
 %
 % Description
 %
@@ -90,7 +98,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %% Perform input and output argument checking.
 
 narginchk(1,31);
-nargoutchk(2,7);
+nargoutchk(2,9);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -140,14 +148,15 @@ else
 end
 
 if nargout > 2
-    ItIn = 0;
-    ItOut = 0;
-    EnerVal  = inf*ones(1,opts.MaxInner*opts.MaxOuter);
-    ResiVal  = inf*ones(1,opts.MaxInner*opts.MaxOuter);
-    IncPEN   = inf*ones(1,opts.MaxOuter);
+    ItIn    = 0;
+    ItOut   = 0;
+    EnerVal = inf*ones(1,opts.MaxInner*opts.MaxOuter);
+    ResiVal = inf*ones(1,opts.MaxInner*opts.MaxOuter);
+    IncPEN  = inf*ones(1,opts.MaxOuter);
+    SolHist = cell(1,opts.MaxInner*opts.MaxOuter);
+    MasHist = cell(1,opts.MaxInner*opts.MaxOuter);
 end
 
-% TODO: these options are hardcoded throughout the framework.
 [row col] = size(u);
 
 % TODO: make passing of options more flexible.
@@ -203,9 +212,7 @@ while k <= opts.MaxOuter
         A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
         b = [ LapM*u(:) cOldI(:) ];
         c = Optimization.SoftShrinkage(lambda,theta,A,b);
-        
-        % Check if we can stop iterating and compute optional results.
-        
+                
         if nargout > 2
             EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f(:),opts.lambda);
             ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f(:));
@@ -232,6 +239,10 @@ while k <= opts.MaxOuter
         
         changeI = max([norm(uOldI(:)-u(:),Inf) norm(cOldI(:)-c(:),Inf)]);
         NumIter = NumIter + 1;
+        
+        % Save the history of the iterates u and c.
+        SolHist{NumIter} = reshape(u,row,col);
+        MasHist{NumIter} = reshape(c,row,col);
         
         % Note that opts.TolInner should be chosen rather large for our usual
         % data ranges.
@@ -271,20 +282,23 @@ end
 u = reshape(u,row,col);
 c = reshape(c,row,col);
 
-% If thresholding is positive, we use this value as a threshold.
+% If thresholding is positive, we use this value as a threshold for the mask.
 % 0 means we do nothing to the solution from the iterative strategy.
 % For negative values we solve the corresponding PDE in order to assert the the
 % solution is feasible.
 if opts.thresh < 0
     u = SolvePde(f,c);
 elseif opts.thresh > 0
-    u = Threshold(SolvePde(f,c),opts.thresh);
+    u = SolvePde(f,Threshold(c,opts.thresh));
 end
 
 if nargout > 2
+    % Remove the empty entries from the data.
     EnerVal(EnerVal==Inf) = [];
     ResiVal(ResiVal==Inf) = [];
     IncPEN(IncPEN==Inf) = [];
+    SolHist = SolHist(~cellfun(@isempty,SolHist));
+    MasHist = MasHist(~cellfun(@isempty,MasHist));
 end
 
 switch nargout
@@ -308,6 +322,21 @@ switch nargout
         varargout{3} = EnerVal;
         varargout{4} = ResiVal;
         varargout{5} = IncPEN;
+    case 8
+        varargout{1} = ItIn;
+        varargout{2} = ItOut;
+        varargout{3} = EnerVal;
+        varargout{4} = ResiVal;
+        varargout{5} = IncPEN;
+        varargout{6} = SolHist;
+    case 9
+        varargout{1} = ItIn;
+        varargout{2} = ItOut;
+        varargout{3} = EnerVal;
+        varargout{4} = ResiVal;
+        varargout{5} = IncPEN;
+        varargout{6} = SolHist;
+        varargout{7} = MasHist;
 end
 end
 
