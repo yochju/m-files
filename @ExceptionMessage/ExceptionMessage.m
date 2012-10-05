@@ -43,13 +43,13 @@ classdef ExceptionMessage
     % You should have received a copy of the GNU General Public License along
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-    % Last revision on: 01.09.2012 11:16
+    
+    % Last revision on: 05.10.2012 07:30
     
     % TODO: Check ME = MException(identifier, string).
     
     properties
-        id = ''; % Identifier for the message.
+        id      = ''; % Identifier for the message.
         message = ''; % Corresponding message.
     end
     
@@ -61,7 +61,7 @@ classdef ExceptionMessage
         function obj = ExceptionMessage(type,varargin)
             % Constructor.
             
-            narginchk(1, 3);
+            narginchk(1, 5);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -72,37 +72,45 @@ classdef ExceptionMessage
                 {'vector'}, ...
                 'ExceptionMessage', 'type'));
             
-            parser.addOptional('class','', ...
+            parser.addParamValue('class', '', ...
                 @(x) validateattributes( x, ...
                 {'char'}, ...
-                {}, ...
-                'ExceptionMessage', 'type'));
-            
-            parser.addOptional('message','', ...
+                {'row'}, ...
+                'ExceptionMessage', 'class'));
+
+            parser.addParamValue('message', '', ...
                 @(x) validateattributes( x, ...
                 {'char'}, ...
-                {'vector'}, ...
-                'ExceptionMessage', 'type'));
-            
+                {'nonsparse'}, ...
+                'ExceptionMessage', 'message'));
+
             parser.parse(type,varargin{:});
             parameters = parser.Results;
             
             if ~any(strcmp(parameters.type,ExceptionMessage.ExceptionTypes()))
-                ExcM = ExceptionMessage('Input', 'ExceptionMessage', ...
+                ExcM = ExceptionMessage( ...
+                    'Input', ...
+                    'class', 'ExceptionMessage', ...
+                    'message', ...
                     horzcat( ...
                     'Cannot create Exception message for type ', ...
                     parameters.type, ...
-                    '. Will use Generic as fallback.'));
-                warning(ExcM.id,ExcM.message);
+                    '. Will use Generic as fallback.') ...
+                    );
+                warning(ExcM.id, ExcM.message);
                 parameters.type = 'Generic';
             end
             
-            if exist(parameters.class,'class') == 8
-                ExcM = ExceptionMessage('BadClass', 'ExceptionMessage', ...
+            if exist(parameters.class, 'class') ~= 8
+                ExcM = ExceptionMessage( ...
+                    'BadClass', ...
+                    'class', 'ExceptionMessage', ...
+                    'message', ...
                     horzcat( ...
                     'Classname ', parameters.class, ' is unknown.', ...
-                    '. Will use empty string as fallback.'));
-                warning(ExcM.id,ExcM.message);
+                    '. Will use empty string as fallback.') ...
+                    );
+                warning(ExcM.id, ExcM.message);
                 parameters.class = '';
             end
             
@@ -112,12 +120,12 @@ classdef ExceptionMessage
                 obj.id = horzcat( parameters.class, ':', parameters.type);
             end
             
-            if nargin == 3
+            if ~isempty(parameters.message)
                 obj.message = parameters.message;
             else
                 obj.message = obj.ExceptionCode.(parameters.type);
             end
-            
+                        
         end
     end
     
