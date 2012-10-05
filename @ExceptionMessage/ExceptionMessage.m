@@ -1,18 +1,11 @@
 classdef ExceptionMessage
-    %ExceptionMessage Generates ids and messages for warnings and errors.
+    %ExceptionMessage generates ids and messages for warnings and errors.
     %    Generates id codes and corresponding messages that can be used in
     %    combination with warning() and error().
     %
     %    ExceptionMessage(type) returns an object with the id and message
     %    corresponding to type. If the type is unknown, a warning will be issued
     %    and the "Generic" type will be used as a fallback.
-    %
-    %    ExceptionMessage(type,class) additionnally prepends the class to the
-    %    identifier. If class is an empty string, it will be ignored. If the
-    %    class is unknown, a warning is issued and it will be replaced by ''.
-    %
-    %    ExceptionMessage(type,class,message) also sets the message to the
-    %    corresponding argument.
     %
     %    The possible types and their corresponding default messages can be
     %    queried using the static methods Exceptions and ExceptionsTypes.
@@ -97,9 +90,11 @@ classdef ExceptionMessage
             % This should give me the name of the calling function.
             [ST, ~] = dbstack(1);
             
-            if isempty(ST(1).name)
-                % If the stack is empty, there was no calling function.
-                obj.id = parameters.type;
+            if isempty(ST)
+                % If the stack is empty, there was no calling function. In that
+                % case we prepend the id with CONSOLE.
+                obj.id = horzcat( ...
+                    'CONSOLE:', parameters.type);
             else
                 % Called from within some function. If that function was a
                 % method of some class, we replace the '.' by a ':' and append
@@ -138,7 +133,7 @@ classdef ExceptionMessage
         function types = ExceptionTypes()
             types = fieldnames(ExceptionMessage.Exceptions());
         end
-        
+                
     end
     
 end
