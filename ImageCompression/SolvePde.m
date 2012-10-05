@@ -78,7 +78,7 @@ function out = SolvePde(f, c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 24.09.2012 12:28
+% Last revision on: 05.10.2012 10:15
 
 narginchk(2, 18);
 nargoutchk(0, 1);
@@ -105,17 +105,42 @@ parser.addParamValue('lsqrMaxit',  20000,    @(x) isscalar(x)&&IsDouble(x));
 parser.parse(f, c, varargin{:})
 opts = parser.Results;
 
+% Set these values so that they are defined even when the lsqr solver is not
+% being used.
+flag = 0;
+relres = -1;
+iter = -1;
+
+if norm(opts.c,2) <= 10*eps
+    % if the mask is empty, the constant signal 0 is the correct solution. No
+    % need to compute anything then.
+    out = zeros(size(opts.f));
+    return;
+end
+% Set up the system matrix and the righthand side.
+LHS = PdeM(opts.c, opts);
+RHS = subsref(Rhs(opts.c, f, opts), substruct('()',{':'}));
+
 % This is an undocumented feature in MATLAB to turn non catchable warnings into
 % errors. Use with care!
 s = warning('error','MATLAB:singularMatrix');
 try
-    % Try out the backslash operator. Unless the mask is very spacres, this
-    % should work well.
-    flag = 0;
-    relres = -1;
-    iter = -1;
-    out = mldivide( PdeM(opts.c, opts), ...
-        subsref(Rhs(opts.c, f, opts),substruct('()',{':'})) );
+    % Make an estimate on the condition of the system matrix. If it is
+    % reasonably small, we use the backslash operator. Otherwise we perform a
+    % least squares approach. It looks a bit overkill to make the estimate and
+    % to use try/catch, but some experiments have been causing trouble using
+    % only the try/catch block.
+    if condest(LHS) < 1e10
+        out = mldivide(LHS, RHS);
+    else
+        [out flag relres iter] = lsqr( ...
+            LHS, RHS, ...
+            opts.lsqrTol, opts.lsqrMaxit, ...
+            speye(numel(opts.f), numel(opts.f)), ...
+            speye(numel(opts.f), numel(f)), ...
+            opts.f(:) ...
+            );
+    end
 catch err
     % If the backslash operator was unable to solve the problem, use the least
     % square solver. Note that the lsqr solver returns wrong results for
@@ -124,8 +149,7 @@ catch err
     % u = [0 0 0 0 0 0 0 0 0 0 0 0].
     if strcmp(err.identifier,'MATLAB:singularMatrix')
         [out flag relres iter] = lsqr( ...
-            PdeM(opts.c, opts), ...
-            subsref(Rhs(opts.c, f, opts),substruct('()',{':'})), ...
+            LHS, RHS, ...
             opts.lsqrTol, opts.lsqrMaxit, ...
             speye(numel(opts.f), numel(opts.f)), ...
             speye(numel(opts.f), numel(f)), ...

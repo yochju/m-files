@@ -91,22 +91,29 @@ for i=2:N
     RHS = RHS + theta(i)*transpose(A{i})*b{i};
 end
 
+% Set these values so that they are defined even when the lsqr solver is not
+% being used.
+flag = 0;
+relres = -1;
+iter = -1;
+
 % This is an undocumented feature in MATLAB to turn non catchable warnings into
 % errors. Use with care!
 s = warning('error','MATLAB:singularMatrix');
-try
-    % Try out the backslash operator. Unless the mask is very spacres, this
-    % should work well.
-    flag = 0;
-    relres = -1;
-    iter = -1;
-    x = mldivide( LHS, RHS );
+try        
+    % Make an estimate on the condition of the system matrix. If it is
+    % reasonably small, we use the backslash operator. Otherwise we perform a
+    % least squares approach. It looks a bit overkill to make the estimate and
+    % to use try/catch, but some experiments have been causing trouble using
+    % only the try/catch block.
+    if condest(LHS) < 1e10
+        x = mldivide(LHS, RHS);
+    else
+        [x flag relres iter] = lsqr(LHS, RHS, 1e-8, 20000);
+    end
 catch err
     if strcmp(err.identifier,'MATLAB:singularMatrix')
-        [x flag relres iter] = lsqr( ...
-            LHS, RHS, ...
-            1e-8, 20000 ...
-            );
+        [x flag relres iter] = lsqr(LHS, RHS, 1e-8, 20000);
     else
         % Whatever we caught was unrelated to the singularity of the matrix.
         % Just rethrow that error.
