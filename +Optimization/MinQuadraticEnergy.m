@@ -90,14 +90,33 @@ for i=2:N
     LHS = LHS + theta(i)*transpose(A{i})*A{i};
     RHS = RHS + theta(i)*transpose(A{i})*b{i};
 end
-x = LHS\RHS;
-%{
-tol   = 1e-8;
-maxit = 20000;
-[x flag relres iter] = lsqr(LHS,RHS,tol,maxit);
+
+% This is an undocumented feature in MATLAB to turn non catchable warnings into
+% errors. Use with care!
+s = warning('error','MATLAB:singularMatrix');
+try
+    % Try out the backslash operator. Unless the mask is very spacres, this
+    % should work well.
+    flag = 0;
+    relres = -1;
+    iter = -1;
+    x = mldivide( LHS, RHS );
+catch err
+    if strcmp(err.identifier,'MATLAB:singularMatrix')
+        [x flag relres iter] = lsqr( ...
+            LHS, RHS, ...
+            1e-8, 20000 ...
+            );
+    else
+        % Whatever we caught was unrelated to the singularity of the matrix.
+        % Just rethrow that error.
+        rethrow(err)
+    end
+end
+warning(s);
+
 if flag ~= 0
     warning('OPTCONT:Err', ...
         'SolvePde failed with flag: %g, relative residual %g at iteration %d\n', flag, relres, iter);
 end
-%}
 end
