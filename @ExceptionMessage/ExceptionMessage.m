@@ -1,25 +1,17 @@
 classdef ExceptionMessage
     %ExceptionMessage generates ids and messages for warnings and errors.
     %    Generates id codes and corresponding messages that can be used in
-    %    combination with warning() and error().
+    %    combination with warning(), assert() and error(). It is not a
+    %    replacement for the MException class. ExceptionMessage is only meant to
+    %    provide a consistent way for using identifiers and messages that are
+    %    required by MException.
     %
-    %    ExceptionMessage(type) returns an object with the id and message
-    %    corresponding to type. If the type is unknown, a warning will be issued
-    %    and the "Generic" type will be used as a fallback.
+    %    The message types that can be used are hardcoded inside the class, each
+    %    one with a corresponding default message (which can be changed). The
+    %    possible types and their corresponding default messages can be queried
+    %    using the static methods Exceptions and ExceptionsTypes.
     %
-    %    The possible types and their corresponding default messages can be
-    %    queried using the static methods Exceptions and ExceptionsTypes.
-    %
-    %    See also: warning, error
-    %
-    % ExceptionMessage Properties:
-    % id - identifier for the message.
-    % message - Corresponding message.
-    %
-    % ExceptionMessage Methods:
-    % ExceptionMessage - This is the constructor.
-    % Exceptions - Returns a struct containing all valid messages.
-    % ExceptionTypes - returns a cell array containing all valid types.
+    %    See also: warning, assert, error
     
     % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -37,9 +29,7 @@ classdef ExceptionMessage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 05.10.2012 07:30
-    
-    % TODO: Check ME = MException(identifier, string).
+    % Last revision on: 07.10.2012 11:30
     
     properties
         id      = ''; % Identifier for the message.
@@ -52,7 +42,73 @@ classdef ExceptionMessage
     
     methods
         function obj = ExceptionMessage(type,varargin)
-            % Constructor.
+            %% Creates a new instance of the class ExceptionMessage.
+            %
+            % obj = ExceptionMessage(type,varargin)
+            %
+            % Input parameters (required):
+            %
+            % type : String specifying the type of Message to be generated. Use
+            %        the static method ExceptionMessage.ExceptionTypes() to
+            %        obtain a list of possible choices. If the type is unknown
+            %        to the class, it will be replaced by 'Generic'.
+            %
+            % Input parameters (optional):
+            %
+            % Optional parameters are either struct with the following fields
+            % and corresponding values or option/value pairs, where the option
+            % is specified as a string.
+            %
+            % message : A string containing the message to be used. Every type
+            %           has a default message. This parameter is meant to
+            %           override this default in order to provide further
+            %           details.
+            %
+            % Output parameters:
+            %
+            % obj : An instance of the ExceptionMessage class with its field
+            %       'id' containing the id corresponding to the specified type
+            %       and the field 'message' containing either the default
+            %       message string or the one specified by the user.
+            %
+            % Description:
+            %
+            % The message field, if specified, is used as-is and not altered in
+            % any way during the contruction. The id is constructed as follows.
+            %
+            % id = [<class>:]<method>:<type>
+            %
+            % where:
+            % - <type> represents the message type that was passed during
+            %   construction.
+            % - <method> is the name of the method that is constructing the
+            %   instance. If no such method is found, then the string 'CONSOLE'
+            %   will be prepended. If the calling function is a class method,
+            %   then the name of the class will also be prepended (and split
+            %   from the method name by a colon).
+            % - <class> is the name of the potential class the calling method
+            %   belongs to. This string as well as the corresponding colon are
+            %   left away if unavailable.
+            %
+            % Example:
+            %
+            % Query the possible choices for the exception types.
+            %
+            %   Types = ExceptionMessage.ExceptionTypes();
+            %
+            % Chose for example the 'NumArg' type.
+            %
+            %   MExc = ExceptionMessage('NumArg', 'message', 'Some Message.');
+            %
+            % Generate a warning using the above object.
+            %
+            %   warning(MExc.id, MExc.message);
+            %
+            % Check that the id and message are correct.
+            %
+            %   [msg id] = lastwarn;
+            
+            %% Parse the inputs passed to the constructor.
             
             narginchk(1, 5);
             nargoutchk(0, 1);
@@ -64,7 +120,7 @@ classdef ExceptionMessage
                 {'char'}, ...
                 {'vector'}, ...
                 'ExceptionMessage', 'type'));
-                        
+            
             parser.addParamValue('message', '', ...
                 @(x) validateattributes( x, ...
                 {'char'}, ...
@@ -86,7 +142,9 @@ classdef ExceptionMessage
                 warning(ExcM.id, ExcM.message);
                 parameters.type = 'Generic';
             end
-                        
+            
+            %% Gather the necessary information.
+            
             % This should give me the name of the calling function.
             [ST, ~] = dbstack(1);
             
@@ -102,18 +160,22 @@ classdef ExceptionMessage
                 obj.id = horzcat( ...
                     regexprep(ST(1).name,'\.',':') , ':', parameters.type);
             end
-                        
+            
             if ~isempty(parameters.message)
                 obj.message = parameters.message;
             else
                 obj.message = obj.ExceptionCode.(parameters.type);
             end
-                        
+            
         end
     end
     
     methods (Static = true)
         function exceptionStruct = Exceptions()
+            %% Returns a struct containing all possible types and messages.
+            %
+            % exceptionStruct = ExceptionMessage.Exceptions()
+            
             exceptionStruct = struct( ...
                 'Generic',     'Unspecified problem.', ...
                 'NumArg',      'Wrong number of arguments.', ...
@@ -131,9 +193,13 @@ classdef ExceptionMessage
         end
         
         function types = ExceptionTypes()
-            types = fieldnames(ExceptionMessage.Exceptions());
+            %% Returns a cell array containing all possible types.
+            %
+            % types = ExceptionMessage.ExceptionTypes()
+            
+            types = fieldnames( ExceptionMessage.Exceptions() );
         end
-                
+        
     end
     
 end
