@@ -20,7 +20,7 @@ function sref = subsref(obj, s)
 
 % ExcMI = ExceptionMessage('Internal');
 ExcMU = ExceptionMessage('Unsupported');
-assert(length(s)==1,ExcMU.id,ExcMU.message);
+assert( length(s)==1, ExcMU.id, ExcMU.message );
 
 switch s(1).type
     case '.'
@@ -45,6 +45,6 @@ switch s(1).type
         error(ExcMU.id,ExcMU.message);
     otherwise
         ExcMO=ExceptionMessage('UnknownOp');
-        error(ExcMO.id,ExcMO.message);
+        error( ExcMO.id, ExcMO.message );
 end
 end

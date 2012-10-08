@@ -63,13 +63,11 @@ parser.addRequired('t', @(x) isscalar(x));
 parser.parse(x,t);
 opts = parser.Results;
 
-ExcM = ExceptionMessage('BadArg', '', ...
+ExcM = ExceptionMessage('BadArg', 'message', ...
     'Negative thresholding value encountered.');
 
-% TODO: The id is not recognised. Because it contains no :? See doc.
-%warning(ExcM.id,ExcM.message);
 if opts.t < 0
-    warning(ExcM.message);
+    warning(ExcM.id, ExcM.message);
 end
 
 %% Compute thresholding

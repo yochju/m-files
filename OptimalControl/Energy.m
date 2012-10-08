@@ -66,14 +66,13 @@ parser.addOptional('lambda',1.0,@(x) isscalar(x)&&(x>=0));
 parser.parse(u,c,f,varargin{:});
 opts = parser.Results;
 
-ExcM = ExceptionMessage('BadDim', '', ...
+ExcM = ExceptionMessage('BadDim', 'message', ...
     'The size of all the data must coincide');
 
-assert(isequal(size(u),size(c),size(f)),ExcM.id,ExcM.message);
+assert( isequal(size(u),size(c),size(f)), ExcM.id, ExcM.message );
 
 if abs(opts.lambda) < 10*eps
-    % TODO: Fix the bug w.r.t. to warnings in ExceptionMessage.
-    ExcM = ExceptionMessage('BadArg', '', ...
+    ExcM = ExceptionMessage('BadArg', 'message', ...
         'There is no penalisation on the Mask values.');
     warning(ExcM.id,ExcM.message);
 end

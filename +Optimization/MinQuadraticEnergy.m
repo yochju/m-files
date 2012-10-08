@@ -123,7 +123,10 @@ end
 warning(s);
 
 if flag ~= 0
-    warning('OPTCONT:Err', ...
-        'SolvePde failed with flag: %g, relative residual %g at iteration %d\n', flag, relres, iter);
+    ExcM = ExceptionMessage('Internal');
+    ExcM.message = sprintf( ...
+        'SolvePde failed with flag: %g, relative residual %g at iteration %d\n', ...
+        flag, relres, iter);
+    warning( ExcM.id, ExcM.message );
 end
 end

@@ -73,8 +73,8 @@ function out = pad(obj, varargin)
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.
-error(nargchk(1, max(nargin,0), nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, max(nargin,0));
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -108,7 +108,7 @@ opts = parser.Results;
 % Check that arrays for padding have the correct size and set corners to 0 if
 % they weren't specified.
 
-ExcM = ExceptionMessage('BadDim','Padding has wrong size');
+ExcM = ExceptionMessage('BadDim', 'message', 'Padding has wrong size');
 
 if ~isempty(opts.left)
     assert( size(opts.left,1) == size(obj,1), ExcM.id, ExcM.message );

@@ -44,13 +44,13 @@ function varargout = imread(varargin)
 
 % Last revision on: 18.07.2012 06:46
 
-error(nargoutchk(0,3,nargout));
+nargoutchk(0,3);
 
 switch nargout
     case 0
         %% Emit a warning and return image.
         ExcM = ExceptionMessage( ...
-            'NumArg', ...
+            'NumArg', 'message', ...
             'No output arguments have been specified.');
         warning(ExcM.id,ExcM.message);
         pixel = imread(varargin{:});

@@ -47,8 +47,8 @@ function out = partition( obj, blockSize, varargin )
 
 %% Check Input and Output Arguments
 
-error(nargchk(2, 3, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 3);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;

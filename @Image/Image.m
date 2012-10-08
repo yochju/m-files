@@ -48,8 +48,8 @@ classdef Image < double
             % images is ColorSpace.Gray and for images with 3 channels it is
             % ColorSpace.RGB. In any other case it will be ColorSpace.Unknown.
             
-            error(nargchk(0,2,nargin));
-            error(nargoutchk(0,1,nargout));
+            narginchk(0,2);
+            nargoutchk(0,1);
             
             if nargin == 0
                 data = [];
