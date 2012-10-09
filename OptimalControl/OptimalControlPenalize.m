@@ -148,7 +148,7 @@ else
 end
 
 if nargout > 2
-    ItIn    = 0;
+    ItIn    = zeros(1,opts.MaxOuter);
     ItOut   = 0;
     EnerVal = inf*ones(1,opts.MaxInner*opts.MaxOuter);
     ResiVal = inf*ones(1,opts.MaxInner*opts.MaxOuter);
@@ -216,7 +216,7 @@ while k <= opts.MaxOuter
         if nargout > 2
             EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f(:),opts.lambda);
             ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f(:));
-            ItIn = ItIn + 1;
+            ItIn(k) = ItIn(k) + 1;
         end
         
         % While it might be unusual to have the following situation, we should
@@ -259,13 +259,13 @@ while k <= opts.MaxOuter
     
     changeK = max([norm(uOldK(:)-u(:),Inf) norm(cOldK(:)-c(:),Inf)]);
     
-    if nargin > 2
+    if nargout > 2
         ItOut = ItOut + 1;
     end
     
     % See the comments above changeI for details.
     if ((changeK > 1e8) && (changeK < 10*opts.TolOuter*eps(changeK) )) ...
-                || (( changeK <=1e8) && (changeI < opts.TolOuter))
+                || (( changeK <=1e8) && (changeK < opts.TolOuter))
         break;
     else
         opts.penPDE = opts.penPDE*opts.PDEstep;
