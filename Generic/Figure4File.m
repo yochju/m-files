@@ -1,7 +1,7 @@
-function fighandle = A4Figure(varargin)
-%% Creates a figure handle to plot on DIN A4 landscape paper.
+function fighandle = Figure4File(varargin)
+%% Creates a figure handle to plot to a file.
 %
-% fighandle = A4Figure(...)
+% fighandle = Figure4File(varargin)
 %
 % Input parameters (required):
 %
@@ -11,9 +11,10 @@ function fighandle = A4Figure(varargin)
 % corresponding values or option/value pairs, where the option is specified as a
 % string.
 %
-% Border      : Distance of the axes from the paper edge in centimeters. (array
-%               of length 2) (default = [1.25 1.25])
-% Orientation : Paper orientation. Either 'landscape' (default) or 'portrait'.
+% Size   : Size of the plot in centimeters. (array of length 2)
+%          (default = [12 8])
+% Border : Distance of the axes from the paper edge in centimeters. (array of
+%          length 2) (default = [1.25 1.25])
 %
 % Output parameters:
 %
@@ -29,7 +30,7 @@ function fighandle = A4Figure(varargin)
 % Example:
 % x = linspace(-pi,pi,2048);
 % y = sin(x);
-% fig = A4Figure();
+% fig = Figure4File('Size', [16 12], 'Border', [1.25 1]);
 % plot(x,y);
 % xlabel('x');
 % ylabel('sin(x)');
@@ -54,12 +55,9 @@ function fighandle = A4Figure(varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 09.10.2012 11:25
+% Last revision on: 09.10.2012 10:30
 
 %%
-narginchk(0, 4);
-nargoutchk(0, 1);
-
 narginchk(0,4);
 nargoutchk(0,1);
 
@@ -70,22 +68,37 @@ parser.KeepUnmatched = true;
 parser.StructExpand  = true;
 
 parser.addParamValue( ...
+    'Size', [12 8], ...
+    @(x) isvector(x)&&isequal(length(x),2) ...
+    );
+parser.addParamValue( ...
     'Border', [1.25 1.25], ...
     @(x) isvector(x)&&isequal(length(x),2) ...
     );
 
-parser.addParamValue( ...
-    'Orientation', 'landscape', ...
-    @(x) any(strcmpi(x,{'landscape','portrait'})) ...
-    );
-
 parser.parse(varargin{:})
 opts = parser.Results;
-if strcmpi(opts.Orientation,'landscape')
-    opts.Size = [29.7 21.0];
-else
-    opts.Size = [21.0 29.7];
-end
-fighandle = Figure4File(opts);
 
+% Create the figure and set the parameters.
+% NOTE: The paper size is tricky.
+% For pdf prints it works out of the box.
+% For eps (with epsc2) the size is only respected when
+% print(gcf,'outfoo.eps','-depsc2','-loose');
+% is being used. For the eps files, the following snippet might be useful:
+%
+% set(gca, 'Position', get(gca, 'OuterPosition') - ...
+%     get(gca, 'TightInset') * [-1 0 1 0; 0 -1 0 1; 0 0 1 0; 0 0 0 1]);
+%
+% However you must watch the boundaries then.
+% (Found at http://nibot-lab.livejournal.com/73290.html)
+fighandle = figure();
+set(fighandle, 'PaperUnits', 'centimeters');
+set(fighandle, 'PaperSize', transpose(opts.Size(:)) );
+set(fighandle, 'PaperPositionMode', 'manual');
+set(fighandle, 'PaperPosition', [0 0 transpose(opts.Size(:))]);
+set(fighandle, 'Position', [100 100 transpose(opts.Size(:))*20]);
+axes('Position', [ ...
+    transpose(opts.Border(:))./transpose(opts.Size(:)) ...
+    1 - 2 * transpose(opts.Border(:))./transpose(opts.Size(:)) ...
+    ] );
 end
