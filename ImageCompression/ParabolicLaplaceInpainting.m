@@ -1,2 +1,2 @@
-function out = ParabolicLaplaceInpainting(c,f)
+function out = ParabolicLaplaceInpainting(c, f, varargin)
 end
