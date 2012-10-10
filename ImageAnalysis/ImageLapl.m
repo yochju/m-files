@@ -1,7 +1,7 @@
 function out = ImageLapl( in, varargin )
 %% Computes the Laplacian on an image.
 %
-% out = ImageLapl( in, varargin )
+% out = ImageLapl( in, ... )
 %
 % Input parameters (required):
 %
