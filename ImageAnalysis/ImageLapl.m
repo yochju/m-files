@@ -19,6 +19,12 @@ function out = ImageLapl( in, varargin )
 % ySettings : either a structure or a cell array containing the optional
 %             parameters that will be passed to ImageDyy to compute the 2nd y
 %             derivative of the input image.
+% scheme    : if specified, it overrides xSettings any ySettings and applies
+%             either the standard finite difference stencil for the Laplacian,
+%             e.g. [0 1 0 ; 1 -4 1 ; 0 1 0] or it's rotationnally invariant
+%             alternative 1/6*[1 4 1 ; 4 -20 4 ; 1 4 1]. The possible values for
+%             this parameter are 'standard' (former scheme) or 'rotinv' (latter
+%             scheme).
 %
 % Output parameters:
 %
@@ -59,8 +65,8 @@ function out = ImageLapl( in, varargin )
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.
-error(nargchk(1, max(nargin,0), nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 7);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -74,11 +80,20 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
 
 parser.addParamValue('xSettings', struct([]), @(x) isstruct(x)||iscell(x) );
 parser.addParamValue('ySettings', struct([]), @(x) isstruct(x)||iscell(x) );
+parser.addParamValue('scheme', '', @(x) any(strcmpi(x,{'standard','rotinv'})));
 
 parser.parse(in,varargin{:});
 opts = parser.Results;
 
 %% Algorithm
 
-out = ImageDxx(in,opts.xSettings) + ImageDyy(in,opts.ySettings);
+filter = @(a) [ a/2 1-a a/2 ; 1-a 2*a-4 1-a ; a/2 1-a a/2 ];
+
+if strcmpi(opts.scheme,'')
+    out = ImageDxx(opts.in, opts.xSettings) + ImageDyy(opts.in, opts.ySettings);
+elseif strcmpi(opts.scheme, 'standard')
+    out = conv2( MirrorEdges(opts.in), filter(0), 'valid' );
+else
+    out = conv2( MirrorEdges(opts.in), filter(1/3), 'valid' );
 end
+

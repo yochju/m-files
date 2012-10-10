@@ -1,19 +1,28 @@
 function out = MirrorEdges(in, varargin)
 %% Mirrors image edges in each direction by s pixel.
 %
-% out = MirrorEdges(in)
+% out = MirrorEdges(in, ...)
 %
 % Input parameters (required):
 %
-% in : input image (matrix).
+% in : input image (array).
 %
 % Input parameters (optional):
 %
-% size : size of dummy boundaries (scalar, default = [1 1]).
+% size : size of dummy boundaries (scalar, default = [1 1] for 2d, [0 1] for
+%        row- and [1 0] for column arrays as input.).
 %
 % Output parameters
 %
 % out : image with mirrored edges.
+%
+% Description
+%
+% Adds a dummy boundary around an input image by mirroring the data. Does not
+% work for arrays with more than 2 dimensions. If input is a 1D signal (e.g. a
+% row or column vector, then, the mirroring ins applied only on the endpoints if
+% the optional parameter is omitted. For 2D signals, the default behavior is to
+% apply the mirroring along every edge.
 %
 % Example:
 % I = rand(256,256);
@@ -37,16 +46,12 @@ function out = MirrorEdges(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 07.05.2012 22:07
-
-%% Notes
-
-% Has been implemented in @Image.
+% Last revision on: 09.10.2012 16:15
 
 %% Perform argument checks
 
-error(nargchk(1, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 2);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -61,10 +66,17 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
 parser.addOptional('size', [1 1], @(x) validateattributes( x, {'numeric'}, ...
     {'integer', 'nonnegative', 'vector'} ));
 
-parser.parse(in,varargin{:});
+parser.parse(in, varargin{:});
 opts = parser.Results;
 
 %% Mirrors the boundary of an image in every direction by s pixel.
-out = padarray(in, opts.size, 'symmetric');
+
+if isrow(opts.in) && (nargin == 1)
+    out = padarray(opts.in, [0 1], 'symmetric');
+elseif iscolumn(opts.in) && (nargin == 1)
+    out = padarray(opts.in, [1 0], 'symmetric');
+else
+    out = padarray(opts.in, opts.size, 'symmetric');
+end
 
 end
