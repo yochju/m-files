@@ -246,8 +246,9 @@ while k <= opts.MaxOuter
         
         % Note that opts.TolInner should be chosen rather large for our usual
         % data ranges.
-        if ((changeI > 1e8) && (changeI < 10*opts.TolInner*eps(changeI) )) ...
-                || ((abs(changeI)<=1e8) && (changeI<opts.TolInner))
+        if ( ( norm(u(:)) > 1e8 ) && ...
+                ( changeI < 10*opts.TolInner*eps(changeI) ) ) ...
+                || ( ( norm(u(:))<=1e8 ) && ( changeI<opts.TolInner ) )
             break;
         else
             i = i + 1;

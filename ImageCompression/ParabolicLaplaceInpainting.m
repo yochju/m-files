@@ -20,7 +20,7 @@ function [out varargout] = ParabolicLaplaceInpainting(c, f, varargin)
 %       : number of iterations. (scalar, default = its*tStep)
 % tol   : change threshold when to stop iterating (if reached before the max.
 %         number of iterations.) The change is measured as the distance in the 2
-%         norm between two consecutive iterates. (scalar, default = 1e-6)
+%         norm between two consecutive iterates. (scalar, default = 1e-4)
 %
 % Any combination of iterations, time step and total time that prohibits any
 % iteration will yield the solution c.*f as result.
@@ -80,7 +80,7 @@ function [out varargout] = ParabolicLaplaceInpainting(c, f, varargin)
 %% Check Input and Output Arguments
 
 narginchk(2, 10);
-nargoutchk(0, 2);
+nargoutchk(0, 3);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -98,7 +98,7 @@ parser.addRequired('f', @(x) validateattributes( x, {'numeric'}, ...
 parser.addParamValue('tStep', 0.2, @(x) isscalar(x)&&(x<0.25) );
 parser.addParamValue('its', 1, @(x) isscalar(x)&&(x>=1) );
 parser.addParamValue('time', inf, @(x) isscalar(x)&&(x>=0));
-parser.addParamValue('tol', 1e-6, @(x) isscalar(x)&&(x>=0));
+parser.addParamValue('tol', 1e-4, @(x) isscalar(x)&&(x>=0));
 
 parser.parse(c, f, varargin{:});
 opts = parser.Results;
@@ -142,8 +142,12 @@ while (i*opts.tStep < stop)
     
 end
 
-if nargout == 2
-    varargout{1} = i;
+switch nargout
+    case 2
+        varargout{1} = i;
+    case 3
+        varargout{1} = i;
+        varargout{2} = change;
 end
 
 end
