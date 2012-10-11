@@ -14,19 +14,21 @@ function [out varargout] = ParabolicLaplaceInpainting(c, f, varargin)
 % corresponding values or option/value pairs, where the option is specified as a
 % string.
 %
-% tStep : time step size for the iteration. (scalar, default = 0.2)
-% its   : total number of iterations. (scalar, default = 1)
-% time  : total diffusion time. If specified, it overrides the setting for the
-%       : number of iterations. (scalar, default = its*tStep)
-% tol   : change threshold when to stop iterating (if reached before the max.
-%         number of iterations.) The change is measured as the distance in the 2
-%         norm between two consecutive iterates. (scalar, default = 1e-4)
+% tStep   : time step size for the iteration. (scalar, default = 0.2)
+% its     : total number of iterations. (scalar, default = 1)
+% time    : total diffusion time. If specified, it overrides the setting for the
+%         : number of iterations. (scalar, default = its*tStep)
+% tol     : change threshold when to stop iterating (if reached before the max.
+%           number of iterations.) The change is measured as the distance in the
+%           2 norm between two consecutive iterates. (scalar, default = 1e-4)
+% laplace : parameters to be passed to the computation of the laplacian.
+%           (structure, default = struct())
 %
 % Any combination of iterations, time step and total time that prohibits any
 % iteration will yield the solution c.*f as result.
 %
 % The function calls ImageLapl.m internally. Any option used by this method may
-% also be specified here.
+% also be specified here using the parameter laplace.
 %
 % Output parameters:
 %
@@ -79,7 +81,7 @@ function [out varargout] = ParabolicLaplaceInpainting(c, f, varargin)
 
 %% Check Input and Output Arguments
 
-narginchk(2, 10);
+narginchk(2, 12);
 nargoutchk(0, 3);
 
 parser = inputParser;
@@ -97,8 +99,9 @@ parser.addRequired('f', @(x) validateattributes( x, {'numeric'}, ...
 
 parser.addParamValue('tStep', 0.2, @(x) isscalar(x)&&(x<0.25) );
 parser.addParamValue('its', 1, @(x) isscalar(x)&&(x>=1) );
-parser.addParamValue('time', inf, @(x) isscalar(x)&&(x>=0));
-parser.addParamValue('tol', 1e-4, @(x) isscalar(x)&&(x>=0));
+parser.addParamValue('time', inf, @(x) isscalar(x)&&(x>=0) );
+parser.addParamValue('tol', 1e-4, @(x) isscalar(x)&&(x>=0) );
+parser.addParamValue('laplace', struct(), @(x) isstruct(x) );
 
 parser.parse(c, f, varargin{:});
 opts = parser.Results;
@@ -117,14 +120,14 @@ assert( isequal(size(opts.c), size(opts.f)), ExcM.id, ExcM.message );
 %% Algorithm
 
 i   = 0;     % Current iteration.
-out = c.*f;  % Current solution. (initialised with known data values)
-g   = c.*f;  % Data values. (we discard any data whenever c==0)
+out = opts.c.*opts.f;  % Current solution. (initialised with known data values)
+g   = opts.c.*opts.f;  % Data values. (we discard any data whenever c==0)
 u_old = out; % Previous iterate. (for tolerance check)
 
 while (i*opts.tStep < stop)
     
     out = out + opts.tStep * ( ...
-        (1-c).*ImageLapl(out, opts) - c .*(out-g) );
+        (1-opts.c).*ImageLapl(out, opts.laplace) - opts.c.*(out-g) );
     
     change = norm(out(:) - u_old(:), 2);
     
