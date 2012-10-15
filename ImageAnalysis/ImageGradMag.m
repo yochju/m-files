@@ -56,8 +56,8 @@ function out = ImageGradMag( in, varargin )
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.
-error(nargchk(1, max(nargin,0), nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, max(nargin,0));
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
