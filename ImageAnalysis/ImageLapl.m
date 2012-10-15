@@ -19,12 +19,18 @@ function out = ImageLapl( in, varargin )
 % ySettings : either a structure or a cell array containing the optional
 %             parameters that will be passed to ImageDyy to compute the 2nd y
 %             derivative of the input image.
-% scheme    : if specified, it overrides xSettings any ySettings and applies
+% scheme    : if specified, it overrides xSettings and ySettings and applies
 %             either the standard finite difference stencil for the Laplacian,
 %             e.g. [0 1 0 ; 1 -4 1 ; 0 1 0] or it's rotationnally invariant
 %             alternative 1/6*[1 4 1 ; 4 -20 4 ; 1 4 1]. The possible values for
 %             this parameter are 'standard' (former scheme) or 'rotinv' (latter
 %             scheme).
+% boundary :  if the parameter scheme has been specified, this structure will be
+%             passed to the method MirrorEdges to specify the mirroring of the
+%             boundaries. The default will be to apply Neumann boundary
+%             conditions by mirroring the data along the boundaries, e.g.
+%             boundary = struct('size',[1 1]). Note that this also treats 1D
+%             input signals as 2D signals with a singleton dimension.
 %
 % Output parameters:
 %
@@ -60,12 +66,11 @@ function out = ImageLapl( in, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.04.2012 07:00
+% Last revision on: 15.10.2012 21:30
 
 %% Check Input and Output Arguments
 
-% asserts that there's at least 1 input parameter.
-narginchk(1, 7);
+narginchk(1, 9);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -81,19 +86,23 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
 parser.addParamValue('xSettings', struct([]), @(x) isstruct(x)||iscell(x) );
 parser.addParamValue('ySettings', struct([]), @(x) isstruct(x)||iscell(x) );
 parser.addParamValue('scheme', '', @(x) any(strcmpi(x,{'standard','rotinv'})));
+parser.addParamValue('boundary', struct('size',[1 1]), @(x) isstruct(x));
 
 parser.parse(in,varargin{:});
 opts = parser.Results;
 
 %% Algorithm
 
+% Values in [0,1] yield discretisations for the Laplacian.
+% a = 0   : standard discretisation.
+% a = 1/3 : discretisation with rotationnally invariant leading error term.
 filter = @(a) [ a/2 1-a a/2 ; 1-a 2*a-4 1-a ; a/2 1-a a/2 ];
 
 if strcmpi(opts.scheme,'')
     out = ImageDxx(opts.in, opts.xSettings) + ImageDyy(opts.in, opts.ySettings);
 elseif strcmpi(opts.scheme, 'standard')
-    out = conv2( MirrorEdges(opts.in), filter(0), 'valid' );
+    out = convn( MirrorEdges(opts.in, opts.boundary), filter(0), 'valid' );
 else
-    out = conv2( MirrorEdges(opts.in), filter(1/3), 'valid' );
+    out = convn( MirrorEdges(opts.in, opts.boundary), filter(1/3), 'valid' );
 end
 
