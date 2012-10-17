@@ -33,6 +33,9 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %            given level. Note that the latter two variants may yield unfeasible
 %            solutions with respect to the PDE. E.g the variables u and c may
 %            not necessarily solve the PDE at the same time. (default = 0).
+% maskNorm : The norm to be used to penalise the mask. Possible choices are 1 or
+%            2. For 1, we penalise ||c||_1 and for 2 we use 0.5*||c||_2^2.
+%            (default = 1).
 %
 % Output parameters (required):
 %
@@ -93,11 +96,11 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 10.09.2012 16:10
+% Last revision on: 17.10.2012 17:00
 
 %% Perform input and output argument checking.
 
-narginchk(1,31);
+narginchk(1,33);
 nargoutchk(2,9);
 
 parser = inputParser;
@@ -130,6 +133,8 @@ parser.addParamValue('cStep',   2, @(x) isscalar(x)&&(x>=0));
 parser.addParamValue('PDEstep', 2, @(x) isscalar(x)&&(x>=0));
 
 parser.addParamValue('thresh', 0, @(x) isscalar(x)&&IsDouble(x));
+
+parser.addParamValue('maskNorm', 1, @(x) (x==1)||(x==2));
 
 parser.parse(f,varargin{:})
 opts = parser.Results;
@@ -205,14 +210,24 @@ while k <= opts.MaxOuter
         
         u = Optimization.MinQuadraticEnergy(coeffs,A,b);
         
-        % Find optimal c through a shrinkage approach.
+        if opts.maskNorm == 1
+            % Find optimal c through a shrinkage approach.
+            % This is the 1 norm case.
+            lambda = opts.lambda*ones(length(c(:)),1);
+            theta = [ opts.penPDE opts.penc ];
+            A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
+            b = [ LapM*u(:) cOldI(:) ];
+            c = Optimization.SoftShrinkage(lambda,theta,A,b);
+        else
+            % Find optimal c through a least squares approach with diagonal
+            % matrix. All diagonal entries are necessarily positive since the
+            % penalisations must be positive.
+            % This is the 2 norm case.
+            c = (opts.penPDE*(u(:)-f(:)+LapM*u(:)).*(LapM*u(:))+opts.penc)./ ...
+                ((opts.lambda + opts.penc) + ...
+                opts.penPDE*(u(:)-f(:)+LapM*u(:)).^2 );
+        end
         
-        lambda = opts.lambda*ones(length(c(:)),1);
-        theta = [ opts.penPDE opts.penc ];
-        A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
-        b = [ LapM*u(:) cOldI(:) ];
-        c = Optimization.SoftShrinkage(lambda,theta,A,b);
-                
         if nargout > 2
             EnerVal((k-1)*opts.MaxInner+i) = Energy(u,c,opts.f(:),opts.lambda);
             ResiVal((k-1)*opts.MaxInner+i) = Residual(u,c,opts.f(:));
@@ -266,7 +281,7 @@ while k <= opts.MaxOuter
     
     % See the comments above changeI for details.
     if ((changeK > 1e8) && (changeK < 10*opts.TolOuter*eps(changeK) )) ...
-                || (( changeK <=1e8) && (changeK < opts.TolOuter))
+            || (( changeK <=1e8) && (changeK < opts.TolOuter))
         break;
     else
         opts.penPDE = opts.penPDE*opts.PDEstep;
