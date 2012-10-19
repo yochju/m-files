@@ -1,4 +1,4 @@
-function out = MinFilter(in,r,c) %(in,r,c,its,weights)
+function out = MinFilter(in,varargin)
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -18,6 +18,5 @@ function out = MinFilter(in,r,c) %(in,r,c,its,weights)
 
 % Last revision on: 18.10.2012 22:03
 
-temp = GetNeighborhood(in,r,c);
-out = cellfun(@(x) min(x(:)), temp);
+out = ImageFilter(in, @(x) min(x(:)), varargin{:});
 end

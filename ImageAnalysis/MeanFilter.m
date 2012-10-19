@@ -1,4 +1,5 @@
-function out = MedianFilter(in,varargin)
+function out = MeanFilter(in, size, varargin)
+%% Applies a mean filter of size (2*r+1 x 2*c+1) on imput.
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,9 +17,9 @@ function out = MedianFilter(in,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 19.10.2012 21:03
+% Last revision on: 19.10.2012 21:00
 
-narginchk(1, 9);
+narginchk(2, 6);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -31,10 +32,9 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'in', 1) );
 
-parser.addParamValue('r', 1, @(x) isscalar(x)&&all(x>0)&&IsInteger(x) );
-parser.addParamValue('c', 1, @(x) isscalar(x)&&all(x>0)&&IsInteger(x) );
+parser.addRequired('size', @(x) isvector(x)&&all(x>0)&&all(IsInteger(x)) );
 
-parser.addParamValue('weights', ones(3,3), ...
+parser.addParamValue('weights', ones(2*size+1)/(prod(2*size+1)), ...
     @(x) validateattributes( x, ...
     {'numeric'}, ...
     {'nonempty', 'finite', 'nonnan'}, ...
@@ -42,12 +42,13 @@ parser.addParamValue('weights', ones(3,3), ...
 
 parser.addParamValue('its', 1 , @(x) isscalar(x)&&IsInteger(x)&&(x>=0) );
 
-parser.parse(in, varargin{:});
+parser.parse(in,size,varargin{:});
 opts = parser.Results;
 
-out = in;
+out = opts.in;
 for i = 1:opts.its
-    out = cellfun( @(x) median(x(:).*opts.weights(:)), ...
-        GetNeighborhood(out,opts.r,opts.c));
+    % TODO: allow other boundary extensions.
+    out = convn(MirrorEdges(out, opts.size), opts.weights, 'valid');
 end
+
 end

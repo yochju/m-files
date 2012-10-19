@@ -1,4 +1,4 @@
-function out = MedianFilter(in,varargin)
+function out = ImageFilter(in,fun,varargin)
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,9 +16,9 @@ function out = MedianFilter(in,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 19.10.2012 21:03
+% Last revision on: 18.10.2012 08:03
 
-narginchk(1, 9);
+narginchk(2, 10);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -30,6 +30,8 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'in', 1) );
+parser.addRequired('fun', @(x) validateattributes( x, {'function_handle'}, ...
+    {'scalar'}, mfilename, 'fun', 2) );
 
 parser.addParamValue('r', 1, @(x) isscalar(x)&&all(x>0)&&IsInteger(x) );
 parser.addParamValue('c', 1, @(x) isscalar(x)&&all(x>0)&&IsInteger(x) );
@@ -42,12 +44,13 @@ parser.addParamValue('weights', ones(3,3), ...
 
 parser.addParamValue('its', 1 , @(x) isscalar(x)&&IsInteger(x)&&(x>=0) );
 
-parser.parse(in, varargin{:});
+parser.parse(in, fun, varargin{:});
 opts = parser.Results;
 
 out = in;
 for i = 1:opts.its
-    out = cellfun( @(x) median(x(:).*opts.weights(:)), ...
+    out = cellfun( @(x) fun(x(:).*opts.weights(:)), ...
         GetNeighborhood(out,opts.r,opts.c));
 end
+
 end

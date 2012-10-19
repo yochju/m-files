@@ -1,4 +1,4 @@
-function out = MaxFilter(in,r,c) %(in,r,c,its,weights)
+function out = MaxFilter(in,varargin)
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,8 +16,7 @@ function out = MaxFilter(in,r,c) %(in,r,c,its,weights)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 18.10.2012 22:03
+% Last revision on: 19.10.2012 21:03
 
-temp = GetNeighborhood(in,r,c);
-out = cellfun(@(x) max(x(:)), temp);
+out = ImageFilter(in, @(x) max(x(:)), varargin{:});
 end
