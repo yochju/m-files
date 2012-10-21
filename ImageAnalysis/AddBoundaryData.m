@@ -14,11 +14,15 @@ function out = AddBoundaryData(in, varargin)
 % string.
 %
 % type : how the signal should be extended. Valid choices are 'dirichlet'
-%        (padding with 0s) or 'neumann' (mirroring edges).
-%
+%        (padding with 0s) or 'neumann' (mirroring edges). (default = 'neumann')
 % size : size of dummy boundaries (default = [1 1] for 2d, [0 1] for
 %        row- and [1 0] for column arrays as input.). Can be any input that
 %        would also be valid for the padarray method.
+% data : if type was set to 'dirichlet' then the specified data will be used
+%        instead of the default value 0 for the boundary values. data should be
+%        a struct (which will be passed as-is to ImagePad). Note that if this
+%        parameter is set, then any specification for 'size' will be ignored and
+%        the size will be computed from the data. (default struct([]))
 %
 % Output parameters
 %
@@ -53,11 +57,11 @@ function out = AddBoundaryData(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 20.10.2012 21:32
+% Last revision on: 21.10.2012 20:30
 
 %% Perform argument checks
 
-narginchk(1, 5);
+narginchk(1, 7);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -76,6 +80,8 @@ parser.addParamValue('type', 'neumann', @(x) strcmpi(x,validatestring(x, ...
 parser.addParamValue('size', inf, ...
     @(x) validateattributes( x, {'numeric'}, ...
     {'integer', 'nonnan', 'finite', 'nonnegative', 'vector'} ));
+
+parser.addParamValue('data', struct([]), @(x) isstruct(x));
 
 parser.parse(in, varargin{:});
 opts = parser.Results;
@@ -99,7 +105,11 @@ end
 
 switch opts.type
     case 'dirichlet'
-        out = padarray(opts.in, opts.size);
+        if isempty(opts.data)
+            out = padarray(opts.in, opts.size);
+        else
+            out = ImagePad(opts.in, opts.data);
+        end
     case 'neumann'
         out = padarray(opts.in, opts.size, 'symmetric');
 end

@@ -1,5 +1,5 @@
 function out = ImageLapl( in, varargin )
-%% Computes the Laplacian on an image.
+%% Computes the Laplacian on a given 1D or 2D input signal.
 %
 % out = ImageLapl( in, ... )
 %
@@ -24,13 +24,27 @@ function out = ImageLapl( in, varargin )
 %             e.g. [0 1 0 ; 1 -4 1 ; 0 1 0] or it's rotationnally invariant
 %             alternative 1/6*[1 4 1 ; 4 -20 4 ; 1 4 1]. The possible values for
 %             this parameter are 'standard' (former scheme) or 'rotinv' (latter
-%             scheme).
-% boundary :  if the parameter scheme has been specified, this structure will be
-%             passed to the method MirrorEdges to specify the mirroring of the
-%             boundaries. The default will be to apply Neumann boundary
+%             scheme). (default = '')
+% boundary  : if the parameter scheme has been specified, this structure will be
+%             passed to the method AddBoundaryData to specify the handling of
+%             the boundaries. The default will be to apply Neumann boundary
 %             conditions by mirroring the data along the boundaries, e.g.
-%             boundary = struct('size',[1 1]). Note that this also treats 1D
-%             input signals as 2D signals with a singleton dimension.
+%             boundary = struct(type,'neumann'). Any parameter which would be
+%             valid for the AddBoundaryData method can also be set here.
+% gridSize  : a 2d vector specifying the grid size in x-direction (rows) and
+%             y-direction (columns). Note that this parameter is only considered
+%             when the scheme is not ''. If the scheme is not set, than the grid
+%             size can be set using the settings for ImageDxx and ImageDyy.
+%             (default = [1 1]).
+% dim1      : boolean parameter that specifies whether a row or column signal
+%             should be treated like a true 1D signal or whether it should be
+%             considered like 2D signal with a singleton dimension. If true, it
+%             is treated like a 1D signal. Note, that in that case, only the
+%             standard scheme may be used. Also, if false and the signal is a
+%             row or column vector and if the boundary struct has no field
+%             'size', it will be set to [1 1] to enforce a 2D handling of the
+%             underlying data. If the field is set, the users choice will be
+%             repected. (default = true).
 %
 % Output parameters:
 %
@@ -48,7 +62,7 @@ function out = ImageLapl( in, varargin )
 % ySettings = { 'scheme', 'backward', 'gridSize', [1.5 1.5] };
 % ImageLapl(I, xSettings, ySettings)
 %
-% See also ImageDxx, ImageDyy
+% See also ImageDxx, ImageDyy, convn, conv2, conv
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -66,11 +80,11 @@ function out = ImageLapl( in, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 15.10.2012 21:30
+% Last revision on: 21.10.2012 21:15
 
 %% Check Input and Output Arguments
 
-narginchk(1, 9);
+narginchk(1, 13);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -85,8 +99,14 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
 
 parser.addParamValue('xSettings', struct([]), @(x) isstruct(x)||iscell(x) );
 parser.addParamValue('ySettings', struct([]), @(x) isstruct(x)||iscell(x) );
-parser.addParamValue('scheme', '', @(x) any(strcmpi(x,{'standard','rotinv'})));
-parser.addParamValue('boundary', struct('size',[1 1]), @(x) isstruct(x));
+parser.addParamValue('scheme', '', ...
+    @(x) any(strcmpi(x,{'', 'standard','rotinv'})));
+parser.addParamValue('boundary', struct('type','neumann'), @(x) isstruct(x));
+parser.addParamValue('gridSize', [1 1], @(x) validateattributes(x, ...
+    {'numeric'}, ...
+    {'vector', 'numel', 2, 'nonempty', 'nonsparse', ...
+    'nonnan', 'finite', 'nonzero'}, mfilename, 'gridSize'));
+parser.addParamValue('dim1', true, @(x) islogical(x)&&isscalar(x) );
 
 parser.parse(in,varargin{:});
 opts = parser.Results;
@@ -96,13 +116,37 @@ opts = parser.Results;
 % Values in [0,1] yield discretisations for the Laplacian.
 % a = 0   : standard discretisation.
 % a = 1/3 : discretisation with rotationnally invariant leading error term.
-filter = @(a) [ a/2 1-a a/2 ; 1-a 2*a-4 1-a ; a/2 1-a a/2 ];
+filter = @(a) [ a/2 1-a a/2 ; 1-a 2*a-4 1-a ; a/2 1-a a/2 ]/prod(opts.gridSize);
 
 if strcmpi(opts.scheme,'')
     out = ImageDxx(opts.in, opts.xSettings) + ImageDyy(opts.in, opts.ySettings);
 elseif strcmpi(opts.scheme, 'standard')
-    out = convn( MirrorEdges(opts.in, opts.boundary), filter(0), 'valid' );
+    if opts.dim1 && isrow(opts.in)
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            [1 -2 1]/opts.gridSize(1)^2, 'valid' );
+    elseif opts.dim1 && iscolumn(opts.in)
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            [1; -2; 1]/opts.gridSize(2)^2, 'valid' );
+    else
+        if ~isfield(opts.boundary,'size')
+            opts.boundary.size = [1 1];
+        end
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            filter(0), 'valid' );
+    end
 else
-    out = convn( MirrorEdges(opts.in, opts.boundary), filter(1/3), 'valid' );
+    if opts.dim1 && isrow(opts.in)
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            [1 -2 1]/opts.gridSize(1)^2, 'valid' );
+    elseif opts.dim1 && iscolumn(opts.in)
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            [1; -2; 1]/opts.gridSize(2)^2, 'valid' );
+    else
+        if ~isfield(opts.boundary,'size')
+            opts.boundary.size = [1 1];
+        end
+        out = convn( AddBoundaryData(opts.in, opts.boundary), ...
+            filter(1.0/3.0), 'valid' );
+    end
 end
 

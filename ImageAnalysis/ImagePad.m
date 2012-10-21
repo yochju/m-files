@@ -64,7 +64,7 @@ function out = ImagePad( in, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 06.05.2012 15:31
+% Last revision on: 21.10.2012 20:00
 
 %% Notes
 
@@ -73,8 +73,8 @@ function out = ImagePad( in, varargin )
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.
-error(nargchk(1, max(nargin,0), nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 17);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -110,66 +110,60 @@ opts = parser.Results;
 % Check that arrays for padding have the correct size and set corners to 0 if
 % they weren't specified.
 
+ExcM = ExceptionMessage('BadDim');
+
+ExcM.message = 'Left padding has wrong dimension.';
 if ~isempty(opts.left)
-    assert( size(opts.left,1) == size(in,1), ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Left padding has wrong dimension.' );
+    assert( size(opts.left,1) == size(in,1), ExcM.id, ExcM.message );
 end
 
+ExcM.message = 'Right padding has wrong dimension.';
 if ~isempty(opts.right)
-    assert( size(opts.right,1) == size(in,1), ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Right padding has wrong dimension.' );
+    assert( size(opts.right,1) == size(in,1), ExcM.id, ExcM.message );
 end
 
+ExcM.message = 'Top padding has wrong dimension.';
 if ~isempty(opts.top)
-    assert( size(opts.top,2) == size(in,2), ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Top padding has wrong dimension.' );
+    assert( size(opts.top,2) == size(in,2), ExcM.id, ExcM.message );
 end
 
+ExcM.message = 'Bottom padding has wrong dimension.';
 if ~isempty(opts.bottom)
-    assert( size(opts.bottom,2) == size(in,2), ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Bottom padding has wrong dimension.' );
+    assert( size(opts.bottom,2) == size(in,2), ExcM.id, ExcM.message );
 end
 
+ExcM.message = 'Top left padding has wrong dimension.';
 if ~isempty(opts.uleft)
     assert( ...
         size(opts.uleft,1) == size(opts.top ,1) && ...
-        size(opts.uleft,2) == size(opts.left,2) , ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Top left corner padding has wrong dimension.' );
+        size(opts.uleft,2) == size(opts.left,2) , ExcM.id, ExcM.message );
 else
-    opts.uleft = zeros( size(opts.top ,1), size(opts.left,2) );
+    opts.uleft = zeros( size(opts.top, 1), size(opts.left, 2) );
 end
 
+ExcM.message = 'Bottom left padding has wrong dimension.';
 if ~isempty(opts.bleft)
     assert( ...
         size(opts.bleft,1) == size(opts.bottom ,1) && ...
-        size(opts.bleft,2) == size(opts.left,2) , ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Lower left corner padding has wrong dimension.' );
+        size(opts.bleft,2) == size(opts.left,2) , ExcM.id, ExcM.message );
 else
-    opts.bleft = zeros( size(opts.bottom ,1), size(opts.left,2) );
+    opts.bleft = zeros( size(opts.bottom, 1), size(opts.left, 2) );
 end
 
+ExcM.message = 'Top right padding has wrong dimension.';
 if ~isempty(opts.uright)
     assert( ...
         size(opts.uright,1) == size(opts.top ,1) && ...
-        size(opts.uright,2) == size(opts.right,2) , ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Top right corner padding has wrong dimension.' );
+        size(opts.uright,2) == size(opts.right,2), ExcM.id, ExcM.message );
 else
     opts.uright = zeros( size(opts.top ,1), size(opts.right,2) );
 end
 
+ExcM.message = 'Bottom right padding has wrong dimension.';
 if ~isempty(opts.bright)
     assert( ...
         size(opts.bright,1) == size(opts.bottom ,1) && ...
-        size(opts.bright,2) == size(opts.right,2) , ...
-        ['ImageAnalysis:' mfilename ':BadInput'], ...
-        'Lower right corner padding has wrong dimension.' );
+        size(opts.bright,2) == size(opts.right,2) , ExcM.id, ExcM.message );
 else
     opts.bright = zeros( size(opts.bottom, 1), size(opts.right, 2) );
 end
