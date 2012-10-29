@@ -8,14 +8,17 @@ FED_MAXKAPPA = 6000;
 if reordering
     tauh = d./cos(pi*(1:2:2*n)*c).^2;
     if n > FED_MAXKAPPA
+        % This should emit a warning.
         kappa = n/4;
     else
         kappa = kappalookup(n);
     end
     prime = n+1;
+    
     while ~isprime(prime)
         prime = prime + 1;
     end
+    
     k = 0;
     while k>-1
         for l = 1:n
