@@ -1,4 +1,4 @@
-function out = max_process_time_by_steps(n, M, tau_max
+function out = max_process_time_by_steps(n, M, tau_max)
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %

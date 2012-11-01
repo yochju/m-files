@@ -30,7 +30,7 @@ if reordering
         % This should emit a warning.
         kappa = n/4;
     else
-        kappa = kappalookup(n);
+        kappa = kappalookup(n+1);
     end
     prime = n+1;
     
@@ -38,15 +38,29 @@ if reordering
         prime = prime + 1;
     end
     
+%     Original C code;
+%     for (k = 0, l = 0; l < n; ++k, ++l)
+%     {
+%       int index;
+%       while ((index = ((k+1)*kappa) % prime - 1) >= n)
+%         k++;
+% 
+%       (*tau)[l] = tauh[index];
+%     }
+%   }
+    
     k = 0;
     while k>-1
-        for l = 1:n
+        for l = 0:(n-1)
             index = mod((k+1)*kappa,prime)-1;
             while index >= n
                 k = k+1;
+                index = mod((k+1)*kappa,prime)-1;
             end
-            tau(l) = tauh(index);
+            tau(l+1) = tauh(index+1);
+            k = k+1;
         end
+        break;
     end
     
 else
