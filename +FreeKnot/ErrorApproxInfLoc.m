@@ -37,21 +37,7 @@ nargoutchk(0,1);
 
 Err = zeros(1,length(x)-1);
 for i = 1:(length(x)-1)
-    t = linspace(x(i),x(i+1), 1024);
-    x1 = 0.75*x(i) + 0.25*x(i+1);
-    x2 = 0.25*x(i) + 0.75*x(i+1);
-    Err(i) = max(abs(l(t,f,x1,x2)-f(t)));
+    t = linspace(x(i),x(i+1), 1024);    
+    Err(i) = max(abs(FreeKnot.ApproxLinSpline(t,x,f)-f(t)));
 end
-end
-
-function y = l(z,f,x1,x2)
-y = nan(size(z));
-% If z == x1 or z== x2, then we would have a division by 0. Nevertheless, we
-% know that the line must evaluate to the function value in that case.
-y(abs(z-x1) <= eps(x1)) = f(x1);
-y(abs(z-x2) <= eps(x2)) = f(x2);
-% Determine all the remaining positions and function values.
-p = logical((abs(z-x1)>eps(x1)).*(abs(z-x2)>eps(x2)));
-t = z(p);
-y(p) = (f(x2)-f(x1))./(x2-x1).*(t-x1)+f(x1);
 end
