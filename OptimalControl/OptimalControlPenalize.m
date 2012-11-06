@@ -57,6 +57,11 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 %           the raw output obtained when iterating and may not even yield
 %           feasible solutions. (cell array)
 % MasHist : History of all masks for every iteration. (cell array)
+% filterr : size of the average filter applied on the data before computing the
+%           minimization w.r.t to c. Note that this has no real justification in
+%           the model and is meant to be a workaround to improve robustness.
+%           default = 1 (i.e. no averaging). Any value possible to be passed to
+%           fspecial('average',filterr) is valid.
 %
 % Description
 %
@@ -100,7 +105,7 @@ function [u c varargout] = OptimalControlPenalize(f, varargin)
 
 %% Perform input and output argument checking.
 
-narginchk(1,33);
+narginchk(1,35);
 nargoutchk(2,9);
 
 parser = inputParser;
@@ -135,6 +140,7 @@ parser.addParamValue('PDEstep', 2, @(x) isscalar(x)&&(x>=0));
 parser.addParamValue('thresh', 0, @(x) isscalar(x)&&IsDouble(x));
 
 parser.addParamValue('maskNorm', 1, @(x) (x==1)||(x==2));
+parser.addParamValue('filterr', 1, @(x)all(IsInteger(x)));
 
 parser.parse(f,varargin{:})
 opts = parser.Results;
@@ -209,23 +215,34 @@ while k <= opts.MaxOuter
         b{3} = uOldI(:);
         
         u = Optimization.MinQuadraticEnergy(coeffs,A,b);
+        % TODO: This shouldn't be necessary...
+        u = reshape(u,size(f));
         
-        if opts.maskNorm == 1
-            % Find optimal c through a shrinkage approach.
-            % This is the 1 norm case.
-            lambda = opts.lambda*ones(length(c(:)),1);
-            theta = [ opts.penPDE opts.penc ];
-            A = [ u(:) - f(:) + LapM*u(:) cOldI(:) ];
-            b = [ LapM*u(:) cOldI(:) ];
-            c = Optimization.SoftShrinkage(lambda,theta,A,b);
+         % We integrate the data over a small local region to incorporate
+         % more local data. Hopefully this improves the awareness of where
+         % mask points are important.
+         
+         Intu = imfilter(u - f, ...
+             fspecial('average', opts.filterr)*prod(opts.filterr), ...
+             'Symmetric');
+         
+         if opts.maskNorm == 1
+             % Find optimal c through a shrinkage approach.
+             % This is the 1 norm case.
+             lambda = opts.lambda*ones(length(c(:)),1);
+             theta = [ opts.penPDE opts.penc ];
+             
+             A = [ Intu(:)+LapM*u(:) cOldI(:) ];
+             b = [ LapM*u(:) cOldI(:) ];
+             c = Optimization.SoftShrinkage(lambda,theta,A,b);
         else
             % Find optimal c through a least squares approach with diagonal
             % matrix. All diagonal entries are necessarily positive since the
             % penalisations must be positive.
             % This is the 2 norm case.
-            c = (opts.penPDE*(u(:)-f(:)+LapM*u(:)).*(LapM*u(:))+opts.penc)./ ...
+            c = (opts.penPDE*(Intu(:)+LapM*u(:)).*(LapM*u(:))+opts.penc)./ ...
                 ((opts.lambda + opts.penc) + ...
-                opts.penPDE*(u(:)-f(:)+LapM*u(:)).^2 );
+                opts.penPDE*(Intu(:)+LapM*u(:)).^2 );
         end
         
         if nargout > 2
