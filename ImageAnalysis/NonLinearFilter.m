@@ -19,6 +19,8 @@ function out = NonLinearFilter(Sig,FCell)
 
 % Last revision on: 17.10.2012 07:48
 
+% TODO: improve using http://www.mathworks.nl/help/images/ref/colfilt.html ?
+
 % One could do it without this, but then the boundary handling gets messy.
 FilterSizes = cellfun(@(x) size(x), FCell, 'UniformOutput',false);
 assert(isequal(FilterSizes{:}));

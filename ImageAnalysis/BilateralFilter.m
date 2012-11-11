@@ -19,6 +19,8 @@ function out = BilateralFilter(in,r,sig_w,sig_g,its)
 
 % Last revision on: 17.10.2012 07:48
 
+% TODO: improve using http://www.mathworks.nl/help/images/ref/colfilt.html ?
+
 S = size(in)+2*r;
 M = S(1);
 N = S(2);

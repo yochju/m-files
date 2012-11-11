@@ -18,6 +18,8 @@ function out = NonLocalMeansFilter(in,r,sig_g,its)
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 % Last revision on: 17.10.2012 07:48
+
+% TODO: improve using http://www.mathworks.nl/help/images/ref/colfilt.html ?
 S = size(in)+4*r;
 M = S(1);
 N = S(2);
