@@ -19,7 +19,7 @@ function out = JacobiSolver(A,b,it,x0)
 % NOTE: Assumes A is sparse.
 
 D  = spdiags(A,0);
-UL = A - spdiags(D,0);
+UL = spdiags(zeros(length(D)),0,A);
 out = x0;
 
 for i = 1:it
