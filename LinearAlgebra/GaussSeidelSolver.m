@@ -1,5 +1,61 @@
 function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 %% Gauß Seidel solver for linear systems.
+%
+% [x, varargout] = GaussSeidelSolver(A, b, varargin)
+%
+% Input parameters (required):
+%
+% A : system matrix. (double or single array)
+% b : righthand side of the linear system. Can be a matrix too. In that case,
+%     the system is solved for every column. (double of single array) 
+%
+% Input parameters (optional):
+%
+% Optional parameters are either struct with the following fields and
+% corresponding values or option/value pairs, where the option is specified as a
+% string.
+%
+% x0    : initial vector to start iterations. Default is the zeros vector.
+%         (double or single array).
+% tol   : tolerance limit of relative residual. Default 1e-10. (scalar)
+% maxit : Maximal number of iterations. Default is 1. (integer)
+% relax : Relaxation parameter. Default is 1.0 (scalar)
+% M1    : Left preconditioning matrix. Default is identity matrix. (double or
+%         single array)
+% M2    : Right preconditioning matrix. Default is identity matrix. (double or
+%         single array)
+% check : whether to check if convergence is possible. Can increasy computation
+%         time significantly. Default is false. (boolean)
+%
+% Output parameters:
+%
+% x : Solution of the linear system.
+%
+% Output parameters (optional):
+%
+% flag   : flag indicating status of the process. Following values are possible.
+%          -1 : Convergence check found that method will not converge.
+%           0 : No problems occured.
+%           1 : Tolerance could not be reached with maxit iterations.
+% relres : relative residual of the last iterate. 0 if system is trivially
+%          solvable because righthand side was 0.
+% it     : number of performed iterations. If righthand side was 0, it = inf.
+% resvec : residual of the last iterate.
+%
+% Description:
+%
+% Tries to solve the linear system Ax=b using a Gauß Seidel Method.
+%
+% Example:
+%
+% Solve linear system Ax=b with 3 different righthand sides.
+%
+% T = randi(10,[3,3]);
+% A = T'*T + 200*eye(3);
+% b = randi(10,[3,1]);
+% [x1 x2 x3 x4 x5] = GaussSeidelSolver(A,[b 2*b.^2],'maxit',10000)
+%
+% See also JacobiSolver
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -17,7 +73,7 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.11.2012 21:00
+% Last revision on: 12.11.2012 21:00
 
 %% Parse input.
 
@@ -106,6 +162,9 @@ end
 flag   = 0;
 it     = 1;
 resvec = A*x-b;
+% Since the righthand side can have multiple columns we need to get the norm
+% columnwise too. Hence it's not possible to use norm here. Same applies for the
+% computations of the residual and stopping criteria below.
 relres = sqrt(sum(resvec.^2))./sqrt(sum(x.^2));
 
 D = A-spdiags(zeros(size(A,1),1),0,A);
