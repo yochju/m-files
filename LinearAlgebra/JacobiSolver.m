@@ -78,7 +78,7 @@ function [x, varargout] = JacobiSolver(A, b, varargin)
 %% Parse input.
 
 narginchk(2, 16);
-nargoutchk(1, 5);
+nargoutchk(0, 5);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
