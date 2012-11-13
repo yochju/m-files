@@ -102,8 +102,10 @@ parser.addParamValue('thrDiffMax', 1, @(x) isscalar(x)&&IsDouble(x));
 parser.parse(f, u, c, varargin{:})
 opts = parser.Results;
 
-% TODO: Add error string.
-assert(isequal(size(opts.f),size(opts.u),size(opts.c)));
+ExcM = ExceptionMessage('Input');
+assert( ...
+    isequal(size(opts.f),size(opts.u),size(opts.c)), ...
+    ExcM.id, ExcM.message );
 
 [row col] = size(opts.u);
 
