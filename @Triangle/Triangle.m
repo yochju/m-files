@@ -1,19 +1,46 @@
 classdef Triangle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    %Provides functionality for computations on 2D Triangular domains.
+    %   Provides functionality for handling 2D triangular domains in the context
+    %   of interpolation and partial differential equations.
+    
+    % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+    %
+    % This program is free software; you can redistribute it and/or modify it
+    % under the terms of the GNU General Public License as published by the Free
+    % Software Foundation; either version 3 of the License, or (at your option)
+    % any later version.
+    %
+    % This program is distributed in the hope that it will be useful, but
+    % WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    % or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    % for more details.
+    %
+    % You should have received a copy of the GNU General Public License along
+    % with this program; if not, write to the Free Software Foundation, Inc., 51
+    % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+    
+    % Last revision on: 14.11.2012 21:30
     
     properties
+        % A triangle is uniquely defined by the position of its 3 corner points.
+        % If none are specified during construction, we assume that the standard
+        % triangle with its corners on the x- and y- axis and unit length should
+        % be used.
         p1 = [0; 0];
         p2 = [1; 0];
         p3 = [0; 1];
     end
     
     properties (Dependent = true, SetAccess = private)
-        Determ
+        Determ % Determinant of the transformation matrix.
     end
         
     methods
         function obj = Triangle(p1, p2, p3)
+            %% Constructor
+            %
+            % obj = Triangle(p1, p2, p3)
+            %
             switch nargin
                 case 0
                 %% No parameters passed. Use default values.
@@ -37,13 +64,8 @@ classdef Triangle
                 case 3
                 %% All 3 corners are passed separately.
                 ExcM = ExceptionMessage('Input');
-                assert(isequal(size(p1),[2 1]) || isequal(size(p1),[1 2]), ...
-                    ExcM.id, ExcM.message);
-                assert(isequal(size(p2),[2 1]) || isequal(size(p2),[1 2]), ...
-                    ExcM.id, ExcM.message);
-                assert(isequal(size(p3),[2 1]) || isequal(size(p3),[1 2]), ...
-                    ExcM.id, ExcM.message);
-                
+                assert( Triangle.ValidPoints(p1,p2,p3), ExcM.id, ExcM.message);
+
                 obj.p1 = p1(:);
                 obj.p2 = p2(:);
                 obj.p3 = p3(:);
@@ -56,46 +78,155 @@ classdef Triangle
         end
         
         function Determ = get.Determ(obj)
+            %% Determinant of the transformation matrix.
+            %
+            % Determ = get.Determ(obj)
+            %
+            
             Determ = det(Triangle.TransM(obj.p1,obj.p2,obj.p3));
         end
-                
+        
+        function bool = IsInside(obj,p)
+            %% Checks whether coordinates p lie inside the Triangle or not.
+            %
+            % bool = IsInside(obj,p)
+            %
+            
+            ExcM = ExceptionMessage('Input');
+            assert( Triangle.ValidPoints(p,[0;0],[0;0]), ExcM.id, ExcM.message);
+            
+            q = Triangle.ToStd(p(:),obj.p1,obj.p2,obj.p3);
+            if (( 0<=q(1) && q(1)<=1 ) && ( 0<=q(2) && q(2)<=(1-q(1)) ))
+                bool = true;
+            else
+                bool = false;
+            end
+        end
+                        
+        function y = IntegrateBilinear(obj,v1,v2,v3)
+            %% Bilinear integration.
+            %
+            % y = IntegrateBilinear(obj,v1,v2,v3)
+            %
+            % Integrates the bilinear interpolant which passes through the
+            % corners p1, p2 and p3 with values v1, v2 and v3.
+            
+            y = (v1+v2+v3)/6*abs(obj.Determ);
+        end
+        
+        function y = InterpolateBilinear(obj,p,v1,v2,v3)
+            %% Bilinear interpolation.
+            %
+            % y = InterpolateBilinear(obj,p,v1,v2,v3)
+            %
+            % Evaluates the bilinear interpolant  which passes through the
+            % corners p1, p2 and p3 with values v1, v2 and v3 at position p.
+            
+            ExcM = ExceptionMessage('Input');
+            assert( Triangle.ValidPoints(p,[0;0],[0;0]), ExcM.id, ExcM.message);
+            assert( isequal(size([v1 v2 v3]), [1 3]), ExcM.id, ExcM.message);
+            assert( IsInside(obj,p), ExcM.id, ExcM.message);
+            
+            y = v1*obj.basis1h(p) + v2*obj.basis2h(p) + v3*obj.basis3h(p);
+        end
+    end
+    
+    methods (Access = private)
+        
         function y = basis1h(obj,x)
-            y = det(TransM(obj.p2,x,obj.p3))/obj.Determ;
+            %% First triangle basis function.
+            %
+            % y = basis1h(obj,x)
+            %
+            
+            y = det(Triangle.TransM(obj.p2,x,obj.p3))/obj.Determ;
         end
         
         function y = basis2h(obj,x)
-            y = det(TransM(obj.p1,x,obj.p3))/obj.Determ;
+            %% Second triangle basis function.
+            %
+            % y = basis2h(obj,x)
+            %
+            
+            y = det(Triangle.TransM(obj.p1,x,obj.p3))/obj.Determ;
         end
         
         function y = basis3h(obj,x)
-            y = det(TransM(obj.p1,x,obj.p2))/obj.Determ;
+            %% Third triangle basis function.
+            %
+            % y = basis3h(obj,x)
+            %
+            
+            y = det(Triangle.TransM(obj.p1,x,obj.p2))/obj.Determ;
         end
         
-        function y = Integrate(obj,fun)
-            f = @(x) fun(FromStd(x,obj.p1,obj.p2,obj.p3));
-            y =abs(obj.Determ)*quad2d(f,0,1,0,@(x) 1-x);
-        end
-        
-% P gibt den Wert der Bilinearen Interpolation an der Stelle p zurück.
-% Die Ebene geht durch die Punkte r1,r2,r3 und hat die Funktionswerte z1, z2, z3.
-% P[p_,z1_,z2_,z3_,r1_,r2_,r3_]:=z1*b1[p,r1,r2,r3]+z2*b2[p,r1,r2,r3]+z3*b3[p,r1,r2,r3];
-
     end
     
-    methods (Static = true, Access = private)
+    methods (Static = true)
         
         function y = FromStd(x,p1,p2,p3)
+            %% Transfrom from standard triangle to arbitrary triangle.
+            %
+            % y = FromStd(x,p1,p2,p3)
+            %
+            % Transforms coordinates x in triangle T(p1,p2,p3) to coordinates in
+            % the standard triangle through an affine transformation.
+            
             M = Triangle.TransM(p1,p2,p3);
             y = M*x + p1;
         end
         
         function y = ToStd(x,p1,p2,p3)
+            %% Transform from arbitrary triangle to standard triangle.
+            %
+            % y = ToStd(x,p1,p2,p3)
+            %
+            % Inverse to Triangle.FromStd. Transforms coordinates x in standard
+            % triangle to coordinates in arbitrary triangle T(p1,p2,p3) through
+            % an affine transform.
+            
             M = fliplr([0 -1; -1 0].*[(p1-p3)';(p1-p2)'])/ ...
                 det(Triangle.TransM(p1,p2,p3));
             y = M*(x-p1);
         end
         
+    end
+    
+    methods (Static = true, Access = private)
+        
+        function bool = ValidPoints(p1,p2,p3)
+            %% Checks whether p1, p2, p3 are 2x1 or 1x2 arrays.
+            %
+            % bool = ValidPoints(p1,p2,p3)
+            
+            if nargin == 1
+                if (isequal(size(p1), [2 3]) || isequal(size(p1), [3 2]))
+                    bool = true;
+                else
+                    bool = false;
+                end
+            elseif nargin == 3
+                if ~isequal(size(p1(:)), [2,1])
+                    bool = false;
+                elseif ~isequal(size(p2(:)), [2,1])
+                    bool = false;
+                elseif ~isequal(size(p3(:)), [2,1])
+                    bool = false;
+                else
+                    bool = true;
+                end
+            end
+        end
+        
         function M = TransM(p1,p2,p3)
+            %% Transformation matrix.
+            %
+            % M = TransM(p1,p2,p3)
+            %
+            % Transformation matrix for changing an arbitrary triangle in to a
+            % standard triangle. Shift onto the origin cannot be represent by
+            % this matrix. Just the rotation and the scaling.
+            
             M = [p2-p1 p3-p1];
         end
         
