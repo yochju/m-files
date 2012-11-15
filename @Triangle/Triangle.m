@@ -129,6 +129,42 @@ classdef Triangle
             
             y = v1*obj.basis1h(p) + v2*obj.basis2h(p) + v3*obj.basis3h(p);
         end
+        
+        function [dx dy] = GradientBilinear(obj,v1,v2,v3)
+            %% Compute the gradient of the bilinear interpolant.
+            %
+            % [dx dy] = GradientBilinear(obj,v1,v2,v3)
+            %
+            
+            n = cross( ...
+                [obj.p2(:); v2]-[obj.p1(:); v1], ...
+                [obj.p3(:); v3]-[obj.p1(:); v1]);
+            if n(3)==0
+                dx = 0;
+                dy = 0;
+            else
+                dx = -n(1)/n(3);
+                dy = -n(2)/n(3);
+            end
+            
+        end
+        
+        function [a b c d] = PlaneEquation(obj,v1,v2,v3)
+            %% Compute the coefficients of the plane equation
+            %
+            % [a b c d] = GradientBilinear(obj,v1,v2,v3)
+            %
+            % Equation is: a*x + b*y + c*z = d.
+            
+            n = cross( ...
+                [obj.p2(:); v2]-[obj.p1(:); v1], ...
+                [obj.p3(:); v3]-[obj.p1(:); v1]);
+            a = n(1);
+            b = n(2);
+            c = n(3);
+            d = obj.p1(1)*n(1)+obj.p1(2)*n(2)+v1*n(3);
+            
+        end
     end
     
     methods (Access = private)
@@ -139,7 +175,7 @@ classdef Triangle
             % y = basis1h(obj,x)
             %
             
-            y = det(Triangle.TransM(obj.p2,x,obj.p3))/obj.Determ;
+            y = det(Triangle.TransM(obj.p3,x,obj.p2))/obj.Determ;
         end
         
         function y = basis2h(obj,x)
@@ -157,7 +193,7 @@ classdef Triangle
             % y = basis3h(obj,x)
             %
             
-            y = det(Triangle.TransM(obj.p1,x,obj.p2))/obj.Determ;
+            y = det(Triangle.TransM(obj.p2,x,obj.p1))/obj.Determ;
         end
         
     end
