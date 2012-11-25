@@ -49,6 +49,8 @@ opts = parser.Results;
 
 out = in;
 for i = 1:opts.its
+    
+    % colfilt would be much faster, but by default it uses 0 bounds.
     out = cellfun( @(x) fun(x(:).*opts.weights(:)), ...
         GetNeighborhood(out,opts.r,opts.c));
 end
