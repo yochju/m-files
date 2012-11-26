@@ -19,4 +19,18 @@ function [ out ] = ImageStructureTensor(in, varargin)
 
 % Last revision on: 24.11.2012 21:41
 
+%%
+
+grad = ImageGrad(in);
+
+out = zeros( [size(in) , 2 , 2] );
+out(:,:,1,1) = imfilter(grad(:,:,1).^2, ...
+    fspecial('gaussian'), 'symmetric');
+out(:,:,1,2) = imfilter(grad(:,:,1).*grad(:,:,2), ...
+    fspecial('gaussian'), 'symmetric');
+out(:,:,2,1) = imfilter(grad(:,:,1).*grad(:,:,2), ...
+    fspecial('gaussian'), 'symmetric');
+out(:,:,2,2) = imfilter(grad(:,:,2).^2, ...
+    fspecial('gaussian'), 'symmetric');
+
 end
