@@ -1,5 +1,5 @@
 function [ out ] = ImageDiffusionTensor(in, varargin)
-%% Computes the structure tensor K_sigma((nabla u).(nabla u)');
+%% Computes the diffusion tensor J(K_sigma((nabla u).(nabla u)'));
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
