@@ -1,4 +1,4 @@
-function [ out ] = ImageDiffusionTensor(in, varargin)
+function [ out ] = ImageDiffusionTensor(in, g, varargin)
 %% Computes the diffusion tensor J(K_sigma((nabla u).(nabla u)'));
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
@@ -18,5 +18,25 @@ function [ out ] = ImageDiffusionTensor(in, varargin)
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 % Last revision on: 24.11.2012 21:41
+
+% Todo: This is not always noramlised...
+grad = ImageGrad(in);
+grad(:,:,1) = imfilter(grad(:,:,1), fspecial('gaussian'), 'symmetric');
+grad(:,:,2) = imfilter(grad(:,:,2), fspecial('gaussian'), 'symmetric');
+gMag = grad(:,:,1).^2 + grad(:,:,2).^2;
+grad(:,:,1) = grad(:,:,1)./sqrt(gMag);
+grad(:,:,2) = grad(:,:,2)./sqrt(gMag);
+grad(or(isnan(grad),isinf(grad))) = 0;
+
+diff = g(gMag);
+
+v1 = grad;
+v2 = cat(3, -grad(:,:,2) , grad(:,:,1));
+out = zeros([size(in), 2, 2]);
+
+out(:,:,1,1) = diff.*v1(:,:,1).^2 + 1.0*v2(:,:,1).^2;
+out(:,:,1,2) = diff.*v1(:,:,1).*v1(:,:,2) + 1.0*v2(:,:,1)*v2(:,:,2);
+out(:,:,2,1) = out(:,:,1,2);
+out(:,:,2,2) = diff.*v1(:,:,2).^2 + 1.0*v2(:,:,2).^2;
 
 end
