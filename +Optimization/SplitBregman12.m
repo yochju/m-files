@@ -1,9 +1,62 @@
-function [ uk ] = SplitBregman12( A, b, lambda, C, f, mu, iterout, iterin )
+function [ uk, flag, dk, bk, itO, itI ] = ...
+    SplitBregman12( A, b, lambda, C, f, varargin)
 %% Performs split Bregman iteration with one 1-norm and one 2-norm term.
 %
-% Computes the minimum of ||Ax+b||_1 + lambda/2*||Cx+f||^2
-% mu is regularization weight
-% iter is the number of iterations
+% [uk, flag, dk, bk, itO, itI] = SplitBregman12(A, b, lambda, C, f, varargin)
+%
+% Input Parameters (required):
+%
+% A      : matrix in front of the variable in the 1-norm term. (matrix)
+% b      : vector offset in the 1-norm term. (vector)
+% lambda : regularisation weight in front of the 2-norm term. (scalar)
+% C      : matrix in front of the variable in the 2-norm term (matrix)
+% f      : vector offset in the 2-norm term. (vector)
+%
+% Input Parameters (optional):
+%
+% Optional parameters are either struct with the following fields and
+% corresponding values or option/value pairs, where the option is specified as a
+% string.
+%
+% mu   : regularisation weight used internally by the split Bregman algorithm.
+%        (scalar, default = 2)
+% iOut : number of Bregman iterations. (integer, default = 1)
+% iIn  : number of alternating minimisations. (integer, default = 1)
+% tol  : tolerance limit when to abort iterations (scalar, default = 1e-3)
+%
+% Output Parameters:
+%
+% uk   : Solution vector (vector).
+% flag : Flag indicating the stopping criterion (integer).
+%        0 : tolerance limit was reached.
+%        1 : max number of iterations was reached.
+% dk   : dual variable dk = A*uk-b. (vector)
+% bk   : auxiliary variable used for the updates. (vector)
+% itO  : number of Bregman iterations. (integer)
+% itI  : number of inner iterations performed in each Bregman step (vector).
+%
+% Output parameters (optional):
+%
+%
+%
+% Description:
+%
+% Computes the minimum of ||Ax+b||_1 + lambda/2*||Cx+f||^2 through a split
+% Bregman approach. Note that the formulation used here contains + inside the
+% norms, whereas a more common choice in the literature would be -.
+% Check http://www.stanford.edu/~tagoldst/Tom_Goldstein/Split_Bregman.html for
+% more information on the algorithm.
+%
+% Example:
+%
+% A = sprandsym(100, 0.2);
+% b = rand(100, 1);
+% C = sprandsym(100, 0.2);
+% f = rand(100, 1);
+% lambda = 1.75;
+% u = Optimization.SplitBregman12(A,b,lambda,C,f,'itOut',100,'itIn',5);
+%
+% See also fminunc.
 
 % Copyright 2011, 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -21,17 +74,100 @@ function [ uk ] = SplitBregman12( A, b, lambda, C, f, mu, iterout, iterin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 27.11.2012 14:40
+% Last revision on: 28.11.2012 21:30
+
+%% Check Input and Output
+
+narginchk(5, 13);
+nargoutchk(0, 6);
+
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
+parser.addRequired('A', @(x) validateattributes(x, ...
+    {'numeric'}, {'2d','nonempty','finite'}, mfilename, 'A', 1));
+
+parser.addRequired('b', @(x) validateattributes(x, ...
+    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'b', 2));
+
+parser.addRequired('lambda', @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'lambda', 3));
+
+parser.addRequired('C', @(x) validateattributes(x, ...
+    {'numeric'}, {'2d','nonempty','finite'}, mfilename, 'C', 4));
+
+parser.addRequired('f', @(x) validateattributes(x, ...
+    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'f', 5));
+
+parser.addParamValue('mu', 2, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'mu'));
+
+parser.addParamValue('iOut', 1, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative', 'integer'}, ...
+    mfilename, 'iOUt'));
+
+parser.addParamValue('iIn', 1, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative', 'integer'}, ...
+    mfilename, 'iIn'));
+
+parser.addParamValue('tol', 1e-3, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'tol'));
+
+parser.parse( A, b, lambda, C, f, varargin{:});
+opts = parser.Results;
+
+MExc = ExceptionMessage('Input');
+assert( size(A,1)==size(b,1), MExc.id, MExc.message );
+assert( size(C,1)==size(f,1), MExc.id, MExc.message );
+
+%% Initialisation
 
 bk = b;
-dk = zeros(length(b),1);
+dk = zeros(size(b));
 
-for i=1:iterout
-    for j=1:iterin
+flag = 1;
+
+uOld = inf(size(A,2),1);
+mu = opts.mu;
+
+%% Perform Optimisation
+
+for itO=1:opts.iOut
+    %% Perform Bregman iteration step.
+    
+    for itI=1:opts.iIn
+        %% Perform alternating minimisation steps.
+        
+        % Solves (by alternating minimisation of the variables u and d)
+        % argmin_{u,d} ||d||_1 + lambda/2*||Cu+f||_2^2 + mu/2*||d-Au-b||_2^2.
+        % Minimisation w.r.t. to u is a least squares problem, while the
+        % minimisation with respect to d has an analytical solution in terms of
+        % soft shrinkage.
         uk = ( lambda*(C')*C + mu*(A')*A )\( mu*(A')*(dk-bk)-lambda*(C')*f );
         dk = sign( A*uk+bk ).*max( abs(A*uk+bk)-1.0/mu, 0 );
     end
+    
+    % Update the Bregman auxiliary variable.
     bk = bk + b - dk + A*uk;
+    
+    if norm(uOld-uk,2) < opts.tol*eps(norm(uk,2))
+        %% Check for convergence.
+        
+        flag = 0;
+        break;
+        
+    else
+        
+        uOld = uk;
+        
+    end
+    
 end
 
 end
