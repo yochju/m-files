@@ -109,7 +109,7 @@ parser.addParamValue('SplitBregman', struct(), @(x) validateattributes(x, ...
 parser.addParamValue('SolvePde', struct(), @(x) validateattributes(x, ...
     {'struct'}, {}, mfilename, 'SolvePde'));
 
-parser.addParamValue('Save','', @(x) validateattributes(x, ...
+parser.addParamValue('Save', '', @(x) validateattributes(x, ...
     {'char'}, {'row', 'nonempty'}));
 
 parser.addParamValue('Verbose', false, @(x) validateattributes(x, ...
@@ -144,7 +144,7 @@ ener = inf(opts.maxit,1);
 flag = -1;
 
 if ~isempty(opts.Save)
-    ExcM = ExceptionMessage('Input','Save File must not exist.');
+    ExcM = ExceptionMessage('Input', 'message', 'Save File must not exist.');
     assert(exist(opts.Save,'file')==0, ExcM.id, ExcM.message);
     failsafe = true;
 else
