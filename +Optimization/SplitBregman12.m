@@ -1,4 +1,4 @@
-function [ uk, flag, dk, bk, itO, itI ] = ...
+function [ uk, flag, dk, bk, itO ] = ...
     SplitBregman12( A, b, lambda, C, f, varargin)
 %% Performs split Bregman iteration with one 1-norm and one 2-norm term.
 %
@@ -33,7 +33,6 @@ function [ uk, flag, dk, bk, itO, itI ] = ...
 % dk   : dual variable dk = A*uk-b. (vector)
 % bk   : auxiliary variable used for the updates. (vector)
 % itO  : number of Bregman iterations. (integer)
-% itI  : number of inner iterations performed in each Bregman step (vector).
 %
 % Output parameters (optional):
 %
@@ -74,12 +73,12 @@ function [ uk, flag, dk, bk, itO, itI ] = ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 28.11.2012 21:30
+% Last revision on: 30.11.2012 10:30
 
 %% Check Input and Output
 
 narginchk(5, 13);
-nargoutchk(0, 6);
+nargoutchk(0, 5);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -156,8 +155,10 @@ for itO=1:opts.iOut
     % Update the Bregman auxiliary variable.
     bk = bk + b - dk + A*uk;
     
-    if norm(uOld-uk,2) < opts.tol*eps(norm(uk,2))
+    if norm(uOld-uk,2) < opts.tol
         %% Check for convergence.
+        
+        % This tolerance check was suggested in the original paper of Goldstein.
         
         flag = 0;
         break;
