@@ -17,14 +17,34 @@ function out = EigenValuesSym2x2(M)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 27.11.2012 14:20
+% Last revision on: 01.12.2012 21:40
+
+%% Notes.
+
+%% Parse input and output.
+
+narginchk(1, 1);
+nargoutchk(0, 1);
+
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
+parser.addRequired('M', @(x) validateattributes(x, {'numeric'}, ...
+    {'size', [2 2], 'nonsparse'}, mfilename, 'M'));
+
+parser.parse(M);
+
+ExcM = ExceptionMessage('Input', 'Input matrix must be symmetric.');
+assert(IsSymmetric(M), ExcM.id, ExcM.message);
+
+%% Run code.
 
 a = M(1,1);
 b = M(2,1);
 c = M(2,2);
-
-ExcM = ExceptionMessage('Input');
-assert(IsSymmetric(M), ExcM.id, ExcM.message);
 
 out = [ nan nan ];
 out(1) = 0.5*(a+c-sqrt(4*b^2+(a-c)^2));

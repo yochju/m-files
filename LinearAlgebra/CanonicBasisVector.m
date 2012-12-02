@@ -1,17 +1,32 @@
-function E = CanonicBasisVector(i,n)
+function E = CanonicBasisVector(i, n, varargin)
 %% Computes the i-th canonical basis vector of length n.
 %
-% E = CanonicBasisVector(i,n)
+% E = CanonicBasisVector(i, n, sparse)
+%
+% Input Parameters (required):
+%
+% i : Position of the 1. (integer)
+% n : Length of the vector. (integer)
+%
+% Input parameters (optional):
+%
+% sparse : whether output should be sparse. (boolean, default = false)
+%
+% Output parameters:
+%
+% E : the i-th canonical Basis vector having a 1 at position i and 0 everywhere
+%     else. (array)
+%
+% Output parameters (optional):
+%
+% -
+%
+% Description:
 %
 % Computes the i-th canonical basis vector of length n. This vector has 1 at the
 % i-th position and 0 everywhere else.
 %
-% Input Parameters (required)
-%
-% i : Position of the 1.
-% n : Length of the vector.
-%
-% Example
+% Example:
 %
 % CanonicBasisVector(3,4) gives [0 ; 0 ; 1 ; 0 ].
 %
@@ -33,27 +48,40 @@ function E = CanonicBasisVector(i,n)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 16:30
+% Last revision: 01.12.2012 20:58
 
-%% Comments and Remarks.
-%
+%% Notes.
 
-%% Check input parameters
+%% Parse input and output.
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 3);
+nargoutchk(0, 1);
 
-assert( IsInteger(i)&&IsInteger(n) , ...
-    'LinearAlgebra:CanonicBasisVector:BadInput', ...
-    ['The input values must be integer valued.']);
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
 
-assert( (0<i) && (i<=n) , ...
-    'LinearAlgebra:CanonicBasisVector:BadInput', ...
-    ['The first argument must be larger than 0 and smaller than ' ...
-     'the second argument.']);
+parser.addRequired('i', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive', '<=', n}, mfilename, 'i'));
 
-%% Compute the Vector
+parser.addRequired('n', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'n'));
 
-E = zeros(n,1);
-E(i) = 1;
+parser.addOptional('sparse', false, @(x) validateattributes(x, {'logical'}, ...
+    {'scalar'}, mfilename, 'sparse'));
+
+parser.parse(i, n, varargin{:});
+opts = parser.Results;
+
+%% Run code.
+
+if opts.sparse
+    E = sparse(i,1,1,n,1);
+else
+    E = zeros(n,1);
+    E(i) = 1;
+end
+
 end

@@ -1,12 +1,7 @@
-function V = CircShiftM(n,p)
+function V = CircShiftM(n, varargin)
 %% Returns the circular shift matrix of order n.
 %
-% V = CircShiftM(n)
-% V = CircShiftM(n,p)
-%
-% The circular shift matrix of order n performs a shift on a given vector with a
-% circular wrap around. shifts can be to the left (positive values of p) or to
-% the right (negative values of p).
+% V = CircShiftM(n, p)
 %
 % Input parameters (required):
 %
@@ -14,20 +9,30 @@ function V = CircShiftM(n,p)
 %
 % Input parameters (optional):
 %
-% p : amount of positions to shift. (integer) (default = 1)
+% p : amount of positions to shift. (integer, default = 1)
 %
 % Output parameters:
 %
 % V : The circular shift matrix of order n. (sparse matrix)
 %
-% Example
+% Output parameters (optional):
+%
+% -
+%
+% Description:
+%
+% The circular shift matrix of order n performs a shift on a given vector with a
+% circular wrap around. Shifts can be to the left (positive values of p) or to
+% the right (negative values of p).
+%
+% Example:
 %
 % n = 4;
 % V = CircShiftM(n);
 %
 % See also circshift
 
-% Copyright 2011,2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2011, 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -43,40 +48,33 @@ function V = CircShiftM(n,p)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/02/18 21:00
+% Last revision: 01.12.2012 21:20
 
-%% Comments and Remarks.
+%% Notes.
 
 %% Check Input/Output parameters.
 
-error(nargchk(1, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 2);
+nargoutchk(0, 1);
 
-assert(isscalar(n), ...
-    'LinearAlgebra:CircShiftM:BadInput', ...
-    'Matrix order must be a single scalar value.');
-assert( (floor(n)==ceil(n)) && (n>=1), ...
-    'LinearAlgebra:CircShiftM:BadInput', ...
-    'Matrix order must be a positive integer number.');
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
 
-if nargin == 1
-    p = 1;
-else
-    assert(isscalar(p), ...
-        'LinearAlgebra:CircShiftM:BadInput', ...
-        'Shift order must be a single scalar value.');
-    assert(floor(p)==ceil(p), ...
-       'LinearAlgebra:CircShiftM:BadInput', ...
-       'Shift order must be an integer number.');
-   % Since we assume the signal to be periodic, there exists for every specified
-   % p a shift by p positions with 0 <= p < n.
-   if (abs(p) >= n) || (-n <= p && p <= 0)
-       p = mod(p,n);
-   end
-end
+parser.addRequired('n', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'n'));
 
-%% Set up the matrix.
+parser.addOptional('p', 1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer'}, mfilename, 'p'));
 
-V = sparse(1:n,[(p+1):n 1:p],ones(1,n),n,n);
+parser.parse(n, varargin{:});
+opts = parser.Results;
+
+%% Run code.
+
+p = mod(opts.p,n);
+V = sparse(1:n, [(p+1):n, 1:p], ones(1,n), n, n);
 
 end
