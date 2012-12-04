@@ -8,7 +8,17 @@ function E = CanonicBasisVector(i, n, varargin)
 % i : Position of the 1. (integer)
 % n : Length of the vector. (integer)
 %
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% -
+%
 % Input parameters (optional):
+%
+% The number of optional parameters is akways at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
 %
 % sparse : whether output should be sparse. (boolean, default = false)
 %
@@ -48,7 +58,7 @@ function E = CanonicBasisVector(i, n, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 01.12.2012 20:58
+% Last revision: 04.12.2012 21:48
 
 %% Notes.
 
