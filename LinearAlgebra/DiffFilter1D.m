@@ -1,32 +1,47 @@
-function [coeffs, cons] = DiffFilter1D(knots,order,varargin)
+function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 %% Returns the coefficients of a 1D finite difference scheme.
 %
-% coeffs = DiffFilter1D(knots,order,varargin)
+% [coeffs] = DiffFilter1D(knots,order,varargin)
 % [coeffs, cons] = DiffFilter1D(knots,order,varargin)
+%
+% Input Parameters (required):
+%
+% knots : Grid positions for the stencil. (array of sorted integers)
+% order : Differentiation order. (positive integer)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% 'GridSize'  : size of the grid. (positive scalar, default = 1.0)
+% 'Tolerance' : tolerance when checking the consistency order. (default 1e-12)
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is akways at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
+%
+% Output Parameters
+%
+% coeffs : coefficients of the corresponding knots. (array)
+%
+% Output parameters (optional):
+%
+% cons : consistency order of the obtained scheme. (integer)
+%
+% Description:
 %
 % Determines the coefficients of a finite difference scheme based on the given
 % knot points through a taylor expansion. knots can be a row or column vector,
 % but the function always returns the coefficients in a row vector.
 %
-% Input Parameters (required):
-%
-% knots : grid positions for the stencil. (array of sorted integers)
-% order : differentiation order. (positive integer)
-%
-% Input Parameters (pairs), (optional):
-%
-% 'GridSize'  : size of the grid. (positive double) (default = 1.0)
-% 'Tolerance' : tolerance when checking the consistency order. (default 100*eps)
-%
-% Output Parameters
-%
-% coeffs : coefficients of the corresponding knots. (array)
-% cons   : consistency order of the obtained scheme. (integer)
-%
 % Example
 %
 % Get standard finite difference scheme for second derivative.
-% DiffFilter([-1 0 1],2,'GridSize',1.0)
+% DiffFilter1D([-1 0 1], 2, 'GridSize', 1.0)
 %
 % See also FiniteDiff1DM.
 
@@ -46,61 +61,69 @@ function [coeffs, cons] = DiffFilter1D(knots,order,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/02/18 20:00
+% Last revision: 08.12.2012 21:30
 
-%% Comments and Remarks.
-%
+%% Notes
+
 % TODO: Check if the knots really need to be sorted.
 % TODO: Are these knots valid: [-4 -3 -2]? Is the implementation correct then?
 
+%% Parse input and output.
+
 %% Check input parameters
 
-error(nargchk(2, 6, nargin));
-error(nargoutchk(0, 2, nargout));
+narginchk(2, 6);
+nargoutchk(0, 2);
 
-optargin = size(varargin,2);
-stdargin = nargin - optargin;
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
 
-assert( stdargin == 2, ...
-    'LinearAlgebra:DiffFilter1D:BadInput', ...
-    'The first two parameters must be the image and the quality threshold.');
-assert( mod(optargin,2)==0, ...
-    'LinearAlgebra:DiffFilter1D:BadInput', ...
-    'Optional arguments must come in pairs.');
-assert( all(knots==sort(knots)), ...
-    'LinearAlgebra:DiffFilter1D:BadInput', ...
-    'Knot sites must be sorted (ascending).');
-assert( order > 0, ...
-    'LinearAlgebra:DiffFilter1D:BadInput', ...
-    'Differentiation order must be at least 1.');
-assert( length(knots(:)) > order, ...
-    'LinearAlgebra:DiffFilter1D:BadInput', ...
-    'At least one more knot as the differentiation order is required.');
+parser.addRequired('knots', @(x) validateattributes(x, {'numeric'}, ...
+    {'vector', 'integer'}, mfilename, 'knots'));
 
-h = 1.0;
-limit = 100*eps;
-for i = 1:2:optargin
-    switch varargin{i}
-        case 'GridSize'
-            h = varargin{i+1};
-            assert( h > 0, ...
-                'LinearAlgebra:DiffFilter1D:BadInput', ...
-                'Grid size must be a positive value.');
-        case 'Tolerance'
-            limit = varargin{i+1};
-            assert( limit > 0, ...
-                'LinearAlgebra:DiffFilter1D:BadInput', ...
-                'Specified tolerance must be positive.');
-    end
+parser.addRequired('order', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'order'));
+
+parser.addParamValue('GridSize', 1, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','positive'}, ...
+    mfilename, 'GridSize'));
+
+parser.addParamValue('Tolerance', 1e-12, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','positive'}, ...
+    mfilename, 'Tolerance'));
+
+parser.parse( knots, order, varargin{:});
+opts = parser.Results;
+
+MExc = ExceptionMessage('Input');
+
+if ~isequal(knots, sort(knots))
+    MExc.message = 'Knot sites are not sorted. Will be sorted now.';
+    warning(MExc.id, MExc.message);
+    knots = sort(knots);
 end
 
-%% Set up internal variables.
+if numel(knots(:)) <= order,
+    MExc.message = ['At least one more knot as the differentiation ' ...
+        'order is required.'];
+    error(MExc.id, MExc.message);
+end
+
+h = opts.GridSize;
+limit = opts.Tolerance;
+
+%% Run code.
+
+% Set up internal variables.
 
 x = knots(:);
-n = length(x);
+n = numel(x);
 taylor = @(x,y) x.^y/factorial(y);
 
-%% Determine the stencil.
+% Determine the stencil.
 
 % Matrix containing the coefficients of the Taylor expansion at the given knot
 % sites.
@@ -109,12 +132,18 @@ M = bsxfun(taylor,x,0:(n-1))';
 b = zeros(n,1);
 b(min(order,n-1)+1)=1;
 % The solution of the linear system contains the desired coefficients.
-coeffs = ((M\b)'/h^order);
+if IsConsistent(M, b)
+    coeffs = ((M\b)'/h^order);
+else
+    ExcM = ExceptionMessage('Input', 'message', ...
+        'Stencil leads to a linear system which cannot be solved.');
+    error(ExcM.id, ExcM.message);
+end
 
-%% Determine the consistency order if required.
+
+% Determine the consistency order if required.
 
 if nargout == 2
-    
     %% Check that scheme approximates the correct derivative.
     
     i = 0;
@@ -127,12 +156,13 @@ if nargout == 2
     
     % The term corresponding to the derivative must be 1. Otherwise the scheme
     % does not approximate the desired derivative.
-    if ~(i==order&&abs(sum(coeffs.*((h*knots).^i)/factorial(i))-1) <= limit)
-        warning('LinearAlgebra:DiffFilter1D:BadApproximation', ...
-            'Scheme does not approximate desired derivative.');
+    if ~(i==order && abs(sum(coeffs.*((h*knots).^i)/factorial(i))-1) <= limit)
+        MExc = ExceptionMessage('Internal', ...
+            'message', 'Unable to approximate desired derivative.');
+        error(MExc.id, MExc.message);
     end
     
-    %% Now check consistency.
+    % Now check consistency.
     
     i = i+1;
     
@@ -145,9 +175,12 @@ if nargout == 2
     cons = i - order;
     
     if cons<=0
-        warning('LinearAlgebra:DiffFilter1D:InconsistentScheme', ...
-            'Scheme is not consistent.');
+        MExc = ExceptionMessage('Internal', ...
+            'message', 'Scheme may not be consistent.');
+        warning(MExc.id, MExc.message);
     end
+    
+    varargout{1} = cons;
     
 end
 
