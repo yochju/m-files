@@ -12,17 +12,26 @@ function [ uk, flag, dk, bk, itO ] = ...
 % C      : matrix in front of the variable in the 2-norm term (matrix)
 % f      : vector offset in the 2-norm term. (vector)
 %
-% Input Parameters (optional):
+% Input parameters (parameters):
 %
-% Optional parameters are either struct with the following fields and
-% corresponding values or option/value pairs, where the option is specified as a
-% string.
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
 %
 % mu   : regularisation weight used internally by the split Bregman algorithm.
 %        (scalar, default = 2)
 % iOut : number of Bregman iterations. (integer, default = 1)
 % iIn  : number of alternating minimisations. (integer, default = 1)
-% tol  : tolerance limit when to abort iterations (scalar, default = 1e-3)
+% tolOut : tolerance limit when to abort outer iterations (scalar, 
+%          default = 1e-3)
+% tolIn : tolerance limit when to abort inner iterations (scalar, 
+%          default = 1e-3)
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is akways at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output Parameters:
 %
@@ -36,7 +45,7 @@ function [ uk, flag, dk, bk, itO ] = ...
 %
 % Output parameters (optional):
 %
-%
+% -
 %
 % Description:
 %
@@ -73,11 +82,11 @@ function [ uk, flag, dk, bk, itO ] = ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.11.2012 10:30
+% Last revision on: 09.12.2012 09:00
 
 %% Check Input and Output
 
-narginchk(5, 13);
+narginchk(5, 15);
 nargoutchk(0, 5);
 
 parser = inputParser;
@@ -114,9 +123,13 @@ parser.addParamValue('iIn', 1, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','nonnegative', 'integer'}, ...
     mfilename, 'iIn'));
 
-parser.addParamValue('tol', 1e-3, @(x) validateattributes(x, ...
+parser.addParamValue('tolOut', 1e-3, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
-    mfilename, 'tol'));
+    mfilename, 'tolOut'));
+
+parser.addParamValue('tolIn', 1e-3, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'tolIn'));
 
 parser.parse( A, b, lambda, C, f, varargin{:});
 opts = parser.Results;
@@ -140,6 +153,8 @@ mu = opts.mu;
 for itO=1:opts.iOut
     %% Perform Bregman iteration step.
     
+    utemp = inf(size(uk));
+    dtemp = inf(size(dk));
     for itI=1:opts.iIn
         %% Perform alternating minimisation steps.
         
@@ -147,15 +162,24 @@ for itO=1:opts.iOut
         % argmin_{u,d} ||d||_1 + lambda/2*||Cu+f||_2^2 + mu/2*||d-Au-b||_2^2.
         % Minimisation w.r.t. to u is a least squares problem, while the
         % minimisation with respect to d has an analytical solution in terms of
-        % soft shrinkage.
+        % soft shrinkage. Aborts when both uk and dk don't change anymore.        
         uk = ( lambda*(C')*C + mu*(A')*A )\( mu*(A')*(dk-bk)-lambda*(C')*f );
         dk = sign( A*uk+bk ).*max( abs(A*uk+bk)-1.0/mu, 0 );
+        
+        if (itI > 1) && ...
+                (norm(uk-utemp,2) < opts.tolIn) && ...
+                (norm(dk-dtemp,2) < opts.tolIn)
+            break;
+        else
+            utemp = uk;
+            dtemp = dk;
+        end
     end
     
     % Update the Bregman auxiliary variable.
     bk = bk + b - dk + A*uk;
     
-    if norm(uOld-uk,2) < opts.tol
+    if norm(uOld-uk,2) < opts.tolOut
         %% Check for convergence.
         
         % This tolerance check was suggested in the original paper of Goldstein.
