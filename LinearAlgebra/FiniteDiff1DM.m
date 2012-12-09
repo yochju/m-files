@@ -20,7 +20,7 @@ function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 %
 % Input parameters (optional):
 %
-% The number of optional parameters is akways at most one. If a function takes
+% The number of optional parameters is always at most one. If a function takes
 % an optional parameter, it does not take any other parameters.
 %
 % -
