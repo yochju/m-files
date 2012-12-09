@@ -1,13 +1,8 @@
-function [M cons] = FiniteDiff1DM(len,knots,order,varargin)
+function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 %% Returns the matrix corresponding to a 1D finite difference scheme.
 %
 % M = FiniteDiff1DM(len,knots,order,varargin)
 % [M cons] = FiniteDiff1DM(len,knots,order,varargin)
-%
-% Computes the matrix corresponding to a finite difference scheme based on given
-% knot points through a taylor expansion. knots can be a row or column vector.
-% The returned matrix is sparse. Boundary conditions can be specified through
-% optional parameters. Accepted values are 'Neumann' or 'Dirichlet'.
 %
 % Input Parameters (required):
 %
@@ -15,16 +10,35 @@ function [M cons] = FiniteDiff1DM(len,knots,order,varargin)
 % knots : grid positions for the stencil. (array of sorted integers)
 % order : differentiation order. (positive integer)
 %
-% Input Parameters (pairs), (optional):
+% Input parameters (parameters):
 %
-% 'GridSize'  : size of the grid. (positive double) (default = 1.0)
-% 'Boundary'  : boundary condition. (string) (default = 'Neumann')
-% 'Tolerance' : tolerance when checking the consistency order. (default 100*eps)
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% Boundary   : boundary condition. (string, default = 'Neumann')
+% OptsFilter : options to be passed to DiffFilter1D (struct, default = struct())
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is akways at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output Parameters
 %
-% M    : Matrix of the corresponding scheme. (sparse matrix)
+% M : Matrix of the corresponding scheme. (sparse matrix)
+%
+% Output parameters (optional):
+%
 % cons : consistency order of the obtained scheme. (integer)
+%
+% Description:
+%
+% Computes the matrix corresponding to a finite difference scheme based on given
+% knot points through a taylor expansion. knots can be a row or column vector.
+% The returned matrix is sparse. Boundary conditions can be specified through
+% optional parameters. Accepted values are 'Neumann' or 'Dirichlet'.
 %
 % Example
 %
@@ -50,59 +64,54 @@ function [M cons] = FiniteDiff1DM(len,knots,order,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/02/18 20:00
+% Last revision: 09.12.2012 20:00
 
-%% Comments and Remarks.
-%
+%% Notes
 
-%% Check input parameters
+%% Parse input and output.
 
-error(nargchk(3, 9, nargin));
-error(nargoutchk(0, 2, nargout));
+narginchk(3, 7);
+nargoutchk(0, 2);
 
-optargin = size(varargin,2);
-stdargin = nargin - optargin;
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
 
-assert( stdargin == 3, ...
-    'LinearAlgebra:FiniteDiff1DM:BadInput', ...
-    ['The first three parameters must be signal length, the knot sites and ' ...
-     'the differentiation order.']);
-assert( mod(optargin,2)==0, ...
-    'LinearAlgebra:FiniteDiff1DM:BadInput', ...
-    'Optional arguments must come in pairs.');
+parser.addRequired('len', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'knots'));
 
-BoundCond = 'Neumann';
-GridS = 1.0;
-Tol = 100*eps;
-for i = 1:2:optargin
-    switch varargin{i}
-        case 'GridSize'
-            GridS = varargin{i+1};
-        case 'Boundary'
-            BoundCond = varargin{i+1};
-            assert( any(strcmp(BoundCond, {'Dirichlet', 'Neumann'}) ) , ...
-                'LinearAlgebra:FiniteDiff1DM:BadInput', ...
-                'Unknown boundary condition specified.');
-        case 'Tolerance'
-            Tol = varargin{i+1};
-    end
-end
+parser.addRequired('knots', @(x) validateattributes(x, {'numeric'}, ...
+    {'vector', 'integer'}, mfilename, 'knots'));
 
-%% Set up internal variables.
+parser.addRequired('order', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'order'));
+
+parser.addParamValue('Boundary', 'Neumann', ...
+    @(x) strcmpi(x, validatestring(x, {'Dirichlet', 'Neumann'}, mfilename, ...
+    'Boundary')));
+
+parser.addParamValue('OptsFilter', struct(), @(x) validateattributes(x, ...
+    {'struct'}, {}, mfilename, 'OptsFilter'));
+
+parser.parse( len, knots, order, varargin{:});
+opts = parser.Results;
+
+%% Run code.
 
 if nargout < 2
-    coeffs = DiffFilter1D(knots, order, ...
-        'GridSize', GridS, 'Tolerance', Tol);
+    coeffs = DiffFilter1D(knots, order, opts.OptsFilter);
 else
-    [coeffs cons] = DiffFilter1D(knots, order, ...
-        'GridSize', GridS, 'Tolerance', Tol);
+    [coeffs cons] = DiffFilter1D(knots, order, opts.OptsFilter);
+    varargout{1} = cons;
 end
 
 % These are needed to pad the signal on every side by the correct amount.
 Am = abs(min(knots));
 AM = abs(max(knots));
 
-%% Determine the matrix.
+% Determine the matrix.
 
 % We first set up a matrix to a signal which is extended on both sides such that
 % we do not have to worry about boundary conditions here. Those will be included
@@ -110,7 +119,7 @@ AM = abs(max(knots));
 temp = spdiags(repmat(coeffs,len,1),knots+Am,len,len+Am+AM);
 
 %% Take care of the boundary conditions.
-switch BoundCond
+switch opts.Boundary
     case 'Neumann'
         % Corresponds to padding the original signal through mirroring. This
         % implies that we have to flip the overlaps and add them back onto the
