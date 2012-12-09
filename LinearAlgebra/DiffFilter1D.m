@@ -70,8 +70,6 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 
 %% Parse input and output.
 
-%% Check input parameters
-
 narginchk(2, 6);
 nargoutchk(0, 2);
 
