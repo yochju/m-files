@@ -15,8 +15,8 @@ function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% Boundary   : boundary condition. (string, default = 'Neumann')
-% OptsFilter : options to be passed to DiffFilter1D (struct, default = struct())
+% boundary   : boundary condition. (string, default = 'Neumann')
+% optsFilter : options to be passed to DiffFilter1D (struct, default = struct())
 %
 % Input parameters (optional):
 %
@@ -25,7 +25,7 @@ function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 %
 % -
 %
-% Output Parameters
+% Output Parameters:
 %
 % M : Matrix of the corresponding scheme. (sparse matrix)
 %
@@ -88,12 +88,12 @@ parser.addRequired('knots', @(x) validateattributes(x, {'numeric'}, ...
 parser.addRequired('order', @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'positive'}, mfilename, 'order'));
 
-parser.addParamValue('Boundary', 'Neumann', ...
+parser.addParamValue('boundary', 'Neumann', ...
     @(x) strcmpi(x, validatestring(x, {'Dirichlet', 'Neumann'}, mfilename, ...
-    'Boundary')));
+    'boundary')));
 
-parser.addParamValue('OptsFilter', struct(), @(x) validateattributes(x, ...
-    {'struct'}, {}, mfilename, 'OptsFilter'));
+parser.addParamValue('optsFilter', struct(), @(x) validateattributes(x, ...
+    {'struct'}, {}, mfilename, 'optsFilter'));
 
 parser.parse( len, knots, order, varargin{:});
 opts = parser.Results;
