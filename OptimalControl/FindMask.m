@@ -1,5 +1,4 @@
-function [u, c, its, flag, ...
-    cEvo, uEvo, tEvo, ener] = FindMask(f, lambda, varargin)
+function [u, c, varargout] = FindMask(f, lambda, varargin)
 %% Find Optimal Mask for Homogeneous inpainting.
 %
 % [u, c, its, flag, cEvo, uEvo, tEvo, ener] = FindMask(f, lambda, varargin)
@@ -9,11 +8,10 @@ function [u, c, its, flag, ...
 % f      : Signal to be considered. (vector)
 % lambda : regularisation weight for the energy. (scalar)
 %
-% Input Parameters (optional):
+% Input parameters (parameters):
 %
-% Optional parameters are either struct with the following fields and
-% corresponding values or option/value pairs, where the option is specified as a
-% string.
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
 %
 % mu           : penalisation for the proximal term. (scalar, default = 1.0)
 % e            : quadratic penalisation term for the mask. (scalar, default =
@@ -27,6 +25,15 @@ function [u, c, its, flag, ...
 %                a plot window with information. (boolean, default = false)
 % Save         : if non-empty, data is save to this file at each iteration.
 %                (string, default = '')
+% uInit        : initialisation for u. (array, default f)
+% cInit        : initialisation for mask. (array, default ones(size(f)))
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output Parameters:
 %
@@ -45,15 +52,15 @@ function [u, c, its, flag, ...
 %
 % Output parameters (optional):
 %
-%
+% -
 %
 % Description:
 %
-%
+% -
 %
 % Example:
 %
-%
+% -
 %
 % See also fmincon.
 
@@ -121,6 +128,11 @@ parser.addParamValue('Save', '', @(x) validateattributes(x, ...
 parser.addParamValue('Verbose', false, @(x) validateattributes(x, ...
     {'logical'}, {'scalar'}));
 
+parser.addParamValue('uInit', f, @(x) validateattributes(x, ...
+    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'uInit'));
+parser.addParamValue('cInit', ones(size(f)), @(x) validateattributes(x, ...
+    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'uInit'));
+
 parser.parse( f, lambda, varargin{:});
 opts = parser.Results;
 
@@ -172,6 +184,8 @@ data = struct( ...
     'timeTotal', cell(opts.maxit,1) ...
     );
 
+figNum = randi([257, 65536], [1, 1]);
+
 %% Run Code.
 
 i = 1;
@@ -212,8 +226,8 @@ while i <= opts.maxit
     if i == 1
         %% - Start with a full mask. ------------------------------------ %%
         
-        cbar = ones(N,1);
-        ubar = f(:);
+        cbar = opts.cInit(:);
+        ubar = opts.uInit(:);
         
     else
         %% - Take mask and solution from previous iteration. ------------ %%
@@ -292,17 +306,25 @@ while i <= opts.maxit
     end
     
     if opts.Verbose
-        figure(666);
+        figure(figNum);
         x = linspace(0,1,numel(f));
         subplot(2,2,1);
         plot(x,f,x,u,x,c,'*r');
-        title('Current Solution.');
+        title('Current Solution')
+        xlabel(['\lambda =' num2str(lambda) ', mu =' ...
+            num2str(opts.mu) ' and \epsilon =' num2str(opts.e) '.']);
         subplot(2,2,2);
         plot(x,f,x,ubar,x,cbar,'*r');
         title('Old Solution.');
+        xlabel(['\lambda =' num2str(lambda) ', mu =' ...
+            num2str(opts.mu) ' and \epsilon =' num2str(opts.e) '.']);
         subplot(2,2,[3, 4])
         plot(ener(~isinf(ener)),'*r');
+        ee = Energy(u(:), c(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
+        eee = Energy(ubar(:), cbar(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
         title('Energy');
+        xlabel(['curr: ' num2str(ee) ', prev: ' num2str(eee) ...
+            ', dist. betw. c and cbar: ' num2str(norm(c-cbar)) '.']);
     end
     
     if nargout > 4
@@ -363,6 +385,25 @@ uEvo((its+1):end,:) = [];
 
 tEvo(isnan(tEvo)) = [];
 ener(isinf(ener)) = [];
+
+if nargout >= 3
+    varargout{1} = its;
+end
+if nargout >= 4
+    varargout{2} = flag;
+end
+if nargout >= 5
+    varargout{3} = cEvo;
+end
+if nargout >= 6
+    varargout{4} = uEvo;
+end
+if nargout >= 7
+    varargout{5} = tEvo;
+end
+if nargout >= 8
+    varargout{6} = ener;
+end
 
 
 end
