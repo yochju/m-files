@@ -1,7 +1,7 @@
-function out = Energy(u, c, f, varargin)
-%% Energy functional considered in this optimal control framework.
+function E = Energy(u, c, f, varargin)
+%% Energy functional considered for interpolation with optimal knot sites
 %
-% out = Energy(u, c, f, ...)
+% E = Energy(u, c, f, ...)
 %
 % Input parameters (required):
 %
@@ -9,25 +9,47 @@ function out = Energy(u, c, f, varargin)
 % c : mask (double array).
 % f : initial image (double array).
 %
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% lambda  : regularisation weight for the L1 term of the mask.
+%           (positive scalar, default = 1.0)
+% epsilon : regularisation weight for the L2 term of the mask.
+%           (nonnegative scalar, default = 1e-3)
+% mu      : proximal weight used inside the linearised steps. (nonnegative
+%           scalar, default = 0)
+% d       : righthand side for the proximal term. (array, default =
+%           zeros(size(c))
+%
 % Input parameters (optional):
 %
-% lambda : regularisation weight. (nonnegative scalar, default = 1.0)
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output parameters:
 %
-% out : The energy corresponding to the input variables, that is
-%       0.5*||u-f||_2^2 + lambda * ||c||_1
+% E : The energy corresponding to the input variables, that is
+%     0.5*||u-f||_2^2 + lambda*||c||_1 + epsilon/2*||c||^2_2 + mu/2*||c-d||_2
+%
+% Output parameters (optional):
+%
+% -
 %
 % Description:
 %
-% Evaluates the energy that we consider in this optimal control framework.
+% Evaluates the energy that we consider in this optimal control framework for
+% determining optimal data sites with homegeneous diffusion.
 %
 % Example:
 % u = rand(100,100);
 % c = double(rand(100,100) > 0.6);
 % f = rand(100,100);
 % l = 0.73;
-% E = Energy(u,c,f,l);
+% E = Energy(u,c,f,'lambda',l);
 %
 % See also norm.
 
@@ -47,9 +69,13 @@ function out = Energy(u, c, f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 10.09.2012 11:12
+% Last revision on: 11.12.2012 15:08
 
-narginchk(3, 4);
+%% Notes
+
+%% Parse input and output.
+
+narginchk(3, 11);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -58,25 +84,34 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('u', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
-parser.addOptional('lambda',1.0,@(x) isscalar(x)&&(x>=0));
+parser.addRequired('u', @(x) validateattributes(x, {'numeric'}, ...
+    {'vector'}, mfilename, 'u', 1));
+parser.addRequired('c', @(x) validateattributes(x, {'numeric'}, ...
+    {'vector', 'size', size(u)}, mfilename, 'c', 1));
+parser.addRequired('f', @(x) validateattributes(x, {'numeric'}, ...
+    {'vector', 'size', size(c)}, mfilename, 'f', 1));
 
-parser.parse(u,c,f,varargin{:});
+parser.addParamValue('lambda', 1.0, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','positive'}, ...
+    mfilename, 'lambda'));
+parser.addParamValue('epsilon', 1e-3, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'epsilon'));
+parser.addParamValue('mu', 0.0, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'mu'));
+parser.addParamValue('d', zeros(size(c)), @(x) validateattributes(x, ...
+    {'numeric'}, {'vector', 'size', size(c), 'finite','nonnegative'}, ...
+    mfilename, 'd'));
+
+parser.parse(u, c, f, varargin{:});
 opts = parser.Results;
 
-ExcM = ExceptionMessage('BadDim', 'message', ...
-    'The size of all the data must coincide');
+%% Run code.
 
-assert( isequal(size(u),size(c),size(f)), ExcM.id, ExcM.message );
-
-if abs(opts.lambda) < 10*eps
-    ExcM = ExceptionMessage('BadArg', 'message', ...
-        'There is no penalisation on the Mask values.');
-    warning(ExcM.id,ExcM.message);
-end
-
-out = 0.5*norm(opts.u(:)-opts.f(:),2)^2 + opts.lambda*norm(opts.c(:),1);
+E = 0.5 * norm(u(:)-f(:),2)^2 + ...
+    opts.lambda * norm(c(:), 1)/2 + ...
+    opts.epsilon * norm(c(:), 2)^2/2 + ...
+    opts.mu * norm(c(:)-opts.d(:), 2)^2/2;
 
 end
