@@ -1,7 +1,44 @@
-function M = GradientM(r,c,varargin)
+function [M varargout] = GradientM(r, c, varargin)
 %% Returns the matrix corresponding to the Gradient operator.
 %
-% M = GradientM(r,c,varargin)
+% M = GradientM(r, c, varargin)
+% [M cons] = GradientM(r, c, varargin)
+%
+% Input Parameters (required):
+%
+% r : number of rows of the signal. (positive integer)
+% c : number of columns of the signal. (positive integer)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% knotsR : Knots to be considered for the rows. (array of sorted integers,
+%          default = [-1 0 1])
+% knotsC : Knots to be considered for the columns. (array of sorted integers,
+%          default = [-1 0 1])
+% optsR  : options to be passed to FiniteDiff1DM for the row computation.
+%          (struct, default = struct())
+% optsC  : options to be passed to FiniteDiff1DM for the column computation.
+%          (struct, default = struct())
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
+%
+% Output Parameters:
+%
+% M : Matrix of the corresponding scheme. (sparse matrix)
+%
+% Output parameters (optional):
+%
+% cons : consistency order of the obtained scheme. (integer)
+%
+% Description:
 %
 % Computes the matrix corresponding to the Gradient operator. The discretisation
 % is based on separable finite difference schemes (which can be specified
@@ -11,35 +48,9 @@ function M = GradientM(r,c,varargin)
 % for the y derivative. The output Matrix computes first all the derivatives in
 % x direction and then all the derivatives in y direction.
 %
-% Input Parameters (required):
+% Example:
 %
-% r : number of rows of the signal. (positive integer)
-% c : number of columns of the signal. (positive integer)
-%
-% Input Parameters (pairs), (optional):
-%
-% 'KnotsR'    : knots to consider for the row discretisation of the second
-%               derivative, e.g. x-derivative. (array of integers) (default
-%               [0,1])
-% 'KnotsC'    : knots to consider for the column discretisation of the second
-%               derivative, e.g. y-derivative. (array of integers) (default
-%               [0,1])
-% 'GridSizeR' : size of the grid for rows. (positive double) (default = 1.0)
-% 'GridSizeR' : size of the grid for columns. (positive double) (default = 1.0)
-% 'Boundary'  : boundary condition. (string) (default = 'Neumann')
-% 'Tolerance' : tolerance when checking the consistency order. (default 100*eps)
-%
-% Output Parameters
-%
-% M : Matrix of the corresponding scheme. (sparse matrix)
-%
-% Example
-%
-% Remarks
-%
-% The implementation assumes that the points are number row-wise. This is in
-% conflict with the standard numbering scheme in MATLAB, which runs column-wise
-% over a matrix.
+% -
 %
 % See also LaplaceM, DiffFilter1D, FiniteDiff1DM.
 
@@ -59,60 +70,69 @@ function M = GradientM(r,c,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 16:25
+% Last revision: 11.12.2012 20:56
 
-%% Comments and Remarks.
-%
+%% Notes
+% NOTE: The implementation assumes that the points are number row-wise. This is
+% in conflict with the standard numbering scheme in MATLAB, which runs
+% column-wise over a matrix.
 
-%% Check input parameters
+%% Parse input and output.
 
-narginchk(2, 14);
-nargoutchk(0, 1);
+narginchk(2, 10);
+nargoutchk(0, 2);
 
-optargin = size(varargin,2);
-stdargin = nargin - optargin;
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
 
-assert( stdargin == 2, ...
-    'LinearAlgebra:GradientM:BadInput', ...
-    ['The first two parameters must be the number of rows and columns of ' ...
-     'the signal.']);
-assert( mod(optargin,2)==0, ...
-    'LinearAlgebra:GradientM:BadInput', ...
-    'Optional arguments must come in pairs.');
+parser.addRequired('r', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'r'));
 
-KnotsR = [0 1];
-GridSR = 1.0;
-KnotsC = [0 1];
-GridSC = 1.0;
-BoundCond = 'Neumann';
-Tol = 100*eps;
-for i = 1:2:optargin
-    switch varargin{i}
-        case 'KnotsR'
-            KnotsR = varargin{i+1};
-        case 'KnotsC'
-            KnotsC = varargin{i+1};
-        case 'GridSizeR'
-            GridSR = varargin{i+1};
-        case 'GridSizeC'
-            GridSC = varargin{i+1};
-        case 'Boundary'
-            BoundCond = varargin{i+1};
-        case 'Tolerance'
-            Tol = varargin{i+1};
+parser.addRequired('c', @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'integer', 'positive'}, mfilename, 'c'));
+
+parser.addParamValue('knotsR', [0 1], @(x) validateattributes(x, ...
+    {'numeric'}, {'vector', 'integer'}, mfilename, 'knotsR'));
+
+parser.addParamValue('knotsC', [0 1], @(x) validateattributes(x, ...
+    {'numeric'}, {'vector', 'integer'}, mfilename, 'knotsC'));
+
+parser.addParamValue('optsR', struct(), @(x) validateattributes(x, ...
+    {'struct'}, {}, mfilename, 'optsR'));
+
+parser.addParamValue('optsC', struct(), @(x) validateattributes(x, ...
+    {'struct'}, {}, mfilename, 'optsC'));
+
+parser.parse(r, c, varargin{:});
+opts = parser.Results;
+
+%% Run code.
+
+if nargout < 2
+    MR = FiniteDiff1DM(c, opts.knotsR, 1, 'optsFilter', opts.optsR);
+    MC = FiniteDiff1DM(r, opts.knotsC, 1, 'optsFilter', opts.optsC);
+    if r == 1
+        M = MR;
+    elseif c == 1
+        M = MC;
+    else
+        M = [ kron(speye(r,r),MR) ; kron(MC,speye(c,c)) ];
     end
-end
-
-%% Set up internal variables.
-
-MR = FiniteDiff1DM(c, KnotsR, 1, ...
-    'GridSize', GridSR, 'Boundary', BoundCond, 'Tolerance', Tol);
-MC = FiniteDiff1DM(r, KnotsC, 1, ...
-    'GridSize', GridSC, 'Boundary', BoundCond, 'Tolerance', Tol);
-if r == 1
-    M = MR;
-elseif c == 1
-    M = MC;
 else
-    M = [ kron(speye(r,r),MR) ; kron(MC,speye(c,c)) ];
+    [MR consR] = FiniteDiff1DM(c, opts.knotsR, 1, 'optsFilter', opts.optsR);
+    [MC consC] = FiniteDiff1DM(r, opts.knotsC, 1, 'optsFilter', opts.optsC);
+    if r == 1
+        M = MR;
+        varargout{1} = consR;
+    elseif c == 1
+        M = MC;
+        varargout{1} = consC;
+    else
+        M = [ kron(speye(r,r),MR) ; kron(MC,speye(c,c)) ];
+        varargout{1} = min([consR, consC]);
+    end
+    
 end
