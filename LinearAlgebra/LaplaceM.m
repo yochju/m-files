@@ -80,7 +80,7 @@ function [M varargout] = LaplaceM(r,c,varargin)
 %% Parse input and output.
 
 narginchk(2, 10);
-nargoutchk(0, 1);
+nargoutchk(0, 2);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
