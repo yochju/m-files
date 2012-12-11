@@ -153,8 +153,6 @@ mu = opts.mu;
 for itO=1:opts.iOut
     %% Perform Bregman iteration step.
     
-    utemp = inf(size(uk));
-    dtemp = inf(size(dk));
     for itI=1:opts.iIn
         %% Perform alternating minimisation steps.
         
