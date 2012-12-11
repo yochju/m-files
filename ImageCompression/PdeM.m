@@ -8,7 +8,10 @@ function out = PdeM(c,varargin)
 % c : mask indicating the positions where the dirichlet data should be applied.
 %     (double array)
 %
-% Input parameters (optional):
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
 %
 % Optional parameters are either struct with the following fields and
 % corresponding values or option/value pairs, where the option is specified as a
@@ -26,10 +29,22 @@ function out = PdeM(c,varargin)
 %              values below the threshold. (scalar, default = 0).
 % thrDiffMax : value at which the mask for the diff term should be set for
 %              values above the threshold. (scalar, default = 1).
+% optsLapl   : options to be passed to LaplaceM. (struct, default = struct())
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output parameters:
 %
 % out : Matrix correspinding to the left hand side of the discretised PDE
+%
+% Output parameters (optional):
+%
+% -
 %
 % Description:
 %
@@ -52,10 +67,11 @@ function out = PdeM(c,varargin)
 % Binarize function.
 %
 % Example:
+%
 % c = double(rand(100,100) > 0.6);
 % PdeM(c);
 %
-% See also EvalPde, SolvePde
+% See also EvalPde, SolvePde, LaplaceM
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -73,9 +89,13 @@ function out = PdeM(c,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 24.09.2012 12:28
+% Last revision on: 11.12.2012 16:10
 
-narginchk(1, 13);
+%% Notes
+
+%% Parse input and output.
+
+narginchk(1, 15);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -84,31 +104,39 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
+parser.addRequired('c', @(x) validateattributes(x, {'numeric'}, ...
+    {'2d', 'nonempty', 'nonsparse', 'finite', 'real', 'nonnan'}, ...
+    mfilename, 'c', 1));
 
-parser.addParamValue('threshData', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMin',  0,  @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMax',  1,  @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('threshDiff', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMin',  0,  @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMax',  1,  @(x) isscalar(x)&&IsDouble(x));
+parser.addParamValue('threshData', nan, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar'}));
+parser.addParamValue('thrDataMin', 0, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+parser.addParamValue('thrDataMax', 1, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+
+parser.addParamValue('threshDiff', nan, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar'}));
+parser.addParamValue('thrDiffMin', 0, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+parser.addParamValue('thrDiffMax', 1, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+
+parser.addParamValue('optsLapl', struct(), @(x) validateattributes(x, ...
+    {'struct'}, {}));
 
 parser.parse(c, varargin{:})
 opts = parser.Results;
 
-% TODO: make passing of options more flexible.
+%% Run code.
+
 % NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes
 % that the data is labeled row-wise. The standard MATLAB numbering is
 % column-wise, therefore, we switch the order of the dimensions to get the
 % (hopefully) correct behavior.
 
 [row col] = size(opts.c);
-
-% D = LaplaceM(col, row, ...
-%     'KnotsR',[-1 0 1],'KnotsC',[-1 0 1], ...
-%     'Boundary', 'Neumann');
-
-D = LaplaceM(col,row);
+D = LaplaceM(col, row, opts.optsLapl);
 
 cData = Binarize(opts.c, opts.threshData, ...
     'min', opts.thrDataMin, 'max', opts.thrDataMax);
