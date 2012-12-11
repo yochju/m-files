@@ -5,7 +5,7 @@ function w = ProjectL1Ball(v, varargin)
 %
 % Input parameters (required):
 %
-% v : Vector to be projected.
+% v : vector to be projected.
 %
 % Input parameters (parameters):
 %
@@ -34,7 +34,7 @@ function w = ProjectL1Ball(v, varargin)
 % Returns the vector w which is the solution to the following constrained
 % minimization problem:
 %
-%  argmin_w ||w - v||_2 such that ||w||_1 <= b.
+%  argmin_w ||w - v||_2 such that ||w||_1 <= r.
 %
 % Adapted version, originally written John Duchi (jduchi@cs.berkeley.edu)
 %
@@ -60,7 +60,7 @@ function w = ProjectL1Ball(v, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.12.2012 17:46
+% Last revision on: 11.12.2012 20:25
 
 %% Notes
 
@@ -85,11 +85,16 @@ opts = parser.Results;
 
 %% Run code.
 
-u = sort(abs(v),'descend');
-sv = cumsum(u);
-rho = find(u > (sv - opts.r) ./ (1:length(u))', 1, 'last');
-theta = max(0, (sv(rho) - opts.r) / rho);
-w = sign(v) .* max(abs(v) - theta, 0);
+if norm(v,1) <= opts.r
+    w = v;
+else
+    u = sort(abs(v(:)),'descend');
+    sv = cumsum(u);
+    rho = find(u > (sv - opts.r) ./ (1:numel(u))', 1, 'last');
+    theta = max(0, (sv(rho) - opts.r) / rho);
+    w = sign(v(:)) .* max(abs(v(:)) - theta, 0);
+    w = reshape(w,size(v));
+end
 
 end
 
