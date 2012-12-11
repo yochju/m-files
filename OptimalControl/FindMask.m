@@ -73,7 +73,7 @@ function [u, c, its, flag, ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 04.12.2012 11:15
+% Last revision on: 11.12.2012 16:36
 
 %% Check Input and Output
 
@@ -171,6 +171,8 @@ data = struct( ...
     'timeIter', cell(opts.maxit,1), ...
     'timeTotal', cell(opts.maxit,1) ...
     );
+
+%% Run Code.
 
 i = 1;
 while i <= opts.maxit
@@ -307,7 +309,7 @@ while i <= opts.maxit
         cEvo(i,:) = c';
         uEvo(i,:) = u';
         tEvo(i) = norm(c-cbar);
-        ener(i) = Energy(u, c, f, lambda);
+        ener(i) = Energy(u(:), c(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
         if (i>1)&&(ener(i) > ener(i-1))
             ExcM = ExceptionMessage('Internal', ...
                 'message', 'Energy has increased!\n');
@@ -321,7 +323,8 @@ while i <= opts.maxit
     
     if opts.Verbose
         fprintf(2,'\nDistance between actual and last mask: %g',norm(c-cbar));
-        fprintf(2,'\nCurrent Energy: %g',Energy(u, c, f, lambda));
+        fprintf(2,'\nCurrent Energy: %g', ...
+            Energy(u, c, f, 'lambda', lambda, 'epsilon', opts.e));
         fprintf(2,'\nRuntime for iteration %d: %g seconds.', i, timeIter);
         fprintf(2,'\nTotal runtime: %g seconds.\n\n', timeTotal);
     end
