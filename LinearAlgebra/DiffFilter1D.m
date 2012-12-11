@@ -14,8 +14,8 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% 'GridSize'  : size of the grid. (positive scalar, default = 1.0)
-% 'Tolerance' : tolerance when checking the consistency order. (default 1e-12)
+% gridSize  : size of the grid. (positive scalar, default = 1.0)
+% tolerance : tolerance when checking the consistency order. (default 1e-12)
 %
 % Input parameters (optional):
 %
@@ -85,13 +85,13 @@ parser.addRequired('knots', @(x) validateattributes(x, {'numeric'}, ...
 parser.addRequired('order', @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'positive'}, mfilename, 'order'));
 
-parser.addParamValue('GridSize', 1, @(x) validateattributes(x, ...
+parser.addParamValue('gridSize', 1, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','positive'}, ...
-    mfilename, 'GridSize'));
+    mfilename, 'gridSize'));
 
-parser.addParamValue('Tolerance', 1e-12, @(x) validateattributes(x, ...
+parser.addParamValue('tolerance', 1e-12, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','positive'}, ...
-    mfilename, 'Tolerance'));
+    mfilename, 'tolerance'));
 
 parser.parse( knots, order, varargin{:});
 opts = parser.Results;
@@ -110,8 +110,8 @@ if numel(knots(:)) <= order,
     error(MExc.id, MExc.message);
 end
 
-h = opts.GridSize;
-limit = opts.Tolerance;
+h = opts.gridSize;
+limit = opts.tolerance;
 
 %% Run code.
 

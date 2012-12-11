@@ -101,9 +101,9 @@ opts = parser.Results;
 %% Run code.
 
 if nargout < 2
-    coeffs = DiffFilter1D(knots, order, opts.OptsFilter);
+    coeffs = DiffFilter1D(knots, order, opts.optsFilter);
 else
-    [coeffs cons] = DiffFilter1D(knots, order, opts.OptsFilter);
+    [coeffs cons] = DiffFilter1D(knots, order, opts.optsFilter);
     varargout{1} = cons;
 end
 
@@ -119,7 +119,7 @@ AM = abs(max(knots));
 temp = spdiags(repmat(coeffs,len,1),knots+Am,len,len+Am+AM);
 
 %% Take care of the boundary conditions.
-switch opts.Boundary
+switch opts.boundary
     case 'Neumann'
         % Corresponds to padding the original signal through mirroring. This
         % implies that we have to flip the overlaps and add them back onto the
