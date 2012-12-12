@@ -27,6 +27,7 @@ function [u, c, varargout] = FindMask(f, lambda, varargin)
 %                (string, default = '')
 % uInit        : initialisation for u. (array, default f)
 % cInit        : initialisation for mask. (array, default ones(size(f)))
+% proj         : whether to project back the iterates (boolean, default = false)
 %
 % Input parameters (optional):
 %
@@ -84,7 +85,7 @@ function [u, c, varargout] = FindMask(f, lambda, varargin)
 
 %% Check Input and Output
 
-narginchk(2,16);
+narginchk(2,18);
 nargoutchk(0,8);
 
 parser = inputParser;
@@ -126,6 +127,9 @@ parser.addParamValue('Save', '', @(x) validateattributes(x, ...
     {'char'}, {'row', 'nonempty'}));
 
 parser.addParamValue('Verbose', false, @(x) validateattributes(x, ...
+    {'logical'}, {'scalar'}));
+
+parser.addParamValue('proj', false, @(x) validateattributes(x, ...
     {'logical'}, {'scalar'}));
 
 parser.addParamValue('uInit', f, @(x) validateattributes(x, ...
@@ -181,7 +185,10 @@ data = struct( ...
     'tEvo', cell(opts.maxit,1), ...
     'ener', cell(opts.maxit,1), ...
     'timeIter', cell(opts.maxit,1), ...
-    'timeTotal', cell(opts.maxit,1) ...
+    'timeTotal', cell(opts.maxit,1), ...
+    'lambda', cell(opts.maxit,1), ...
+    'mu', cell(opts.maxit,1), ...
+    'epsilon', cell(opts.maxit,1) ...
     );
 
 figNum = randi([257, 65536], [1, 1]);
@@ -237,11 +244,26 @@ while i <= opts.maxit
         
     end
     
-    % - Compute operators occuring in the optimisatin -------------------- %
+    % - Compute operators occuring in the optimisation -------------------- %
+    
+    % T(u,c) = c(u-f) - (1-c)*D*u
+    % T(u,c) = T(ubar,cbar) + D_uT(ubar,cbar)(u-ubar) + D_cT(ubar,cbar)(c-cbar)
+    
+    % T(ubar,cbar) = 0
+    % A = D_uT(ubar,cbar) = cbar - (1-cbar)*D
+    % BB = D_cT(ubar,cbar) = ubar-f+D*ubar = -B!
+    % g = D_uT(ubar,cbar)ubar + D_cT(ubar,cbar)*cbar
+    %   = cbar*(I+D)*ubar
     
     % Note that A is the inpainting matrix.
+    % A = C - (I-C)*D;
     A = spdiags(cbar(:),0,N,N) - (speye(N,N) - spdiags(cbar(:),0,N,N))*D;
+    
+    % Note: this B differs in the sign from the sign.
+    % B = f - u - D*u;
     B = spdiags(f(:)-ubar(:)-D*ubar(:),0,N,N);
+    
+    % g = c*(I+D)*u
     g = cbar(:).*ubar(:) + D*ubar(:);
     
     % This is an undocumented feature in MATLAB to turn non catchable
@@ -275,14 +297,20 @@ while i <= opts.maxit
     % - Solve optimisation problem to get new mask ----------------------- %
     % argmin_c || M c - l ||_2^2 + lambda*|| c ||_1
     
-    [ c, fSpB, ~, ~, iSpB ] = Optimization.SplitBregman12( speye(N,N), ...
-        zeros(N,1), 1/lambda, M, -l, opts.SplitBregman);
+    % [uk, flag, dk, bk, itO, itI, dukIn, dukOut ddk]
+    [ c, fSpB, ~, ~, itSpBO, itSpBI, dukIn, dukOut, ddk ] = ...
+        Optimization.SplitBregman12( speye(N,N), zeros(N,1), 1/lambda, ...
+        M, -l, opts.SplitBregman);
     if opts.Verbose
-        fprintf(2,'\nSplit Bregman terminated after %d iterations.', iSpB);
+        fprintf(2,'\nSplit Bregman terminated after %d/%d iterations.', ...
+            itSpBO,itSpBI);
+        fprintf(2,'\nDistance u: inner = %g, outer = %g', ...
+            dukIn(itSpBO,itSpBI), dukOut(itSpBO));
+        fprintf(2,'\nDistance d: %g', ddk(itSpBO,itSpBI));
         fprintf(2,'\nStopping reason was: %d', fSpB);
     end
     
-    if (any(c<0)||any(c>1))
+    if ((any(c<0)||any(c>1)) && opts.proj)
         ExcM = ExceptionMessage('Internal', ...
             'message', 'Mask went out of range!\n');
         fprintf(2,'\n\n');
@@ -306,6 +334,47 @@ while i <= opts.maxit
     end
     
     if opts.Verbose
+        %% Perform some optimality Tests for the System
+        
+        % min_c ||A\Bc-f||_2^2 + lambda*||c|| ...
+        %                      + eps/2*||c||_2^2 + mu/2*||c-cbar||_2^2
+        
+        % Necessary Optimality Conditions
+        
+        % A'*p = u-f
+        % A*u + B*c = g
+        % -B'*p + lambda*q + epsilon*c + mu*c = mu*cbar
+        
+        % Note that we don't really u here, but it's corresponding solution of
+        % the PDE for the next iterate.
+        
+        % q subgradient of ||c||_1.
+        
+        uref = A\(g(:)+B*c(:));
+        pp = (A')\(uref-f);
+        res1 = norm(A*uref-B*c-g);
+        res2 = ((B)'*pp + (opts.e + opts.mu)*c(:) - opts.mu*cbar(:))/(-lambda);
+        mRes = min(res2);
+        MRes = max(res2);
+        
+        if (norm(res1) > 1e5*eps)
+            ExcM = ExceptionMessage('Internal', 'message', ...
+                ['Constr. not fulfiled!\nResidual =' num2str(norm(res1)) ...
+                '.\n']);
+            fprintf(2,'\n\n');
+            warning(ExcM.id,ExcM.message);
+        end
+        
+        if (mRes < -1 || mRes > 1) || (MRes < -1 || MRes > 1)
+            ExcM = ExceptionMessage('Internal', 'message', ...
+                ['Subgradient range: ' num2str(mRes) ' ' num2str(MRes) '.\n']);
+            fprintf(2,'\n\n');
+            warning(ExcM.id,ExcM.message);
+        end
+        
+    end
+    
+    if opts.Verbose
         figure(figNum);
         x = linspace(0,1,numel(f));
         subplot(2,2,1);
@@ -321,7 +390,8 @@ while i <= opts.maxit
         subplot(2,2,[3, 4])
         plot(ener(~isinf(ener)),'*r');
         ee = Energy(u(:), c(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
-        eee = Energy(ubar(:), cbar(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
+        eee = Energy(ubar(:), cbar(:), f(:), ...
+            'lambda', lambda, 'epsilon', opts.e);
         title('Energy');
         xlabel(['curr: ' num2str(ee) ', prev: ' num2str(eee) ...
             ', dist. betw. c and cbar: ' num2str(norm(c-cbar)) '.']);
@@ -333,8 +403,9 @@ while i <= opts.maxit
         tEvo(i) = norm(c-cbar);
         ener(i) = Energy(u(:), c(:), f(:), 'lambda', lambda, 'epsilon', opts.e);
         if (i>1)&&(ener(i) > ener(i-1))
-            ExcM = ExceptionMessage('Internal', ...
-                'message', 'Energy has increased!\n');
+            ExcM = ExceptionMessage('Internal', 'message', ...
+                ['Energy has increased! ' num2str(ener(i-1)) '->' ...
+                num2str(ener(i)) '.\n']);
             fprintf(2,'\n\n');
             warning(ExcM.id,ExcM.message);
         end
@@ -357,6 +428,12 @@ while i <= opts.maxit
         % This is evil...
         temp = num2cell(i*ones(1,opts.maxit),[1 opts.maxit]);
         [data(:).lastiter] = temp{:};
+        temp = num2cell(lambda*ones(1,opts.maxit),[1 opts.maxit]);
+        [data(:).lambda] = temp{:};
+        temp = num2cell(opts.mu*ones(1,opts.maxit),[1 opts.maxit]);
+        [data(:).mu] = temp{:};
+        temp = num2cell(opts.e*ones(1,opts.maxit),[1 opts.maxit]);
+        [data(:).epsilon] = temp{:};
         
         data(i).mask = c;
         data(i).solution = u;
