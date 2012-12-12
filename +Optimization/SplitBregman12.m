@@ -1,8 +1,8 @@
-function [ uk, flag, dk, bk, itO ] = ...
-    SplitBregman12( A, b, lambda, C, f, varargin)
+function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 %% Performs split Bregman iteration with one 1-norm and one 2-norm term.
 %
-% [uk, flag, dk, bk, itO, itI] = SplitBregman12(A, b, lambda, C, f, varargin)
+% [uk, flag, dk, bk, itO, itI, dukIn, dukOut ddk] =
+%            SplitBregman12(A, b, lambda, C, f, varargin)
 %
 % Input Parameters (required):
 %
@@ -21,9 +21,9 @@ function [ uk, flag, dk, bk, itO ] = ...
 %        (scalar, default = 2)
 % iOut : number of Bregman iterations. (integer, default = 1)
 % iIn  : number of alternating minimisations. (integer, default = 1)
-% tolOut : tolerance limit when to abort outer iterations (scalar, 
+% tolOut : tolerance limit when to abort outer iterations (scalar,
 %          default = 1e-3)
-% tolIn : tolerance limit when to abort inner iterations (scalar, 
+% tolIn : tolerance limit when to abort inner iterations (scalar,
 %          default = 1e-3)
 %
 % Input parameters (optional):
@@ -36,16 +36,18 @@ function [ uk, flag, dk, bk, itO ] = ...
 % Output Parameters:
 %
 % uk   : Solution vector (vector).
-% flag : Flag indicating the stopping criterion (integer).
-%        0 : tolerance limit was reached.
-%        1 : max number of iterations was reached.
-% dk   : dual variable dk = A*uk-b. (vector)
-% bk   : auxiliary variable used for the updates. (vector)
-% itO  : number of Bregman iterations. (integer)
 %
 % Output parameters (optional):
 %
-% -
+% flag   : Flag indicating the stopping criterion (integer).
+%          0 : tolerance limit was reached.
+%          1 : max number of iterations was reached.
+% dk     : dual variable dk = A*uk-b. (vector)
+% bk     : auxiliary variable used for the updates. (vector)
+% itO    : number of Bregman iterations. (integer)
+% dukIn  : distances between two iterates uk from the inner iteration.
+% dukOut : distances between two iterates uk from the outer iteration.
+% ddk    : distances between two iterates dk.
 %
 % Description:
 %
@@ -82,12 +84,12 @@ function [ uk, flag, dk, bk, itO ] = ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 09.12.2012 09:00
+% Last revision on: 12.12.2012 17:30
 
 %% Check Input and Output
 
 narginchk(5, 15);
-nargoutchk(0, 5);
+nargoutchk(0, 9);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -96,20 +98,24 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 parser.addRequired('A', @(x) validateattributes(x, ...
-    {'numeric'}, {'2d','nonempty','finite'}, mfilename, 'A', 1));
+    {'numeric'}, {'2d','nonempty','finite'}, ...
+    mfilename, 'A', 1));
 
 parser.addRequired('b', @(x) validateattributes(x, ...
-    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'b', 2));
+    {'numeric'}, {'column','nonempty','finite', 'size', [size(A,1) 1]}, ...
+    mfilename, 'b', 2));
 
 parser.addRequired('lambda', @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
     mfilename, 'lambda', 3));
 
 parser.addRequired('C', @(x) validateattributes(x, ...
-    {'numeric'}, {'2d','nonempty','finite'}, mfilename, 'C', 4));
+    {'numeric'}, {'2d','nonempty','finite'}, ...
+    mfilename, 'C', 4));
 
 parser.addRequired('f', @(x) validateattributes(x, ...
-    {'numeric'}, {'column','nonempty','finite'}, mfilename, 'f', 5));
+    {'numeric'}, {'column','nonempty','finite', 'size', [size(C,1) 1]}, ...
+    mfilename, 'f', 5));
 
 parser.addParamValue('mu', 2, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
@@ -134,10 +140,6 @@ parser.addParamValue('tolIn', 1e-3, @(x) validateattributes(x, ...
 parser.parse( A, b, lambda, C, f, varargin{:});
 opts = parser.Results;
 
-MExc = ExceptionMessage('Input');
-assert( size(A,1)==size(b,1), MExc.id, MExc.message );
-assert( size(C,1)==size(f,1), MExc.id, MExc.message );
-
 %% Initialisation
 
 bk = b;
@@ -147,6 +149,12 @@ flag = 1;
 
 uOld = inf(size(A,2),1);
 mu = opts.mu;
+
+if nargout > 6
+    dukIn  = inf(opts.iOut, opts.iIn);
+    dukOut = inf(opts.iOut, 1);
+    ddk    = inf(opts.iOut, opts.iIn);
+end
 
 %% Perform Optimisation
 
@@ -160,9 +168,14 @@ for itO=1:opts.iOut
         % argmin_{u,d} ||d||_1 + lambda/2*||Cu+f||_2^2 + mu/2*||d-Au-b||_2^2.
         % Minimisation w.r.t. to u is a least squares problem, while the
         % minimisation with respect to d has an analytical solution in terms of
-        % soft shrinkage. Aborts when both uk and dk don't change anymore.        
+        % soft shrinkage. Aborts when both uk and dk don't change anymore.
         uk = ( lambda*(C')*C + mu*(A')*A )\( mu*(A')*(dk-bk)-lambda*(C')*f );
         dk = sign( A*uk+bk ).*max( abs(A*uk+bk)-1.0/mu, 0 );
+        
+        if (nargout > 6) && (itI > 1)
+            dukIn(itO,itI) = norm(uk-utemp,2);
+            ddk(itO,itI)   = norm(dk-dtemp,2);
+        end
         
         if (itI > 1) && ...
                 (norm(uk-utemp,2) < opts.tolIn) && ...
@@ -176,6 +189,10 @@ for itO=1:opts.iOut
     
     % Update the Bregman auxiliary variable.
     bk = bk + b - dk + A*uk;
+    
+    if nargout > 6
+        dukOut(itO,1) = norm(uOld-uk,2);
+    end
     
     if norm(uOld-uk,2) < opts.tolOut
         %% Check for convergence.
@@ -191,6 +208,31 @@ for itO=1:opts.iOut
         
     end
     
+end
+
+if nargout > 1
+    varargout{1} = flag;
+end
+if nargout > 2
+    varargout{2} = dk;
+end
+if nargout > 3
+    varargout{3} = bk;
+end
+if nargout > 4
+    varargout{4} = itO;
+end
+if nargout > 5
+    varargout{5} = itI;
+end
+if nargout > 6
+    varargout{6} = dukIn;
+end
+if nargout > 7
+    varargout{7} = dukOut;
+end
+if nargout > 8
+    varargout{8} = ddk;
 end
 
 end
