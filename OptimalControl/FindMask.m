@@ -28,6 +28,8 @@ function [u, c, varargout] = FindMask(f, lambda, varargin)
 % uInit        : initialisation for u. (array, default f)
 % cInit        : initialisation for mask. (array, default ones(size(f)))
 % proj         : whether to project back the iterates (boolean, default = false)
+% adaptSB      : whether to adapt proximal term for Split Bregman (boolean,
+%                default = false)
 %
 % Input parameters (optional):
 %
@@ -124,13 +126,16 @@ parser.addParamValue('SolvePde', struct(), @(x) validateattributes(x, ...
     {'struct'}, {}, mfilename, 'SolvePde'));
 
 parser.addParamValue('Save', '', @(x) validateattributes(x, ...
-    {'char'}, {'row', 'nonempty'}));
+    {'char'}, {'row', 'nonempty'}, mfilename, 'Save'));
 
 parser.addParamValue('Verbose', false, @(x) validateattributes(x, ...
-    {'logical'}, {'scalar'}));
+    {'logical'}, {'scalar'}, mfilename, 'Verbose'));
 
 parser.addParamValue('proj', false, @(x) validateattributes(x, ...
-    {'logical'}, {'scalar'}));
+    {'logical'}, {'scalar'}, mfilename, 'proj'));
+
+parser.addParamValue('adaptSB', false, @(x) validateattributes(x, ...
+    {'logical'}, {'scalar'}, mfilename, 'adaptSB'));
 
 parser.addParamValue('uInit', f, @(x) validateattributes(x, ...
     {'numeric'}, {'column','nonempty','finite'}, mfilename, 'uInit'));
@@ -297,16 +302,40 @@ while i <= opts.maxit
     % - Solve optimisation problem to get new mask ----------------------- %
     % argmin_c || M c - l ||_2^2 + lambda*|| c ||_1
     
-    % [uk, flag, dk, bk, itO, itI, dukIn, dukOut ddk]
-    [ c, fSpB, ~, ~, itSpBO, itSpBI, dukIn, dukOut, ddk ] = ...
+    [ c, fSpB, ~, ~, itSpBO, itSpBI, dukIn, dukOut, ddk enSB gapSB] = ...
         Optimization.SplitBregman12( speye(N,N), zeros(N,1), 1/lambda, ...
         M, -l, opts.SplitBregman);
+    
+    gapSB(isinf(gapSB)) = [];
+    maxAdapt = 10;
+    adapt = 1;
+    oldmu = opts.SplitBregman.mu;
+    while opts.adaptSB && (gapSB(end) > 1e-9) && (adapt <= maxAdapt)
+        if opts.Verbose
+            fprintf(2,'\nSplit Bregman could not close gap with mu = %g', ...
+                opts.SplitBregman.mu);
+            fprintf(2,'\nGap was: %g',gapSB(end));
+        end
+        opts.SplitBregman.mu = 2*opts.SplitBregman.mu;
+        if opts.Verbose
+            fprintf(2,'\nRetrying with mu = %g', ...
+                opts.SplitBregman.mu);
+        end
+        [ c, fSpB, ~, ~, itSpBO, itSpBI, dukIn, dukOut, ddk enSB gapSB] = ...
+            Optimization.SplitBregman12( speye(N,N), zeros(N,1), 1/lambda, ...
+            M, -l, opts.SplitBregman);
+        gapSB(isinf(gapSB)) = [];
+        adapt = adapt + 1;
+    end
+    opts.SplitBregman.mu = oldmu;
     if opts.Verbose
         fprintf(2,'\nSplit Bregman terminated after %d/%d iterations.', ...
             itSpBO,itSpBI);
         fprintf(2,'\nDistance u: inner = %g, outer = %g', ...
             dukIn(itSpBO,itSpBI), dukOut(itSpBO));
         fprintf(2,'\nDistance d: %g', ddk(itSpBO,itSpBI));
+        fprintf(2,'\nFinal Energy: %g, Duality gap: %g', ...
+            enSB(itSpBO),gapSB(itSpBO));
         fprintf(2,'\nStopping reason was: %d', fSpB);
     end
     
