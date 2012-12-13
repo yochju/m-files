@@ -17,14 +17,16 @@ function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% mu   : regularisation weight used internally by the split Bregman algorithm.
-%        (scalar, default = 2)
-% iOut : number of Bregman iterations. (integer, default = 1)
-% iIn  : number of alternating minimisations. (integer, default = 1)
+% mu     : regularisation weight used internally by the split Bregman algorithm.
+%          (scalar, default = 2)
+% iOut   : number of Bregman iterations. (integer, default = 1)
+% iIn    : number of alternating minimisations. (integer, default = 1)
 % tolOut : tolerance limit when to abort outer iterations (scalar,
 %          default = 1e-3)
-% tolIn : tolerance limit when to abort inner iterations (scalar,
+% tolIn  : tolerance limit when to abort inner iterations (scalar,
 %          default = 1e-3)
+% tolgap : tolerance limit gap has become small enough to stop. (scalar,
+%          default = 1e-9)
 %
 % Input parameters (optional):
 %
@@ -40,8 +42,9 @@ function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 % Output parameters (optional):
 %
 % flag   : Flag indicating the stopping criterion (integer).
-%          0 : tolerance limit was reached.
-%          1 : max number of iterations was reached.
+%           0 : tolerance limit on iterates was reached.
+%           1 : tolerance limit on gap was reached.
+%          -1 : max number of iterations was reached.
 % dk     : dual variable dk = A*uk-b. (vector)
 % bk     : auxiliary variable used for the updates. (vector)
 % itO    : number of Bregman iterations. (integer)
@@ -90,7 +93,7 @@ function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 
 %% Check Input and Output
 
-narginchk(5, 15);
+narginchk(5, 17);
 nargoutchk(0, 11);
 
 parser = inputParser;
@@ -139,6 +142,10 @@ parser.addParamValue('tolIn', 1e-3, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
     mfilename, 'tolIn'));
 
+parser.addParamValue('tolgap', 1e-9, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'tolgap'));
+
 parser.parse( A, b, lambda, C, f, varargin{:});
 opts = parser.Results;
 
@@ -147,7 +154,7 @@ opts = parser.Results;
 bk = b;
 dk = zeros(size(b));
 
-flag = 1;
+flag = -1;
 
 uOld = inf(size(A,2),1);
 mu = opts.mu;
@@ -212,6 +219,11 @@ for itO=1:opts.iOut
     end
     if nargout > 10
         gap(itO,1) = norm(dk-A*uk-b);
+    end
+    
+    if gap(itO,1) < opts.tolgap
+        flag = 1;
+        break;
     end
     
     if norm(uOld-uk,2) < opts.tolOut
