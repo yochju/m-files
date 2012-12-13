@@ -1,7 +1,7 @@
 function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 %% Performs split Bregman iteration with one 1-norm and one 2-norm term.
 %
-% [uk, flag, dk, bk, itO, itI, dukIn, dukOut ddk] =
+% [uk, flag, dk, bk, itO, itI, dukIn, dukOut ddk ener gap] =
 %            SplitBregman12(A, b, lambda, C, f, varargin)
 %
 % Input Parameters (required):
@@ -45,13 +45,15 @@ function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 % dk     : dual variable dk = A*uk-b. (vector)
 % bk     : auxiliary variable used for the updates. (vector)
 % itO    : number of Bregman iterations. (integer)
-% dukIn  : distances between two iterates uk from the inner iteration.
-% dukOut : distances between two iterates uk from the outer iteration.
-% ddk    : distances between two iterates dk.
+% dukIn  : distances between two iterates uk from the inner iteration. (matrix)
+% dukOut : distances between two iterates uk from the outer iteration. (vector)
+% ddk    : distances between two iterates dk. (matrix)
+% ener   : energy after each outer iteration (vector)
+% gap    : norm of d-Ax-b after each outer iteration. (vector)
 %
 % Description:
 %
-% Computes the minimum of ||Ax+b||_1 + lambda/2*||Cx+f||^2 through a split
+% Computes the minimum of ||Ax+b||_1 + lambda/2*||Cx+f||^2_2 through a split
 % Bregman approach. Note that the formulation used here contains + inside the
 % norms, whereas a more common choice in the literature would be -.
 % Check http://www.stanford.edu/~tagoldst/Tom_Goldstein/Split_Bregman.html for
@@ -84,12 +86,12 @@ function [ uk, varargout ] = SplitBregman12( A, b, lambda, C, f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 12.12.2012 17:30
+% Last revision on: 13.12.2012 10:30
 
 %% Check Input and Output
 
 narginchk(5, 15);
-nargoutchk(0, 9);
+nargoutchk(0, 11);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -152,8 +154,18 @@ mu = opts.mu;
 
 if nargout > 6
     dukIn  = inf(opts.iOut, opts.iIn);
+end
+if nargout > 7
     dukOut = inf(opts.iOut, 1);
+end
+if nargout > 8
     ddk    = inf(opts.iOut, opts.iIn);
+end
+if nargout > 9
+    ener = inf(opts.iOut, 1);
+end
+if nargout > 10
+    gap = inf(opts.iOut, 1);
 end
 
 %% Perform Optimisation
@@ -174,6 +186,8 @@ for itO=1:opts.iOut
         
         if (nargout > 6) && (itI > 1)
             dukIn(itO,itI) = norm(uk-utemp,2);
+        end
+        if (nargout > 8) && (itI > 1)
             ddk(itO,itI)   = norm(dk-dtemp,2);
         end
         
@@ -190,8 +204,14 @@ for itO=1:opts.iOut
     % Update the Bregman auxiliary variable.
     bk = bk + b - dk + A*uk;
     
-    if nargout > 6
+    if nargout > 7
         dukOut(itO,1) = norm(uOld-uk,2);
+    end
+    if nargout > 9
+        ener(itO,1) = 0.5*norm(A*uk+b,1) + lambda/2*norm(C*uk+f,2)^2;
+    end
+    if nargout > 10
+        gap(itO,1) = norm(dk-A*uk-b);
     end
     
     if norm(uOld-uk,2) < opts.tolOut
@@ -233,6 +253,12 @@ if nargout > 7
 end
 if nargout > 8
     varargout{8} = ddk;
+end
+if nargout > 9
+    varargout{9} = ener;
+end
+if nargout > 10
+    varargout{10} = gap;
 end
 
 end
