@@ -30,6 +30,12 @@ function [u, c, varargout] = FindMask(f, lambda, varargin)
 % proj         : whether to project back the iterates (boolean, default = false)
 % adaptSB      : whether to adapt proximal term for Split Bregman (boolean,
 %                default = false)
+% adaptFactor  : the factor by which the proximal term for Split Bregman should
+%                be increased. (scalar, default = 2.0)
+% adaptMaxN    : the number of times, the algorithm should try to adapt the
+%                proximal term for split Bregman. (scalar, default 10)
+% adaptThresh  : threshold when to trigger the adaptation of the proximal term
+%                for split Bregman. (scalar, default = 1e-9)
 %
 % Input parameters (optional):
 %
@@ -83,11 +89,11 @@ function [u, c, varargout] = FindMask(f, lambda, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.12.2012 16:36
+% Last revision on: 14.12.2012 10:26
 
 %% Check Input and Output
 
-narginchk(2,18);
+narginchk(2,24);
 nargoutchk(0,8);
 
 parser = inputParser;
@@ -136,6 +142,18 @@ parser.addParamValue('proj', false, @(x) validateattributes(x, ...
 
 parser.addParamValue('adaptSB', false, @(x) validateattributes(x, ...
     {'logical'}, {'scalar'}, mfilename, 'adaptSB'));
+
+parser.addParamValue('adaptMaxN', 10, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative', 'integer'}, ...
+    mfilename, 'adaptMaxN'));
+
+parser.addParamValue('adaptFactor', 2.0, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'adaptFactor'));
+
+parser.addParamValue('adaptThresh', 1e-9, @(x) validateattributes(x, ...
+    {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, ...
+    mfilename, 'adaptThresh'));
 
 parser.addParamValue('uInit', f, @(x) validateattributes(x, ...
     {'numeric'}, {'column','nonempty','finite'}, mfilename, 'uInit'));
@@ -307,19 +325,18 @@ while i <= opts.maxit
         M, -l, opts.SplitBregman);
     
     gapSB(isinf(gapSB)) = [];
-    maxAdapt = 10;
+    maxAdapt = opts.adaptMaxN;
     adapt = 1;
     oldmu = opts.SplitBregman.mu;
-    while opts.adaptSB && (gapSB(end) > 1e-9) && (adapt <= maxAdapt)
+    while opts.adaptSB && (gapSB(end) > opts.adaptThresh) && (adapt <= maxAdapt)
         if opts.Verbose
             fprintf(2,'\nSplit Bregman could not close gap with mu = %g', ...
                 opts.SplitBregman.mu);
             fprintf(2,'\nGap was: %g',gapSB(end));
         end
-        opts.SplitBregman.mu = 2*opts.SplitBregman.mu;
+        opts.SplitBregman.mu = opts.adaptFactor*opts.SplitBregman.mu;
         if opts.Verbose
-            fprintf(2,'\nRetrying with mu = %g', ...
-                opts.SplitBregman.mu);
+            fprintf(2,'\nRetrying with mu = %g', opts.SplitBregman.mu);
         end
         [ c, fSpB, ~, ~, itSpBO, itSpBI, dukIn, dukOut, ddk enSB gapSB] = ...
             Optimization.SplitBregman12( speye(N,N), zeros(N,1), 1/lambda, ...
@@ -328,6 +345,7 @@ while i <= opts.maxit
         adapt = adapt + 1;
     end
     opts.SplitBregman.mu = oldmu;
+    
     if opts.Verbose
         fprintf(2,'\nSplit Bregman terminated after %d/%d iterations.', ...
             itSpBO,itSpBI);
