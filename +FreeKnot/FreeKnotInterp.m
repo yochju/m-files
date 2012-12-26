@@ -107,7 +107,7 @@ parser.addParamValue('ini', 'uniform', @(x) strcmpi(x, validatestring(x, ...
 parser.addParamValue('pts', 1024, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'finite', 'positive'}, mfilename, 'its'));
 
-parser.parse( knots, order, varargin{:});
+parser.parse( f, varargin{:});
 opts = parser.Results;
 
 a = opts.min;
@@ -131,22 +131,38 @@ if isa(f, 'function_handle') && isa(opts.fpi, 'function_handle')
     discrete = false;
 end
 
-% Set up the data required for the discrete mode.
 if discrete
-    s = linspace(a,b,opts.pts);
     if isa(f,'function_handle')
+        s = linspace(a, b, opts.pts);
         y = f(s);
     else
+        s = linspace(a, b, numel(f));
         y = f;
     end
-    
-    yp = zeros(1,opts.num);
-    for i = 2:(L-1)
-        yp(i) = ( y(i+1)-y(i-1) )/( x(i+1)-x(i-1) );
+    for i = 2:(numel(y)-1)
+        yp(i) = ( y(i+1)-y(i-1) )/( s(i+1)-s(i-1) );
     end
-    yp(1) = yp(2);
-    yp(end) = yp(end-1);
-    %% TODO: Discrete setting not yet implemented.
+    yp(1)   = (y(3)-y(1))/(s(3)-s(1));
+    yp(end) = (y(end)-y(end-1))/(s(end)-s(end-1));
+    
+    for i = 1:opts.its
+        
+        for j = 2:2:(opts.num-1)
+            Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
+            Intervall = yp( x(j-1):x(j+1) );
+            p = FindBestPositionq(Intervall, Wert, 'last') - 1;
+            x(j) = x(j-1) + p;
+        end
+        
+        for j = 3:2:(opts.num-1)
+            Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
+            Intervall = yp( x(j-1):x(j+1) );
+            p = FindBestPositionq(Intervall, Wert, 'last') - 1;
+            x(j) = x(j-1) + p;
+        end
+        
+    end
+    
 else
     for i=1:opts.its
         x(2:2:(opts.num-1)) = opts.fpi( ...
