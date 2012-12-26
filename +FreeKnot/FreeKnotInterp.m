@@ -1,7 +1,7 @@
 function [x varargout] = FreeKnotInterp(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
-% [x x0] = FreeKnotInterpCont(f,FpI,a,b,Num,It,Meth)
+% [x ErG ErL] = FreeKnotInterpCont(f,FpI,a,b,Num,It,Meth)
 %
 % Input parameters (required):
 %
@@ -35,7 +35,9 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 %
 % Output parameters:
 %
-% x : The optimal knot distribution.
+% x   : The optimal knot distribution.
+% ErG : The global error committed by interpolating with the knots in x.
+% ErL : The local error distribution by interpolating with the knots in x.
 %
 % Output parameters (optional):
 %
@@ -74,8 +76,8 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 
 %% Parse input and output.
 
-narginchk(1,15);
-% nargoutchk(0,2);
+narginchk(1, 15);
+nargoutchk(0, 3);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -132,6 +134,7 @@ if isa(f, 'function_handle') && isa(opts.fpi, 'function_handle')
 end
 
 if discrete
+    % FIXME: x(j) is the knot value, not the index of the knot.
     if isa(f,'function_handle')
         s = linspace(a, b, opts.pts);
         y = f(s);
@@ -171,6 +174,12 @@ else
         x(3:2:(opts.num-1)) = opts.fpi( ...
             ( f(x(4:2:opts.num)) - f(x(2:2:(opts.num-2))) ) ./ ...
             (   x(4:2:opts.num)  -   x(2:2:(opts.num-2))  ) );
+    end
+    if nargout > 1
+        varargout{1} = FreeKnot.ErrorInterp(f, x);
+    end
+    if nargout > 2
+        varargout{2} = FreeKnot.ErrorInterpLoc(f, x);
     end
 end
 
