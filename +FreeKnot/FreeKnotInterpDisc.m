@@ -1,5 +1,6 @@
-function [ K ] = FreeKnotInterpDisc(f,x,Nk,It,Meth)
-% [ K ] = FreeKnotInterpDisc(f,x,Nk,It,Meth)
+function K = FreeKnotInterpDisc(f,x,Nk,It,Meth)
+%% K = FreeKnotInterpDisc(f,x,Nk,It,Meth)
+%
 % FreeKnotInterpDisc computes the optimal knot distribution for piecewise linear
 % spline interpolation of the convex function f on the interval [x(1),x(end)].
 % The optimisation is done in the discrete setting.
