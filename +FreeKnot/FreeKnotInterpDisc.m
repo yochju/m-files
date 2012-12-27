@@ -64,13 +64,13 @@ for i = 1:It
     for j = 2:2:(L-1)
         Wert = ( y(K(j+1))-y(K(j-1)) ) / ( x(K(j+1))-x(K(j-1)) );
         Intervall = yp( K(j-1):K(j+1) );
-        p = FindBestPositionq(Intervall,Wert,'last') - 1;
+        p = FindBestPosition(Intervall,Wert,'last') - 1;
         K(j) = K(j-1) + p;
     end
     for j = 3:2:(L-1)
         Wert = ( y(K(j+1))-y(K(j-1)) ) / ( x(K(j+1))-x(K(j-1)) );
         Intervall = yp( K(j-1):K(j+1) );
-        p = FindBestPositionq(Intervall,Wert,'last') - 1;
+        p = FindBestPosition(Intervall,Wert,'last') - 1;
         K(j) = K(j-1) + p;
     end
 end

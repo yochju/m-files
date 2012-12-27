@@ -153,14 +153,14 @@ if discrete
         for j = 2:2:(opts.num-1)
             Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
             Intervall = yp( x(j-1):x(j+1) );
-            p = FindBestPositionq(Intervall, Wert, 'last') - 1;
+            p = FindBestPosition(Intervall, Wert, 'last') - 1;
             x(j) = x(j-1) + p;
         end
         
         for j = 3:2:(opts.num-1)
             Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
             Intervall = yp( x(j-1):x(j+1) );
-            p = FindBestPositionq(Intervall, Wert, 'last') - 1;
+            p = FindBestPosition(Intervall, Wert, 'last') - 1;
             x(j) = x(j-1) + p;
         end
         
