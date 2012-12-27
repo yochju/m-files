@@ -120,53 +120,72 @@ assert(a<b, MExc.id, MExc.message);
 
 %% Run code.
 
-% Generate initial mask with opts.num knots.
-if strcmp(opts.ini, 'uniform')
-    x0 = linspace(opts.min, opts.max, opts.num);
-elseif strcmp(opts.ini, 'random')
-    x0 = union([a b],a+(b-a)*rand(opts.num-2,1));
-end
-
-x=x0;
 discrete = true;
 if isa(f, 'function_handle') && isa(opts.fpi, 'function_handle')
     discrete = false;
 end
 
 if discrete
-    % FIXME: x(j) is the knot value, not the index of the knot.
-    if isa(f,'function_handle')
+    
+    % Generate data.
+    if isa(f, 'function_handle')
         s = linspace(a, b, opts.pts);
         y = f(s);
     else
         s = linspace(a, b, numel(f));
         y = f;
     end
+   
+    % Compute the first derivative of y (central differences). Mirrored bounds.
+    % TODO: Make this more flexible with my finite difference methods.
     for i = 2:(numel(y)-1)
         yp(i) = ( y(i+1)-y(i-1) )/( s(i+1)-s(i-1) );
     end
     yp(1)   = (y(3)-y(1))/(s(3)-s(1));
-    yp(end) = (y(end)-y(end-1))/(s(end)-s(end-1));
+    yp(end+1) = (y(end)-y(end-1))/(s(end)-s(end-1));
     
-    for i = 1:opts.its
+    % Generate initial mask.
+    if strcmp(opts.ini, 'uniform')
+        x = round(linspace(1, numel(y), opts.num));
+    else
+        temp = randperm(numel(y)-2) + 1;
+        x = [ 1 sort(temp(1:(opts.num-2))) numel(y) ];
+    end
         
+    % Iterate.
+    for i = 1:opts.its
         for j = 2:2:(opts.num-1)
             Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
             Intervall = yp( x(j-1):x(j+1) );
             p = FindBestPosition(Intervall, Wert, 'last') - 1;
             x(j) = x(j-1) + p;
         end
-        
         for j = 3:2:(opts.num-1)
             Wert = ( y(x(j+1))-y(x(j-1)) ) / ( s(x(j+1))-s(x(j-1)) );
             Intervall = yp( x(j-1):x(j+1) );
             p = FindBestPosition(Intervall, Wert, 'last') - 1;
             x(j) = x(j-1) + p;
-        end
-        
+        end        
+    end
+    
+    % Compute additional output.
+    if nargout > 1
+        varargout{1} = FreeKnot.ErrorInterp(y, s(x));
+    end
+    if nargout > 2
+        varargout{2} = FreeKnot.ErrorInterpLoc(y, s(x));
     end
     
 else
+    
+    % Generate initial mask with opts.num knots.
+    if strcmp(opts.ini, 'uniform')
+        x = linspace(opts.min, opts.max, opts.num);
+    elseif strcmp(opts.ini, 'random')
+        x = union([a b],a+(b-a)*rand(opts.num-2,1));
+    end
+    
+    % Iterate.
     for i=1:opts.its
         x(2:2:(opts.num-1)) = opts.fpi( ...
             ( f(x(3:2:opts.num)) - f(x(1:2:(opts.num-2))) ) ./ ...
@@ -175,12 +194,15 @@ else
             ( f(x(4:2:opts.num)) - f(x(2:2:(opts.num-2))) ) ./ ...
             (   x(4:2:opts.num)  -   x(2:2:(opts.num-2))  ) );
     end
+    
+    % Compute additional output.
     if nargout > 1
         varargout{1} = FreeKnot.ErrorInterp(f, x);
     end
     if nargout > 2
         varargout{2} = FreeKnot.ErrorInterpLoc(f, x);
     end
+    
 end
 
 end
