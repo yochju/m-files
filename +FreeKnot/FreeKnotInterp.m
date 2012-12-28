@@ -23,8 +23,9 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 % its : Number of iterations to be run. (nonnegative integer, default = 1)
 % ini : How to initialise the method. Possible values are 'uniform' or 'random'.
 %       (char array, default = 'uniform')
-% pts : number of samples to use in the discrete setting.
-%       (integer, default = 1024)
+% pts : number of samples to use in the discrete setting. If f is an array, pts
+%       defaults to the number of points in f. Otherwise it uses its default
+%       value. (integer, default = 1024)
 %
 % Input parameters (optional):
 %
@@ -50,7 +51,9 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 %
 % Example:
 %
-% -
+% f = @(x) x.^2;
+% fpi = @(x) x/2;
+% x = FreeKnot.FreeKnotInterp(f, 'fpi', fpi, 'min', -1, 'max', 1, 'num', 5);
 %
 % See also FreeKnotApprox
 
@@ -70,7 +73,7 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 26.12.2012
+% Last revision on: 28.12.2012 19:45
 
 %% Notes
 
@@ -94,7 +97,7 @@ parser.addParamValue('fpi', [], @(x) validateattributes(x, ...
 parser.addParamValue('min', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'min'));
 
-parser.addParamValue('max', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParamValue('max', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'max'));
 
 parser.addParamValue('num', 3, @(x) validateattributes(x, {'numeric'}, ...
@@ -136,7 +139,8 @@ if discrete
         s = linspace(a, b, opts.pts);
         y = f(s);
     else
-        s = linspace(a, b, numel(f));
+        opts.pts = numel(f);
+        s = linspace(a, b, opts.pts);
         y = f;
     end
    
@@ -174,11 +178,14 @@ if discrete
     end
     
     % Compute additional output.
-    if nargout > 1
-        varargout{1} = FreeKnot.ErrorInterp(y, s(x));
+    if nargout == 2
+        [eG ~] = FreeKnot.ErrorInterp(f, s(x));
+        varargout{1} = eG;
     end
-    if nargout > 2
-        varargout{2} = FreeKnot.ErrorInterpLoc(y, s(x));
+    if nargout == 3
+        [eG eL] = FreeKnot.ErrorInterp(f, s(x));
+        varargout{1} = eG;
+        varargout{2} = eL;
     end
     
 else
@@ -201,11 +208,14 @@ else
     end
     
     % Compute additional output.
-    if nargout > 1
-        varargout{1} = FreeKnot.ErrorInterp(f, x);
+    if nargout == 2
+        [eG ~] = FreeKnot.ErrorInterp(f, x);
+        varargout{1} = eG;
     end
-    if nargout > 2
-        varargout{2} = FreeKnot.ErrorInterpLoc(f, x);
+    if nargout == 3
+        [eG eL] = FreeKnot.ErrorInterp(f, x);
+        varargout{1} = eG;
+        varargout{2} = eL;
     end
     
 end
