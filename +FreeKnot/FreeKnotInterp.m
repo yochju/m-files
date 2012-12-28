@@ -127,6 +127,10 @@ end
 
 if discrete
     
+    MExc = ExceptionMessage('Generic', ...
+        'Discrete framework might be cause loss of accuracy.');
+    warning(MExc.id, MExc.message);
+    
     % Generate data.
     if isa(f, 'function_handle')
         s = linspace(a, b, opts.pts);
@@ -138,11 +142,12 @@ if discrete
    
     % Compute the first derivative of y (central differences). Mirrored bounds.
     % TODO: Make this more flexible with my finite difference methods.
+    yp = inf(size(y));
     for i = 2:(numel(y)-1)
         yp(i) = ( y(i+1)-y(i-1) )/( s(i+1)-s(i-1) );
     end
     yp(1)   = (y(3)-y(1))/(s(3)-s(1));
-    yp(end+1) = (y(end)-y(end-1))/(s(end)-s(end-1));
+    yp(end) = (y(end)-y(end-1))/(s(end)-s(end-1));
     
     % Generate initial mask.
     if strcmp(opts.ini, 'uniform')
