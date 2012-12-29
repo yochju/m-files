@@ -1,7 +1,7 @@
 function [x varargout] = FreeKnotInterp(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
-% [x ErG ErL] = FreeKnotInterpCont(f,FpI,a,b,Num,It,Meth)
+% [x ErG ErL] = FreeKnotInterp(f, ...)
 %
 % Input parameters (required):
 %
@@ -130,7 +130,7 @@ end
 
 if discrete
     
-    MExc = ExceptionMessage('Generic', ...
+    MExc = ExceptionMessage('Generic', 'message', ...
         'Discrete framework might be cause loss of accuracy.');
     warning(MExc.id, MExc.message);
     

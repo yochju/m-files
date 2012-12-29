@@ -97,7 +97,7 @@ opts = parser.Results;
 
 diffx = diff(x);
 if any(diffx <= 0)
-    MExc = ExceptionMessage('Input', ...
+    MExc = ExceptionMessage('Input', 'message', ...
         ['Knot sequence must be strictly monotonically increasing.' ...
         'Performing a sorting on x.']);
     warning(MExc.id, MExc.message);
@@ -105,7 +105,7 @@ if any(diffx <= 0)
 end
 
 if ~isequal(x, unique(x))
-    MExc = ExceptionMessage('Input', ...
+    MExc = ExceptionMessage('Input', 'message', ...
         ['Knot sequence contains multiple identical knots.' ...
         'Removing multiplicities of the knots x.']);
     warning(MExc.id, MExc.message);
@@ -117,7 +117,7 @@ end
 if isa(f, 'function_handle')
     g = f;
 else
-    MExc = ExceptionMessage('Generic', ...
+    MExc = ExceptionMessage('Generic', 'message', ...
         'Discrete framework might be cause loss of accuracy.');
     warning(MExc.id, MExc.message);
     g = @(xi) interp1(linspace(opts.min, opts.max, numel(f)), f, xi, 'cubic');
