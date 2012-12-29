@@ -39,7 +39,7 @@ narginchk(5,5);
 nargoutchk(0,1);
 
 % Generate initial mask with Nk+2 knots.
-K = GenerateMask( Meth , Nk+2 , length(x) );
+K = round(linspace(1, length(x), Nk+2))
 
 % Apply iterative scheme.
 if isa(f,'function_handle')
