@@ -1,4 +1,4 @@
-function [x varargout] = FreeKnotApproxCont(f, varargin)
+function [x varargout] = FreeKnotApprox(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
 % [x ErG ErL] = FreeKnotApprox(f, ...)
@@ -148,7 +148,7 @@ if ~isa(f, 'function_handle')
         fi = zeros(opts.num-1,2);
         
         % Slope of the piecewise linear spline.
-        D  = zeros(opts.num-1,1);
+        D = zeros(opts.num-1,1);
         
         for j = 1:(opts.num-1)
             xi(j,1) = 0.75*s(x(j)) + 0.25*s(x(j+1));
@@ -172,7 +172,7 @@ if ~isa(f, 'function_handle')
             
             % Position of the intersection.
             new = ( ( b2 - a2*c2 ) - ( b1 - a1*c1 ) )/( a1 - a2 );
-            x(j+1) = round(interp1(s, 1:length(s), new));
+            x(j+1) = round(interp1(s, 1:length(s), new, 'cubic'));
         end
     end
     
