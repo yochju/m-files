@@ -33,8 +33,12 @@ function [ Err ] = ErrorApprox( f, x )
 narginchk(2,2);
 nargoutchk(0,1);
 
-Err = 0;
+Err = zeros(1,length(x)-1);
 for i = 1:(length(x)-1)
-    Err = Err + ErrorApproxInterval(f,x(i),x(i+1));
+    Err(i) = ErrorApproxInterval(f,x(i),x(i+1));
 end
+end
+
+function [ E ] = ErrorApproxInterval(f,a,b)
+E = quad(f,a,b) - 2*quad(f,0.75*a + 0.25*b,0.25*a + 0.75*b);
 end
