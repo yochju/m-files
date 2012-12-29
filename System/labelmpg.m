@@ -65,7 +65,7 @@ function labelmpg()
 %% Run code.
 
 % Define destination root. Must end in a /!
-root = '/home/laurent/Desktop/Video/';
+root = '/home/laurent/Dropbox/Pictures/Video/';
 
 % Work throgh all the subfolders.
 listing = dir('*');
