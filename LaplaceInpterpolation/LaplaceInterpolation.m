@@ -5,7 +5,7 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 %
 % Input parameters (required):
 %
-% in : Righthand side of the equation.
+% in : Righthand side of the equation. (array)
 %
 % Input parameters (parameters):
 %
@@ -67,7 +67,7 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 11:45
+% Last revision on: 30.12.2012 19:10
 
 %% Notes
 
@@ -85,18 +85,19 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
     {'2d', 'finite', 'nonnan'}, mfilename, 'in'));
 
-parser.addParamValue('mask', 0, @(x) validateattributes(x, {'numeric'}, ...
-    {'2d', 'finite', 'nonnan', 'size', size(in)}, mfilename, 'mask'));
+parser.addParamValue('mask', zeros(size(in)), @(x) validateattributes(x, ...
+    {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
+    mfilename, 'mask'));
 
 parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
 
-parser.addParamValue('M', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
 
 parser.addParamValue('solver', 'backslash', @(x) strcmpi(x, ...
     validatestring( x, {'backslash', 'GaussSeidel', 'Jacobi', 'Parabolic', ...
-    'FED', 'MultiGrid'}, mfilename, 'solver')));
+    'FED', 'MultiGrid', 'lsqr'}, mfilename, 'solver')));
 
 parser.addParamValue('oSolv', struct(), @(x) validateattributes(x, ...
     {'struct'}, {'scalar'}, mfilename, 'oSolv'));
@@ -104,6 +105,17 @@ parser.addParamValue('oSolv', struct(), @(x) validateattributes(x, ...
 parser.parse(in, varargin{:})
 opts = parser.Results;
 
-%% Run code.		       
+MExc = ExceptionMessage('Input', 'message', ...
+    'Size of mask and input data must coincide.');
+assert(isequal(size(in),size(opts.mask)), MExc.id, MExc.message);
+
+%% Run code.
+
+switch opts.solver
+    case 'backslash'
+        out = SolveBackslash(opts);
+    case 'lsqr'
+        out = SolveLSQR(opts);
+end
 		       
 end
