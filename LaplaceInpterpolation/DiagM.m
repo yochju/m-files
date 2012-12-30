@@ -1,30 +1,43 @@
-function out = Mask(c)
-%% Returns interpolation Mask as a diagonal matrix.
+function M = DiagM(v)
+%% Returns a sparse matrix with input on its diagonal.
 %
-% out = Mask(c)
+% M = DiagM(v)
 %
 % Input parameters (required):
 %
-% c : mask indicating the positions where the dirichlet data should be applied.
-%     (double array)
+% v : data to be placed on the diagonal. The entries follow standard matlab
+%     numbering. (double array)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% -
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
 %
 % Output parameters:
 %
-% out : sparse matrix containing the mask on its diagonal.
+% M : sparse matrix containing the data in v on its diagonal.
+%
+% Output parameters (optional):
+%
+% -
 %
 % Description:
 %
-% Evaluates the following PDE for given f, u and c:
-%
-% Returns the matrix corresponding to the mask that indicates the positions
-% where the dirichlet data is positioned. The matrix is diagonal. If c is an
-% array, the array is simply put on the diagonal. In case of a matrix (e.g.
-% image data) c is labeled column-wise and the entries are placed in that order
-% on the diagonal.
+% Returns a sparse matrix with input on its diagonal.
 %
 % Example:
-% c = double(rand(100,100) > 0.6);
-% s = Mask(c);
+%
+% v = rand(10,6,2);
+% M = DiagM(v);
 %
 % See also spdiags, sparse
 
@@ -44,7 +57,11 @@ function out = Mask(c)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 02.10.2012 11:55
+% Last revision on: 30.12.2012 16:40
+
+%% Notes
+
+%% Parse input and output.
 
 narginchk(1, 1);
 nargoutchk(0, 1);
@@ -55,13 +72,13 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
+parser.addRequired('v', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonsparse', 'nonnan', 'finite'}, mfilename, 'v'));
 
-parser.parse(c)
-opts = parser.Results;
+parser.parse(v)
 
-% TODO: Allow passing options for thresholding.
+%% Run code.
 
-out = spdiags( opts.c(:) , 0 , length(opts.c(:)), length(opts.c(:)) );
+M = spdiags( v(:), 0, numel(v), numel(v));
 
 end

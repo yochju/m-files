@@ -1,35 +1,20 @@
-function out = PdeM(c,varargin)
-%% Matrix for the Laplace equation with mixed boundary conditions.
+function out = PdeM(c, varargin)
+%% System Matrix for Laplace interpolation
 %
 % out = PdeM(c, ...)
 %
 % Input parameters (required):
 %
-% c : mask indicating the positions where the dirichlet data should be applied.
-%     (double array)
+% c : Set of known (fuzzy) data points. (array)
 %
 % Input parameters (parameters):
 %
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% Optional parameters are either struct with the following fields and
-% corresponding values or option/value pairs, where the option is specified as a
-% string.
-%
-% threshData : threshold that should be applied to the mask in front of the data
-%              term (u-f). (scalar, default = nan, e.g. no thresholding).
-% thrDataMin : value at which the mask for the data term should be set for
-%              values below the threshold. (scalar, default = 0).
-% thrDataMax : value at which the mask for the data term should be set for
-%              values above the threshold. (scalar, default = 1).
-% threshDiff : threshold that should be applied to the mask in front of the diff
-%              term Laplace u. (scalar, default = nan, e.g. no thresholding).
-% thrDiffMin : value at which the mask for the diff term should be set for
-%              values below the threshold. (scalar, default = 0).
-% thrDiffMax : value at which the mask for the diff term should be set for
-%              values above the threshold. (scalar, default = 1).
-% optsLapl   : options to be passed to LaplaceM. (struct, default = struct())
+% m        : Lower bound. See description. (scalar, default = 0)
+% M        : Upper bound. See description. (scalar, default = 1)
+% optsLapl : Options to be passed to LaplaceM. (struct, default = struct())
 %
 % Input parameters (optional):
 %
@@ -40,7 +25,7 @@ function out = PdeM(c,varargin)
 %
 % Output parameters:
 %
-% out : Matrix correspinding to the left hand side of the discretised PDE
+% -
 %
 % Output parameters (optional):
 %
@@ -51,7 +36,7 @@ function out = PdeM(c,varargin)
 % Constructs the Matrix that corresponds to the finite difference discretisation
 % of the following linear PDE
 %
-% c.*(u-f) - (1-c).*(u_xx + u_yy) = 0
+% (c-m).*(u-f) - (M-c).*D*u = 0
 %
 % which corresponds to the Laplace equation with mixed (Robin-) boundary
 % conditions in case of a binary valued c if it is solved with a righthand side
@@ -89,13 +74,13 @@ function out = PdeM(c,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.12.2012 16:10
+% Last revision on: 30.12.2012 17:08
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(1, 15);
+narginchk(1, 7);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -104,23 +89,15 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('c', @(x) validateattributes(x, {'numeric'}, ...
-    {'2d', 'nonempty', 'nonsparse', 'finite', 'real', 'nonnan'}, ...
-    mfilename, 'c', 1));
+parser.addRequired('c', @(x) validateattributes(x, ...
+    {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
+    mfilename, 'c'));
 
-parser.addParamValue('threshData', nan, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar'}));
-parser.addParamValue('thrDataMin', 0, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
-parser.addParamValue('thrDataMax', 1, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
 
-parser.addParamValue('threshDiff', nan, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar'}));
-parser.addParamValue('thrDiffMin', 0, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
-parser.addParamValue('thrDiffMax', 1, @(x) validateattributes(x, ...
-    {'numeric'}, {'scalar', 'real', 'nonnan', 'nonempty'}));
+parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
 
 parser.addParamValue('optsLapl', struct(), @(x) validateattributes(x, ...
     {'struct'}, {}));
@@ -137,12 +114,6 @@ opts = parser.Results;
 
 [row col] = size(opts.c);
 D = LaplaceM(col, row, opts.optsLapl);
-
-cData = Binarize(opts.c, opts.threshData, ...
-    'min', opts.thrDataMin, 'max', opts.thrDataMax);
-cDiff = Binarize(opts.c, opts.threshDiff, ...
-    'min', opts.thrDiffMin, 'max', opts.thrDiffMax);
-
-out = Mask(cData) - (speye(numel(opts.c)) - Mask(cDiff))*D;
+out = DiagM(c-opts.m) - Diag(opts.M-c)*D;
 
 end

@@ -1,30 +1,45 @@
-function out = Rhs(c,f, varargin)
-%% Computes the righthand side of the discretised pde linear system.
+function out = Rhs(in, varargin)
+%% Computes the righthand side of the discretised PDE.
 %
-% out = Rhs(c, f, ...)
+% out = Rhs(f, ...)
 %
 % Input parameters (required):
 %
-% f : image data for the data sites. (double array)
-% c : mask indicating the positions where the dirichlet data should be applied.
-%     (double array)
+% in : Righthand side of the equation. (array)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% mask   : Set of known (fuzzy) data points. (array, default = zeros(size(in)))
+% m      : lower bound. See description. (scalar, default = 0)
 %
 % Input parameters (optional):
 %
-% Optional parameters are either struct with the following fields and
-% corresponding values or option/value pairs, where the option is specified as a
-% string.
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
 %
-% threshData : threshold that should be applied to the mask in front of the data
-%              term (u-f). (scalar, default = nan, e.g. no thresholding).
-% thrDataMin : value at which the mask for the data term should be set for
-%              values below the threshold. (scalar, default = 0).
-% thrDataMax : value at which the mask for the data term should be set for
-%              values above the threshold. (scalar, default = 1).
+% -
 %
 % Output parameters:
 %
-% out : Righthand side of the PDE system, e.g. c.*f.
+% out : The righthand side corresponding to the discretised PDE. (array)
+%
+% Output parameters (optional):
+%
+% -
+%
+% Description:
+%
+% Returns (c-m).*in, the righthand side corresponding to the PDE for Laplace
+% interpolation.
+%
+% Example:
+%
+% -
+%
+% See also
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -42,9 +57,13 @@ function out = Rhs(c,f, varargin)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 02.10.2012 12:05
+% Last revision on: 30.12.2012 16:56
 
-narginchk(2, 8);
+%% Notes
+
+%% Parse input and output.
+
+narginchk(1, 5);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -53,19 +72,25 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
+parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
+    {'2d', 'finite', 'nonnan'}, mfilename, 'in'));
 
-parser.addParamValue('threshData', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMin',  0,  @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMax',  1,  @(x) isscalar(x)&&IsDouble(x));
+parser.addParamValue('mask', zeros(size(in)), @(x) validateattributes(x, ...
+    {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
+    mfilename, 'mask'));
 
-parser.parse(c, f, varargin{:})
+parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
+
+parser.parse(in, varargin{:})
 opts = parser.Results;
 
-cData = Binarize(opts.c, opts.threshData, ...
-    'thrDataMin',opts.thrDataMin, ...
-    'thrDataMax',opts.thrDataMax );
+MExc = ExceptionMessage('Input', 'message', ...
+    'Size of mask and input data must coincide.');
+assert(isequal(size(in),size(opts.mask)), MExc.id, MExc.message);
 
-out = cData.*opts.f;
+%% Run code.
+
+out = (opts.mask-opts.m).*in;
+
 end
