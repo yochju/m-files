@@ -5,8 +5,8 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 %
 % Input parameters (required):
 %
-% A : system matrix. (double or single array)
-% b : righthand side of the linear system. Can be a matrix too. In that case,
+% A : System matrix. (double or single array)
+% b : Righthand side of the linear system. Can be a matrix too. In that case,
 %     the system is solved for every column. (double of single array) 
 %
 % Input parameters (optional):
@@ -15,16 +15,16 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 % corresponding values or option/value pairs, where the option is specified as a
 % string.
 %
-% x0    : initial vector to start iterations. Default is the zeros vector.
+% x0    : Initial vector to start iterations. Default is the zeros vector.
 %         (double or single array).
-% tol   : tolerance limit of relative residual. Default 1e-10. (scalar)
+% tol   : Tolerance limit of relative residual. Default 1e-10. (scalar)
 % maxit : Maximal number of iterations. Default is 1. (integer)
 % relax : Relaxation parameter. Default is 1.0 (scalar)
 % M1    : Left preconditioning matrix. Default is identity matrix. (double or
 %         single array)
 % M2    : Right preconditioning matrix. Default is identity matrix. (double or
 %         single array)
-% check : whether to check if convergence is possible. Can increasy computation
+% check : Whether to check if convergence is possible. Can increase computation
 %         time significantly. Default is false. (boolean)
 %
 % Output parameters:
@@ -33,14 +33,14 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 %
 % Output parameters (optional):
 %
-% flag   : flag indicating status of the process. Following values are possible.
+% flag   : Flag indicating status of the process. Following values are possible.
 %          -1 : Convergence check found that method will not converge.
 %           0 : No problems occured.
 %           1 : Tolerance could not be reached with maxit iterations.
-% relres : relative residual of the last iterate. 0 if system is trivially
+% relres : Relative residual of the last iterate. 0 if system is trivially
 %          solvable because righthand side was 0.
-% it     : number of performed iterations. If righthand side was 0, it = inf.
-% resvec : residual of the last iterate.
+% it     : Number of performed iterations. If righthand side was 0, it = inf.
+% resvec : Residual of the last iterate.
 %
 % Description:
 %
@@ -73,7 +73,7 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 12.11.2012 21:00
+% Last revision on: 30.12.2012 11:45
 
 %% Parse input.
 
