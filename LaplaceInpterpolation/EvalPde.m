@@ -1,43 +1,42 @@
-function out = EvalPde(f, u, c, varargin)
+function out = EvalPde(f, u, varargin)
 %% Evaluates Laplace equation with mixed boundary conditions.
 %
-% out = EvalPde(f, u, c, ...)
+% out = EvalPde(f, u, ...)
 %
 % Input parameters (required):
 %
-% f : Dirichlet boundary data. (double array)
-% u : (potential) reconstruction. (double array of same size as f)
-% c : mask indicating the positions where the dirichlet data should be applied.
-%     (double array of same size as f)
+% f : Data used for the interpolation. (array)
+% u : Test solution for the PDE. (array)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% mask   : Set of known (fuzzy) data points. (array, default = zeros(size(in)))
+% m      : lower bound. See description. (scalar, default = 0)
+% M      : upper bound. See description. (scalar, default = 1)
 %
 % Input parameters (optional):
 %
-% Optional parameters are either struct with the following fields and
-% corresponding values or option/value pairs, where the option is specified as a
-% string.
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
 %
-% threshData : value at which the mask c in front of the data term (u-f) should
-%              be thresholded. (default = nan, e.g. no thresholding)
-% thrDataMin : value at which the mask points below threshData should be set to.
-%              (default = 0).
-% thrDataMax : value at which the mask points above threshData should be set to.
-%              (default = 1).
-% threshDiff : value at which the mask c in front of the Laplacian should be
-%              thresholded. (default = nan, e.g. no thresholding)
-% thrDiffMin : value at which the mask points below threshDiff should be set to.
-%              (default = 0).
-% thrDiffMax : value at which the mask points above threshDiff should be set to.
-%              (default = 1).
+% -
 %
 % Output parameters:
 %
-% out : vector containing the pointwise evaluation of the PDE.
+% out : array containing the pointwise evaluation of the PDE.
+%
+% Output parameters (optional):
+%
+% -
 %
 % Description:
 %
-% Evaluates the following PDE for given f, u and c:
+% Evaluates the following PDE for given f, u and mask c:
 %
-% c.*(u-f) - (1-c).*(u_xx + u_yy)
+% (c-m).*(u-f) - (M-c).*D*u
 %
 % which corresponds to the Laplace equation with mixed (Robin-) boundary
 % conditions in case of a binary valued c if it is solved with a righthand side
@@ -76,9 +75,9 @@ function out = EvalPde(f, u, c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 02.10.2012 12:19
+% Last revision on: 30.12.2012 17:25
 
-narginchk(3, 7);
+narginchk(2, 8);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -87,25 +86,31 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('u', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
+parser.addRequired('f', @(x) validateattributes(x, {'numeric'}, ...
+    {'2d', 'finite', 'nonnan'}, mfilename, 'f'));
 
-parser.addParamValue('threshData', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMin', 0, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMax', 1, @(x) isscalar(x)&&IsDouble(x));
+parser.addRequired('u', @(x) validateattributes(x, {'numeric'}, ...
+    {'2d', 'finite', 'nonnan'}, mfilename, 'u'));
 
-parser.addParamValue('threshDiff', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMin', 0, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMax', 1, @(x) isscalar(x)&&IsDouble(x));
+parser.addParamValue('mask', zeros(size(f)), @(x) validateattributes(x, ...
+    {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
+    mfilename, 'mask'));
 
-parser.parse(f, u, c, varargin{:})
+parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
+
+parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
+
+parser.parse(f, u, varargin{:})
 opts = parser.Results;
 
-ExcM = ExceptionMessage('Input');
-assert( ...
-    isequal(size(opts.f),size(opts.u),size(opts.c)), ...
+ExcM = ExceptionMessage('Input', 'message', ...
+    'Data, mask and solution must have same size.');
+assert( isequal( size(opts.f), size(opts.u), size(opts.mask)), ...
     ExcM.id, ExcM.message );
+
+%% Run code.
 
 [row col] = size(opts.u);
 
@@ -114,19 +119,21 @@ assert( ...
 % that the data is labeled row-wise. The standard MATLAB numbering is
 % column-wise, therefore, we switch the order of the dimensions to get the
 % (hopefully) correct behavior.
+
+% TODO: specifying anything different from Neumann Boundary conditions is tricky
+% so far. In the ideal case, This method should accept a parameter with the
+% struct below as an argument which would then be passed onto LaplaceM. At the
+% moment this strategy prohibits setting the Boundary treatment.
+% options = struct( ...
+%     'KnotsR', [-1 0 1], ...
+%     'KnotsC', [-1 0 1], ...
+%     'optsR', struct(), ...
+%     'optsC', struct());
 D = LaplaceM(col, row, ...
     'KnotsR',[-1 0 1],'KnotsC',[-1 0 1], ...
     'Boundary', 'Neumann');
 
-cData = Binarize(opts.c, opts.threshData, ...
-    'min', opts.thrDataMin, ...
-    'max', opts.thrDataMax);
-
-cDiff = Binarize(opts.c, opts.threshDiff, ...
-    'min', opts.thrDiffMin, ...
-    'max', opts.thrDiffMax);
-
-% TODO: rewrite this as not to require the matrix construction.
-out = cData.*(opts.u-opts.f) - (1 - cDiff).*reshape(D*opts.u(:),row,col);
+out = (opts.mask - opts.m).*(u-f) ...
+    - (opts.M - opts.mask).*reshape(D*u(:),row,col);
 
 end
