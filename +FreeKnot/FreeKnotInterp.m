@@ -73,9 +73,11 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 28.12.2012 19:45
+% Last revision on: 30.12.2012 11:10
 
 %% Notes
+
+%TODO: Make the iteration stop if a fix point is reached.
 
 %% Parse input and output.
 
@@ -143,7 +145,7 @@ if discrete
         s = linspace(a, b, opts.pts);
         y = f;
     end
-   
+    
     % Compute the first derivative of y (central differences). Mirrored bounds.
     % TODO: Make this more flexible with my finite difference methods.
     yp = inf(size(y));
@@ -160,7 +162,7 @@ if discrete
         temp = randperm(numel(y)-2) + 1;
         x = [ 1 sort(temp(1:(opts.num-2))) numel(y) ];
     end
-        
+    
     % Iterate.
     for i = 1:opts.its
         for j = 2:2:(opts.num-1)
@@ -174,7 +176,7 @@ if discrete
             Intervall = yp( x(j-1):x(j+1) );
             p = FindBestPosition(Intervall, Wert, 'last') - 1;
             x(j) = x(j-1) + p;
-        end        
+        end
     end
     
     % Compute additional output.

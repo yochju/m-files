@@ -1,7 +1,7 @@
 function [eG eL] = ErrorInterp( f, x, varargin )
 %% Computes error commited by piecewise linear interpolation.
 %
-% [eG eL] = ErrorInterp( f, x )
+% [eG eL] = ErrorInterp( f, x, ... )
 %
 % Input parameters (required):
 %
@@ -65,7 +65,7 @@ function [eG eL] = ErrorInterp( f, x, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 28.12.2012 19:00
+% Last revision: 30.12.2012 11:00
 
 %% Notes
 

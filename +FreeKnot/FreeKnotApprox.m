@@ -69,9 +69,16 @@ function [x varargout] = FreeKnotApprox(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 29.12.2012 09:50
+% Last revision: 30.12.2012 11:10
 
 %% Notes
+
+% Reference:
+% H. Hamideh, On the optimal knots of first degree splines.
+% Kuwait Journal of Science and Engineering 29(1) (2002), pp. 1–13,
+% http://pubcouncil.kuniv.edu.kw/kjse/english/wordfile/Vol_29_2002/v29-n1-2002/optimal.pdf
+
+%TODO: Make the iteration stop if a fix point is reached.
 
 %% Parse input and output.
 
@@ -142,7 +149,7 @@ if ~isa(f, 'function_handle')
     
     for i = 1:opts.its
         
-        % Determine set of locally optimal knots.
+        % Set of locally optimal knots.
         xi = zeros(opts.num-1,2);
         % Function values of locally optimal knots.
         fi = zeros(opts.num-1,2);
@@ -151,12 +158,15 @@ if ~isa(f, 'function_handle')
         D = zeros(opts.num-1,1);
         
         for j = 1:(opts.num-1)
+            % Compute interpolation points
             xi(j,1) = 0.75*s(x(j)) + 0.25*s(x(j+1));
             xi(j,2) = 0.25*s(x(j)) + 0.75*s(x(j+1));
             
+            % Corresponding function values.
             fi(j,1) = interp1(s,y,xi(j,1), 'cubic');
             fi(j,2) = interp1(s,y,xi(j,2), 'cubic');
             
+            % Slope
             D(j) = (fi(j,2) - fi(j,1))/(xi(j,2)-xi(j,1));
         end
         
