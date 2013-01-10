@@ -67,7 +67,7 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 19:10
+% Last revision on: 10.01.2013 16:23
 
 %% Notes
 
@@ -102,7 +102,7 @@ parser.addParamValue('solver', 'backslash', @(x) strcmpi(x, ...
 parser.addParamValue('oSolv', struct(), @(x) validateattributes(x, ...
     {'struct'}, {'scalar'}, mfilename, 'oSolv'));
 
-parser.parse(in, varargin{:})
+parser.parse(in, varargin{:});
 opts = parser.Results;
 
 MExc = ExceptionMessage('Input', 'message', ...
