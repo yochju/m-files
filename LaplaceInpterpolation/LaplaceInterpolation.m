@@ -1,5 +1,5 @@
 function [out, varargout] = LaplaceInterpolation(in, varargin)
-%% Performs Laplace interpolation 
+%% Performs Laplace interpolation
 %
 % [out, varargout] = LaplaceInterpolation(in, varargin)
 %
@@ -67,7 +67,7 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 10.01.2013 16:23
+% Last revision on: 10.01.2013 16:45
 
 %% Notes
 
@@ -111,11 +111,22 @@ assert(isequal(size(in),size(opts.mask)), MExc.id, MExc.message);
 
 %% Run code.
 
-switch opts.solver
-    case 'backslash'
-        out = SolveBackslash(opts);
-    case 'lsqr'
-        out = SolveLSQR(opts);
+if max(abs(opts.mask(:))) < 100*eps
+    MExc = ExceptionMessage('Input', 'message', ...
+        'Mask is empty. Trivial solution returned without computation.');
+    warning(MExc.id, MExc.message);
+    out = zeros(size(in));
+else
+    switch opts.solver
+        case 'backslash'
+            out = SolveBackslash(opts);
+        case 'lsqr'
+            out = SolveLSQR(opts);
+        otherwise
+            MExc = ExceptionMessage('UnknownOp', 'message', ...
+                'Required method is not (yet) implemented.');
+            error(MExc.id, MExc.message);
+    end
 end
-		       
+
 end
