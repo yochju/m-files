@@ -66,14 +66,20 @@ function u = SolveLSQR(in)
 narginchk(1, 1);
 nargoutchk(1, 1);
 
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
 parser.addRequired('in', @(x) validateattributes(x, ...
     {'struct'}, {'scalar'}, mfilename, 'in'));
 parser.parse(in);
 
 %% Run code.
 
-A = PdeM(in.mask, 'm', in.m, 'M', in.M);
-b = Rhs(in.in, 'mask', in.mask, 'm', in.m);
-u = builtin('lsqr', A, b);
+A = PdeM(in.mask, 'ml', in.ml, 'mu', in.mu);
+b = Rhs(in.in, 'mask', in.mask, 'm', in.ml);
+u = lsqr(A, b);
 		       
 end

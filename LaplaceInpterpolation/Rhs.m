@@ -13,7 +13,7 @@ function out = Rhs(in, varargin)
 % values or option/value pairs, where the option is specified as a string.
 %
 % mask   : Set of known (fuzzy) data points. (array, default = zeros(size(in)))
-% m      : lower bound. See description. (scalar, default = 0)
+% ml     : lower bound. See description. (scalar, default = 0)
 %
 % Input parameters (optional):
 %
@@ -79,8 +79,8 @@ parser.addParamValue('mask', zeros(size(in)), @(x) validateattributes(x, ...
     {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
     mfilename, 'mask'));
 
-parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
+parser.addParamValue('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'ml'));
 
 parser.parse(in, varargin{:})
 opts = parser.Results;
@@ -91,6 +91,6 @@ assert(isequal(size(in),size(opts.mask)), MExc.id, MExc.message);
 
 %% Run code.
 
-out = (opts.mask-opts.m).*in;
+out = (opts.mask-opts.ml).*in;
 
 end

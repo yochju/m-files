@@ -13,8 +13,8 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 % values or option/value pairs, where the option is specified as a string.
 %
 % mask   : Set of known (fuzzy) data points. (array, default = zeros(size(in)))
-% m      : lower bound. See description. (scalar, default = 0)
-% M      : upper bound. See description. (scalar, default = 1)
+% ml     : lower bound. See description. (scalar, default = 0)
+% mu     : upper bound. See description. (scalar, default = 1)
 % solver : Which solving strategy should be used for the occuring linear system.
 %          (char array, default = backslash)
 % oSolv  : If applicable, options that should be passed to the solver. (struct,
@@ -73,8 +73,8 @@ function [out, varargout] = LaplaceInterpolation(in, varargin)
 
 %% Parse input and output.
 
-narginchk(,);
-nargoutchk(,);
+narginchk(1,11);
+nargoutchk(0,1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -89,11 +89,11 @@ parser.addParamValue('mask', zeros(size(in)), @(x) validateattributes(x, ...
     {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
     mfilename, 'mask'));
 
-parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
+parser.addParamValue('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'ml'));
 
-parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
+parser.addParamValue('mu', 1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'mu'));
 
 parser.addParamValue('solver', 'backslash', @(x) strcmpi(x, ...
     validatestring( x, {'backslash', 'GaussSeidel', 'Jacobi', 'Parabolic', ...

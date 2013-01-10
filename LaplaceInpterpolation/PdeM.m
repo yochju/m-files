@@ -12,8 +12,8 @@ function out = PdeM(c, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% m        : Lower bound. See description. (scalar, default = 0)
-% M        : Upper bound. See description. (scalar, default = 1)
+% ml       : Lower bound. See description. (scalar, default = 0)
+% mu       : Upper bound. See description. (scalar, default = 1)
 % optsLapl : Options to be passed to LaplaceM. (struct, default = struct())
 %
 % Input parameters (optional):
@@ -90,14 +90,14 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 parser.addRequired('c', @(x) validateattributes(x, ...
-    {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
+    {'numeric'}, {'2d', 'finite', 'nonnan'}, ...
     mfilename, 'c'));
 
-parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
+parser.addParamValue('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'ml'));
 
-parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
+parser.addParamValue('mu', 1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'finite', 'nonnan'}, mfilename, 'mu'));
 
 parser.addParamValue('optsLapl', struct(), @(x) validateattributes(x, ...
     {'struct'}, {}));
@@ -114,6 +114,6 @@ opts = parser.Results;
 
 [row col] = size(opts.c);
 D = LaplaceM(col, row, opts.optsLapl);
-out = DiagM(c-opts.m) - Diag(opts.M-c)*D;
+out = DiagM(c-opts.ml) - DiagM(opts.mu-c)*D;
 
 end
