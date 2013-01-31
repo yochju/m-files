@@ -1,4 +1,4 @@
-function out = ImageQuantize( in, q )
+function [out map] = ImageQuantize( in, q )
 %% Short description.
 %
 % out = ImageQuantize( in )
@@ -48,17 +48,20 @@ function out = ImageQuantize( in, q )
 %% Algorithm
 
 I = double(in);
-    
+
 minI = min(I(:));
 maxI = max(I(:));
-    
+
 if q > length(unique(round(in)))
-        
+    
     out = round(in);
-        
+    map = sort(unique(round(in)));
+    
 else
-        
-    out = FindBest( round( linspace( minI, maxI, q ) ), I );
-        
+    
+    temp = unique(in);
+    map = FindBestPosition(temp,linspace(minI,maxI,q))-1;
+    out = FindBestPosition(linspace(minI,maxI,q),in);
+    
 end
 end

@@ -1,7 +1,7 @@
 function [varargout] = Map(values, functions, varargin)
 %% Maps functions onto input values
 %
-% [ ... ] = map(values, functions, ...)
+% [ ... ] = Map(values, functions, ...)
 %
 % Input parameters (required):
 %
