@@ -25,7 +25,7 @@ function out = ImageMin( in )
 %
 % See also
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -41,12 +41,12 @@ function out = ImageMin( in )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 06.06.2012 07:39
+% Last revision on: 04.02.2013 21:23
 
 %% Check Input and Output Arguments
 
 %% Algorithm
 
-out = squeeze(min(min(I,[],1)));
+out = squeeze(min(min(in, [],1)));
 
 end
