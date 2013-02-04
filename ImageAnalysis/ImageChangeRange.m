@@ -1,4 +1,4 @@
-function out = ImageChangeRange(in, iMin, iMax, oMin, oMax, gamma)
+function out = ImageChangeRange(in, iMin, iMax, oMin, oMax, varargin)
 %% Changes the range from [iMin;iMax] to [oMin;oMax] on in.
 %
 % out = ImageChangeRange(in, iMin, iMax, oMin, oMax, gamma)
@@ -100,7 +100,7 @@ parser.addOptional('gamma', 1.0, validateattributes( x, {'numeric'}, ...
     {'scalar', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'gamma', 6) );
 
-parser.Results;
+parser.parse(in, iMin, iMax, oMin, oMax, varargin{:});
 
 %% Run code.
 

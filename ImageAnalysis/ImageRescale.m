@@ -1,4 +1,4 @@
-function out = ImageRescale( in , min , max , gamma )
+function out = ImageRescale( in , min , max , varargin )
 %% Rescale image based on its current range.
 %
 % out = ImageRescale( in , min , max , gamma )
@@ -88,7 +88,7 @@ parser.addOptional('gamma', 1.0, validateattributes( x, {'numeric'}, ...
     {'scalar', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'gamma', 4) );
 
-parser.Results;
+parser.parse(in, min, max, varargin{:});
 
 %% Run code.
 
