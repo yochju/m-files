@@ -79,7 +79,7 @@ parser.addRequired('gamma', @(x) validateattributes( x, {'numeric'}, ...
     {'scalar', 'finite', 'nonempty', 'nonnan', 'nonzero'}, ...
     mfilename, 'gamma', 2) );
 
-parser.Results;
+parser.parse(in, gamma);
 
 %% Run code.
 
