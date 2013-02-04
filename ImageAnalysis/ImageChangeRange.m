@@ -36,7 +36,8 @@ function out = ImageChangeRange(in, iMin, iMax, oMin, oMax, gamma)
 % Description:
 %
 % Changes the range of the image data in a linear way with a possible gamma
-% correction.
+% correction. Note that passing vectors for the range is allowed. Then, a
+% channelwise transform will be attempted.
 %
 % Example:
 %
@@ -66,6 +67,9 @@ function out = ImageChangeRange(in, iMin, iMax, oMin, oMax, gamma)
 
 %% Parse input and output.
 
+narginchk(5,6);
+nargoutchk(0,1);
+
 parser = inputParser;
 parser.FunctionName = mfilename;
 parser.CaseSensitive = false;
@@ -77,19 +81,19 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
     mfilename, 'in', 1) );
 
 parser.addRequired('iMin', @(x) validateattributes( x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonempty', 'nonnan'}, ...
+    {'2d', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'iMin', 2) );
 
 parser.addRequired('iMax', @(x) validateattributes( x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonempty', 'nonnan', '<', iMin}, ...
+    {'2d', 'finite', 'nonempty', 'nonnan', '<', iMin}, ...
     mfilename, 'iMax', 3) );
 
 parser.addRequired('oMin', @(x) validateattributes( x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonempty', 'nonnan'}, ...
+    {'2d', 'finite', 'nonempty', 'nonnan'}, ...
     mfilename, 'oMin', 4) );
 
 parser.addRequired('oMax', @(x) validateattributes( x, {'numeric'}, ...
-    {'scalar', 'finite', 'nonempty', 'nonnan', '<', oMin}, ...
+    {'2d', 'finite', 'nonempty', 'nonnan', '<', oMin}, ...
     mfilename, 'oMax', 5) );
 
 parser.addOptional('gamma', 1.0, validateattributes( x, {'numeric'}, ...
@@ -100,7 +104,8 @@ parser.Results;
 
 %% Run code.
 
-a = (oMax-oMin)/(iMax-iMin);
-b = (iMax*oMin-iMin*oMax)/(iMax-iMin);
-out = (a*in+b).^gamma;
+a = (oMax-oMin)./(iMax-iMin);
+b = (iMax.*oMin-iMin.*oMax)./(iMax-iMin);
+out = (a.*in+b).^gamma;
+
 end
