@@ -1,12 +1,12 @@
-function out = ImageToJBIG(in, name, varargin)
+function varargout = ImageToJBIG(in, name, varargin)
 %% Write binary image to JBIG file.
 %
-% out = ImageToJBIG(in, name, varargin)
+% [status result] = ImageToJBIG(in, name, varargin)
 %
 % Input parameters (required):
 %
 % in   : Input data to be stored. Must be binary valued. (array)
-% name : Target file name without extension. (string) 
+% name : Target file name without extension. (string)
 %
 % Input parameters (parameters):
 %
@@ -25,7 +25,8 @@ function out = ImageToJBIG(in, name, varargin)
 %
 % Output parameters:
 %
-% -
+% status : Return value from the pbmtojbg binary.
+% result : Return value from the pbmtojbg binary.
 %
 % Output parameters (optional):
 %
@@ -67,7 +68,7 @@ function out = ImageToJBIG(in, name, varargin)
 %% Parse input and output.
 
 narginchk(2,4);
-nargoutchk(0,1);
+nargoutchk(0,2);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -109,7 +110,7 @@ pbmtojbg = pbmtojbg(1:(end-1));
 if status == 0
     tmp_nam = [tempname '.pbm'];
     imwrite(in, tmp_nam, 'Encoding', opts.Encoding);
-    out = system([pbmtojbg ' ' tmp_nam ' ' name '.jbg']);
+    [varargout{1:nargout}] = system([pbmtojbg ' ' tmp_nam ' ' name '.jbg']);
     delete(tmp_nam);
 else
     MExc = ExceptionMessage('Internal', 'message', ...

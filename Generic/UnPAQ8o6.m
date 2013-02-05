@@ -1,7 +1,7 @@
-function out = UnPAQ8o6(name, varargin)
+function varargout = UnPAQ8o6(name, varargin)
 %% Decompresses a file with PAQ8o6
 %
-% out = unPAQ806(name, varargin)
+% [status result] = unPAQ806(name, varargin)
 %
 % Input parameters (required):
 %
@@ -25,7 +25,8 @@ function out = UnPAQ8o6(name, varargin)
 %
 % Output parameters:
 %
-% -
+% status : Return value from the paq8o6 binary.
+% result : Return value from the paq8o6 binary.
 %
 % Output parameters (optional):
 %
@@ -33,13 +34,16 @@ function out = UnPAQ8o6(name, varargin)
 %
 % Description:
 %
-% http://cs.fit.edu/~mmahoney/compression/
+% Decompresses a file using the paq8o6 compression scheme. The binary must be
+% installed somewhere, where the system command can find it. The program is
+% available from: http://cs.fit.edu/~mmahoney/compression/ and is licensed under
+% the GPL.
 %
 % Example:
 %
 % -
 %
-% See also
+% See also PAQ8o6, unzip, gunzip, untar
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -57,14 +61,14 @@ function out = UnPAQ8o6(name, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 05.02.2013 16:27
+% Last revision on: 05.02.2013 16:55
 
 %% Notes
 
 %% Parse input and output.
 
 narginchk(1,5);
-nargoutchk(0,1);
+nargoutchk(0,2);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -99,9 +103,9 @@ paq8o6 = paq8o6(1:(end-1));
 
 if status == 0
     if opts.echo
-        [out result] = system(['yes | ' paq8o6 ' ' name], '-echo');
+        [varargout{1:nargout}] = system(['yes | ' paq8o6 ' ' name], '-echo');
     else
-        [out result] = system(['yes | ' paq8o6 ' ' name]);
+        [varargout{1:nargout}] = system(['yes | ' paq8o6 ' ' name]);
     end
     if opts.delete
         delete(name);

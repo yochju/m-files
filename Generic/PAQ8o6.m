@@ -1,7 +1,7 @@
-function out = PAQ8o6(name, varargin)
+function varargout = PAQ8o6(name, varargin)
 %% Compresses a file with PAQ8o6
 %
-% out = PAQ806(name, varargin)
+% [status result] = PAQ806(name, varargin)
 %
 % Input parameters (required):
 %
@@ -26,7 +26,8 @@ function out = PAQ8o6(name, varargin)
 %
 % Output parameters:
 %
-% -
+% status : Return value from the paq8o6 binary.
+% result : Return value from the paq8o6 binary.
 %
 % Output parameters (optional):
 %
@@ -34,13 +35,16 @@ function out = PAQ8o6(name, varargin)
 %
 % Description:
 %
-% http://cs.fit.edu/~mmahoney/compression/
+% Compresses a file using the paq8o6 compression scheme. The binary must be
+% installed somewhere, where the system command can find it. The program is
+% available from: http://cs.fit.edu/~mmahoney/compression/ and is licensed under
+% the GPL.
 %
 % Example:
 %
 % -
 %
-% See also
+% See also UnPAQ8o6, zip, gzip, tar
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -65,7 +69,7 @@ function out = PAQ8o6(name, varargin)
 %% Parse input and output.
 
 narginchk(1,7);
-nargoutchk(0,1);
+nargoutchk(0,2);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -103,10 +107,11 @@ paq8o6 = paq8o6(1:(end-1));
 
 if status == 0
     if opts.echo
-        [out result] = system([paq8o6 ' -' num2str(opts.level) ' ' name], ...
-            '-echo');
+        [varargout{1:nargout}] = system([paq8o6 ' -' num2str(opts.level) ...
+            ' ' name], '-echo');
     else
-        [out result] = system([paq8o6 ' -' num2str(opts.level) ' ' name]);
+        [varargout{1:nargout}] = system([paq8o6 ' -' num2str(opts.level) ...
+            ' ' name]);
     end
     if opts.delete
         delete(name);
