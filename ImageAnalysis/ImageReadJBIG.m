@@ -38,9 +38,11 @@ function [out] = ImageReadJBIG(name)
 %
 % Example:
 %
-% -
+% c = rand([256,512])>0.2;
+% ImageToJBIG(c,'~/foo.jbg');
+% d = ImageReadJBIG('~/foo.jbg');
 %
-% See also
+% See also imread, imwrite, ImageToJBIG
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %

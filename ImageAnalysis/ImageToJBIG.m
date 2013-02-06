@@ -41,9 +41,10 @@ function varargout = ImageToJBIG(in, name, varargin)
 %
 % Example:
 %
-% -
+% c = rand([256,512])>0.2;
+% ImageToJBIG(c,'~/foo.jbg');
 %
-% See also
+% See also ImageReadJBIG, imwrite, imread
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -61,7 +62,7 @@ function varargout = ImageToJBIG(in, name, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 05.02.2013 14:26
+% Last revision on: 06.02.2013 14:48
 
 %% Notes
 
