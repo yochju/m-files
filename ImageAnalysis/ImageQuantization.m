@@ -1,7 +1,7 @@
-function out = ImageQuantization(in, num)
+function out = ImageQuantization(in, num, varargin)
 %% Changes the number of colors in the input image.
 %
-% out = ImageQuantization(in, num)
+% out = ImageQuantization(in, num, ...)
 %
 % Input parameters (required):
 %
@@ -13,7 +13,9 @@ function out = ImageQuantization(in, num)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% -
+% range : if specified, this will be the range used for quantization. No check
+%         will be done to verfiy that this range and the data overlap! (array
+%         with two elements). Default = [nan nan].
 %
 % Input parameters (optional):
 %
@@ -60,13 +62,13 @@ function out = ImageQuantization(in, num)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 06.02.2013 14:38
+% Last revision on: 10.02.2013 20:48
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(2,2);
+narginchk(2,4);
 nargoutchk(0,2);
 
 parser = inputParser;
@@ -83,18 +85,31 @@ parser.addRequired('num', @(x) validateattributes( x, {'numeric'}, ...
     {'scalar', 'finite', 'nonempty', 'nonnan', '>=', 1}, ...
     mfilename, 'num', 2) );
 
-parser.parse(in, num);
+parser.addParamValue('range', [nan nan], @(x) validateattributes( x, ...
+    {'numeric'}, {'vector', 'nonnan', 'numel', 2}, mfilename, 'range'));
+
+parser.parse(in, num, varargin{:});
+opts = parser.Results;
 
 %% Run code.
 
 Imin = min(in(:));
 Imax = max(in(:));
 
-if num == 1
-    out = mean(in(:))*ones(size(in));
+if isequaln(opts.range, [nan nan])
+    if num == 1
+        out = mean(in(:))*ones(size(in));
+    else
+        quantization = linspace(Imin,Imax,num);
+        out = quantization(FindBestPosition(quantization,in));
+    end
 else
-    quantization = linspace(Imin,Imax,num);
-    out = quantization(FindBestPosition(quantization,in));
+    if num == 1
+        out = mean(opts.range(:))*ones(size(in));
+    else
+        quantization = linspace(min(opts.range), max(opts.range), num);
+        out = quantization(FindBestPosition(quantization,in));
+    end
 end
 
 end
