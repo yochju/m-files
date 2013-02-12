@@ -39,3 +39,18 @@ Street, Fifth Floor, Boston, MA 02110-1301, USA.
 Many parts are work in progress and subject to change in the future. This is
 especially true for the structure of the repository. In the long term, it is
 planned to achieve a reasonable layout using toolboxes and classes.
+
+There are a certain number of external dependencies. For the time being, they
+are:
+
+- PAQ8o6: available from: http://cs.fit.edu/~mmahoney/compression/#paq
+- JBIGKit: available from: http://www.cl.cam.ac.uk/~mgk25/jbigkit/
+
+Only the binaries are required. The methods that require these binaries are
+Linux specific and do not work on Windows machines.
+
+The following dependency is contained in the repository:
+
+- FED: available from: http://www.mia.uni-saarland.de/Research/SC_FED.shtml
+
+Other dependencies might be required in future versions.
