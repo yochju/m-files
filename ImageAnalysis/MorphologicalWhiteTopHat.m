@@ -1,6 +1,6 @@
-function out = MorphologicalWhiteTopHat(in,varargin)
+function out = MorphologicalWhiteTopHat(in, mask)
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -16,8 +16,8 @@ function out = MorphologicalWhiteTopHat(in,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 20.10.2012 22:10
+% Last revision on: 18.02.2013 21:35
 
-out = in - MorphologicalOpening(in,varargin{:});
+out = in - MorphologicalOpening(in, mask);
 
 end

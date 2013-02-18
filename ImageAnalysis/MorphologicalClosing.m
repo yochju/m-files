@@ -1,4 +1,4 @@
-function out = MorphologicalClosing(in,varargin)
+function out = MorphologicalClosing(in, mask1, mask2)
 
 % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,8 +16,8 @@ function out = MorphologicalClosing(in,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 20.10.2012 22:10
+% Last revision on: 18.02.2013 21:30
 
-out = MorphologicalErosion(MorphologicalDilation(in,varargin{:}));
+out = MorphologicalErosion(MorphologicalDilation(in, mask1), mask2);
 
 end
