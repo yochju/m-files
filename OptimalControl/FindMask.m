@@ -266,7 +266,7 @@ function [u, c] = FindMask(f, lambda, varargin)
             if is1d
                 plot(abs(u(:)-f(:)));
             else
-                subimage(Normalise(abs(u-f)));
+                subimage(ImageNormalise(abs(u-f)));
                 set(gca(),'XTick',[],'YTick',[]);
             end
             title({'Absolute difference solution',['Min: ' num2str(min(abs(u(:)-f(:))))],['Max: ' num2str(max(abs(u(:)-f(:))))]});
@@ -276,7 +276,7 @@ function [u, c] = FindMask(f, lambda, varargin)
                 if is1d
                     plot(deltao(:));
                 else
-                    subimage(Normalise(ToIm(deltao,ro,co)));
+                    subimage(ImageNormalise(ToIm(deltao,ro,co)));
                     set(gca(),'XTick',[],'YTick',[]);
                 end
                 title({'Adjoint variable',['Min: ' num2str(min(deltao(:)))],['Max: ' num2str(max(deltao(:)))]});
@@ -313,7 +313,7 @@ function [u, c] = FindMask(f, lambda, varargin)
             if is1d
                 plot(abs(uT(:)-f(:)));
             else
-                subimage(Normalise(abs(uT-f)));
+                subimage(ImageNormalise(abs(uT-f)));
                 set(gca(),'XTick',[],'YTick',[]);
             end
             title({'Absolute difference solution (thresh.)',['Min: ' num2str(min(abs(uT(:)-f(:))))],['Max: ' num2str(max(abs(uT(:)-f(:))))]});
@@ -323,7 +323,7 @@ function [u, c] = FindMask(f, lambda, varargin)
                 if is1d
                     plot(subgo(:));
                 else
-                    subimage(Normalise(ToIm(subgo,ro,co)));
+                    subimage(ImageNormalise(ToIm(subgo,ro,co)));
                     set(gca(),'XTick',[],'YTick',[]);
                 end
                 title({'Subgradient variable',['Min: ' num2str(min(subgo(:)))],['Max: ' num2str(max(subgo(:)))]});
@@ -333,7 +333,7 @@ function [u, c] = FindMask(f, lambda, varargin)
             if is1d
                 plot(abs(c(:)-cT(:)))
             else
-                subimage(Normalise(abs(c-ToIm(cT,ro,co))));
+                subimage(ImageNormalise(abs(c-ToIm(cT,ro,co))));
                 set(gca(),'XTick',[],'YTick',[]);
             end
             title({'Absolute difference masks',['Min: ' num2str(min(abs(c(:)-cT(:))))],['Max: ' num2str(max(abs(c(:)-cT(:))))]});
