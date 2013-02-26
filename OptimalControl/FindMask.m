@@ -352,7 +352,7 @@ while i <= opts.maxit
         if is1d
             plot(c(:)-cbar(:))
         else
-            subimage(ImageNormalise(c-ToIm(cbar,ro,co)));
+            subimage(ImageNormalise(c-cbar));
             set(gca(),'XTick',[],'YTick',[]);
         end
         title({'Difference between previous and actual mask', ['Min: ' num2str(min(abs(c(:)-cbar(:))))],['Max: ' num2str(max(abs(c(:)-cbar(:))))]});
