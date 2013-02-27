@@ -162,6 +162,14 @@ while i <= opts.maxit
         M = spdiags(c, 0, N, N) - (I - spdiags(c, 0, N, N))*D;
         u = M\ToVec(ToIm(c,ro,co).*f);
         
+        if opts.verbose
+            fprintf(2,'\n-----------------------------------------------------------------\n');
+            fprintf(2, 'Iteration:\t\t%d.\n', i-1);
+            fprintf(2, 'Distance betwwen u (Chambolle) and f:\t%g.\n', norm(utemp(:)-f(:)));
+            fprintf(2, 'Distance betwwen u (PDE solut) and f:\t%g.\n', norm(u(:)-f(:)));
+            fprintf(2,'\n-----------------------------------------------------------------\n');
+        end
+        
         if opts.kkt
             %% - Check KKT conditions for original problem. ------------------ %
             
