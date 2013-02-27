@@ -1,5 +1,49 @@
 function out = MedianFilter(in,mask)
-%% Perform Median Filter (order statistics median)
+%% Apply a median filter
+%
+% out = MedianFilter(in, mask)
+%
+% Input parameters (required):
+%
+% in   : input image. (array)
+% mask : 2D array with odd number of rows and columns. Center will be the mid
+%        pixel along every direction. Entries serve as weights. NaNs mark pixels
+%        to be ignored.
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% -
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
+%
+% Output parameters:
+%
+% out : Resulting image.
+%
+% Output parameters (optional):
+%
+% -
+%
+% Description:
+%
+% Applies a median filter on a given image. The mask is cropped at the image
+% boundaries. No padding at all is being performed.
+%
+% Example:
+%
+% mask = [nan 1 1 ; 1 4 nan ; 0 0 2 ];
+% I = double(rand(16,16) > 0.2);
+% MedianFilter(I,mask);
+%
+% See also MeanFilter
 
 % Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -17,7 +61,7 @@ function out = MedianFilter(in,mask)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 20.02.2013 07:44
+% Last revision on: 27.02.2013 06:53
 
 %% Notes
 

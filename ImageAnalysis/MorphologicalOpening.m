@@ -1,4 +1,53 @@
 function out = MorphologicalOpening(in,mask1,mask2)
+%% Apply a Morphological opening.
+%
+% out = MorphologicalOpening(in, mask)
+%
+% Input parameters (required):
+%
+% in    : input image. (array)
+% mask1 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This is the mask for the erosion.
+% mask2 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This is the mask for the dilation.
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% -
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
+%
+% Output parameters:
+%
+% out : Resulting image.
+%
+% Output parameters (optional):
+%
+% -
+%
+% Description:
+%
+% Applies a Morphological opening on a given image. The mask is cropped at
+% the image boundaries. No padding at all is being performed. The morhpolical
+% opening corresponds to a morphological erosion followed by a dilation.
+%
+% Example:
+%
+% mask = [nan 1 1 ; 1 4 nan ; 0 0 2 ];
+% I = double(rand(16,16) > 0.2);
+% MorphologicalOpening(I,mask,mask);
+%
+% See also MorphologicalClosing, MorphologicalDilation, MorphologicalgErosion
 
 % Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -16,7 +65,33 @@ function out = MorphologicalOpening(in,mask1,mask2)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 18.02.2013 21:33
+% Last revision on: 27.02.2013 06:53
+
+%% Notes
+
+%% Parse input and output.
+
+narginchk(3,3);
+nargoutchk(0,1);
+
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
+parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'in', 1) );
+
+parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask1', 2) );
+
+parser.addRequired('mask2', @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask2', 3) );
+
+parser.parse(in, mask1, mask2);
+
+%% Run code.
 
 out = MorphologicalDilation(MorphologicalErosion(in,mask1),mask2);
 
