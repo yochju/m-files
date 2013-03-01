@@ -1,7 +1,7 @@
 function out = MorphologicalWhiteTopHat(in, mask1, varargin)
 %% Apply a Morphological White Top Hat.
 %
-% out = MorphologicalWhiteTopHat(in, mask)
+% out = MorphologicalWhiteTopHat(in, mask1, mask2)
 %
 % Input parameters (required):
 %
@@ -20,13 +20,12 @@ function out = MorphologicalWhiteTopHat(in, mask1, varargin)
 % Input parameters (optional):
 %
 % The number of optional parameters is always at most one. If a function takes
-% an optional parameter, it does not take any other parameters. The white tophat
-% corresponds to subtracting the opening from the input signal.
+% an optional parameter, it does not take any other parameters.
 %
 % mask2 : 2D array with odd number of rows and columns. Center will be the mid
 %         pixel along every direction. Entries serve as weights. NaNs mark
 %         pixels to be ignored. This will be the second mask passed to the
-%         morphological opening.
+%         morphological opening. (default = mask1)
 %
 % Output parameters:
 %
@@ -39,7 +38,10 @@ function out = MorphologicalWhiteTopHat(in, mask1, varargin)
 % Description:
 %
 % Applies a Morphological White Top Hat on a given image. The mask is cropped at
-% the image boundaries. No padding at all is being performed.
+% the image boundaries. No padding at all is being performed. The white tophat
+% corresponds to subtracting the opening from the input signal. If only
+% one mask is provided, this mask will be passed twice to the morphological
+% opening. Otherwise two different masks will be passed.
 %
 % Example:
 %
@@ -90,6 +92,7 @@ parser.addOptional('mask2', mask1, @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask2', 3) );
 
 parser.parse(in, mask1, varargin{:});
+opts = parser.Results;
 
 %% Run code.
 

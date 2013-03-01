@@ -1,7 +1,7 @@
 function out = MorphologicalBlackTopHat(in, mask1, varargin)
 %% Apply a Morphological Black Top Hat.
 %
-% out = MorphologicalBlackTopHat(in, mask)
+% out = MorphologicalBlackTopHat(in, mask1, mask2)
 %
 % Input parameters (required):
 %
@@ -26,7 +26,7 @@ function out = MorphologicalBlackTopHat(in, mask1, varargin)
 % mask2 : 2D array with odd number of rows and columns. Center will be the mid
 %         pixel along every direction. Entries serve as weights. NaNs mark
 %         pixels to be ignored. This will be the second mask passed to the
-%         morphological closing.
+%         morphological closing. (default = mask1)
 %
 % Output parameters:
 %

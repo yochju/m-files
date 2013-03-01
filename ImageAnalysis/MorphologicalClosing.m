@@ -24,7 +24,8 @@ function out = MorphologicalClosing(in, mask1, varargin)
 %
 % mask2 : 2D array with odd number of rows and columns. Center will be the mid
 %         pixel along every direction. Entries serve as weights. NaNs mark
-%         pixels to be ignored. This is the mask for the erosion.
+%         pixels to be ignored. This is the mask for the erosion. (default =
+%         mask1)
 %
 % Output parameters:
 %
