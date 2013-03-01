@@ -61,7 +61,7 @@ function out = Vec2Mat(in, nr, nc, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 23.02.2013 17:45
+% Last revision on: 01.03.2013 07:25
 
 %% Notes
 
@@ -77,7 +77,7 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
-    {'2d'}, mfilename, 'in'));
+    {'vector'}, mfilename, 'in'));
 
 parser.addRequired('nr', @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'positive'}, mfilename, 'nr'));
