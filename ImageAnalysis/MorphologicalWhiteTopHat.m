@@ -1,14 +1,14 @@
-function out = MorphologicalWhiteTopHat(in, mask)
+function out = MorphologicalWhiteTopHat(in, mask1, varargin)
 %% Apply a Morphological White Top Hat.
 %
 % out = MorphologicalWhiteTopHat(in, mask)
 %
 % Input parameters (required):
 %
-% in   : input image. (array)
-% mask : 2D array with odd number of rows and columns. Center will be the mid
-%        pixel along every direction. Entries serve as weights. NaNs mark pixels
-%        to be ignored.
+% in    : input image. (array)
+% mask1 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored.
 %
 % Input parameters (parameters):
 %
@@ -23,7 +23,10 @@ function out = MorphologicalWhiteTopHat(in, mask)
 % an optional parameter, it does not take any other parameters. The white tophat
 % corresponds to subtracting the opening from the input signal.
 %
-% -
+% mask2 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This will be the second mask passed to the
+%         morphological opening.
 %
 % Output parameters:
 %
@@ -62,13 +65,13 @@ function out = MorphologicalWhiteTopHat(in, mask)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 27.02.2013 06:53
+% Last revision on: 01.03.2013 07:40
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(2,2);
+narginchk(2,3);
 nargoutchk(0,1);
 
 parser = inputParser;
@@ -80,13 +83,16 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'nonsparse', 'nonempty'}, mfilename, 'in', 1) );
 
-parser.addRequired('mask', @(x) validateattributes( x, {'numeric'}, ...
-    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask', 2) );
+parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask1', 2) );
 
-parser.parse(in, mask);
+parser.addOptional('mask2', mask1, @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask2', 3) );
+
+parser.parse(in, mask1, varargin{:});
 
 %% Run code.
 
-out = in - MorphologicalOpening(in, mask, mask);
+out = in - MorphologicalOpening(in, mask1, opts.mask2);
 
 end

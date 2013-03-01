@@ -1,7 +1,7 @@
-function out = MorphologicalOpening(in,mask1,mask2)
+function out = MorphologicalOpening(in, mask1, varargin)
 %% Apply a Morphological opening.
 %
-% out = MorphologicalOpening(in, mask)
+% out = MorphologicalOpening(in, mask1, mask2)
 %
 % Input parameters (required):
 %
@@ -9,9 +9,6 @@ function out = MorphologicalOpening(in,mask1,mask2)
 % mask1 : 2D array with odd number of rows and columns. Center will be the mid
 %         pixel along every direction. Entries serve as weights. NaNs mark
 %         pixels to be ignored. This is the mask for the erosion.
-% mask2 : 2D array with odd number of rows and columns. Center will be the mid
-%         pixel along every direction. Entries serve as weights. NaNs mark
-%         pixels to be ignored. This is the mask for the dilation.
 %
 % Input parameters (parameters):
 %
@@ -25,7 +22,9 @@ function out = MorphologicalOpening(in,mask1,mask2)
 % The number of optional parameters is always at most one. If a function takes
 % an optional parameter, it does not take any other parameters.
 %
-% -
+% mask2 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This is the mask for the dilation.
 %
 % Output parameters:
 %
@@ -39,7 +38,9 @@ function out = MorphologicalOpening(in,mask1,mask2)
 %
 % Applies a Morphological opening on a given image. The mask is cropped at
 % the image boundaries. No padding at all is being performed. The morhpolical
-% opening corresponds to a morphological erosion followed by a dilation.
+% opening corresponds to a morphological erosion followed by a dilation. If
+% only one mask is specified, erosion and dilation will use the same mask. The
+% first mask will be used for the erosion and the second mask for the dilation.
 %
 % Example:
 %
@@ -65,13 +66,13 @@ function out = MorphologicalOpening(in,mask1,mask2)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 27.02.2013 06:53
+% Last revision on: 01.03.2013 07:32
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(3,3);
+narginchk(2,3);
 nargoutchk(0,1);
 
 parser = inputParser;
@@ -86,13 +87,14 @@ parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
 parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask1', 2) );
 
-parser.addRequired('mask2', @(x) validateattributes( x, {'numeric'}, ...
+parser.addOptional('mask2', mask1, @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask2', 3) );
 
-parser.parse(in, mask1, mask2);
+parser.parse(in, mask1, varargin{:});
+opts = parser.Results;
 
 %% Run code.
 
-out = MorphologicalDilation(MorphologicalErosion(in,mask1),mask2);
+out = MorphologicalDilation(MorphologicalErosion(in,mask1),opts.mask2);
 
 end

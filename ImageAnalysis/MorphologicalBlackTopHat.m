@@ -1,14 +1,15 @@
-function out = MorphologicalBlackTopHat(in, mask)
+function out = MorphologicalBlackTopHat(in, mask1, varargin)
 %% Apply a Morphological Black Top Hat.
 %
 % out = MorphologicalBlackTopHat(in, mask)
 %
 % Input parameters (required):
 %
-% in   : input image. (array)
-% mask : 2D array with odd number of rows and columns. Center will be the mid
-%        pixel along every direction. Entries serve as weights. NaNs mark pixels
-%        to be ignored.
+% in    : input image. (array)
+% mask1 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This will be the first mask passed to the
+%         morphological closing
 %
 % Input parameters (parameters):
 %
@@ -22,7 +23,10 @@ function out = MorphologicalBlackTopHat(in, mask)
 % The number of optional parameters is always at most one. If a function takes
 % an optional parameter, it does not take any other parameters.
 %
-% -
+% mask2 : 2D array with odd number of rows and columns. Center will be the mid
+%         pixel along every direction. Entries serve as weights. NaNs mark
+%         pixels to be ignored. This will be the second mask passed to the
+%         morphological closing.
 %
 % Output parameters:
 %
@@ -36,7 +40,9 @@ function out = MorphologicalBlackTopHat(in, mask)
 %
 % Applies a Morphological black Top Hat on a given image. The mask is cropped at
 % the image boundaries. No padding at all is being performed. The black Tophat
-% corresponds to subtracting the image from its morphological closing.
+% corresponds to subtracting the image from its morphological closing. If only
+% one mask is provided, this mask will be passed twice to the morphological
+% closing. Otherwise two different masks will be passed.
 %
 % Example:
 %
@@ -62,13 +68,13 @@ function out = MorphologicalBlackTopHat(in, mask)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 27.02.2013 06:53
+% Last revision on: 01.03.2013 07:37
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(2,2);
+narginchk(2,3);
 nargoutchk(0,1);
 
 parser = inputParser;
@@ -80,13 +86,17 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes( x, {'numeric'}, ...
     {'2d', 'nonsparse', 'nonempty'}, mfilename, 'in', 1) );
 
-parser.addRequired('mask', @(x) validateattributes( x, {'numeric'}, ...
-    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask', 2) );
+parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask1', 2) );
 
-parser.parse(in, mask);
+parser.addOptional('mask2', mask1, @(x) validateattributes( x, {'numeric'}, ...
+    {'2d', 'nonsparse', 'nonempty'}, mfilename, 'mask2', 3) );
+
+parser.parse(in, mask1, varargin{:});
+opts = parser.Results;
 
 %% Run code.
 
-out = MorphologicalClosing(in, mask, mask) - in;
+out = MorphologicalClosing(in, mask1, opts.mask2) - in;
 
 end
