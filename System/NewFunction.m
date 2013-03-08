@@ -56,11 +56,14 @@ function NewFunction()
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 03.12.2012 21:05
+% Last revision on: 08.03.2013 07:47
 
 %% Notes
 
 %% Parse input and output.
+
+narginchk(0,0);
+nargoutchk(0,0);
 
 %% Run code.
 
