@@ -1,7 +1,7 @@
 function BackupFile()
-%% <H1 LINE>
+%% Create a backup of the currently active buffer.
 %
-% <SIGNATURE>
+% BackupFile()
 %
 % Input parameters (required):
 %
@@ -31,11 +31,14 @@ function BackupFile()
 %
 % Description:
 %
-% -
+% Creates a backup file of the currently active buffer by appending the current
+% time to its name and saving it to a separate file in the same folder as the
+% original file. If the buffer is unsaved, the file will be created in the
+% current working directory.
 %
 % Example:
 %
-% -
+% BackupFile()
 %
 % See also
 
@@ -55,14 +58,14 @@ function BackupFile()
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: dd.mm.yyyy hh:mm
+% Last revision on: 08.03.2013 20:21
 
 %% Notes
 
-% TODO: If buffer is not saved, make a backup by creating a new file (but
-% where?)
-
 %% Parse input and output.
+
+narginchk(0,0);
+nargoutchk(0,0);
 
 %% Run code.
 
@@ -79,22 +82,55 @@ if isequal(exist(p,'file'),2)
     if ~isempty(messageid) || ~isequal(status,1)
         
         MExc = ExceptionMessage('Internal', 'message', ...
-            ['Could not create backup. Cause was: ' message]);
+            ['Could not create backup. Cause: ' message]);
+        error(MExc.id,MExc.message);
+        
+    end
+    
+else % ~isequal(exist(p,'file'),2)
+    
+    if ~isempty(p)
+        
+        [~, name, ext] = fileparts(p);
+        name = [name '-' datestr(now,'yyyy-MM-dd-hh-mm-ss')];
+        
+        doc = matlab.desktop.editor.getActive();
+        
+        [fid message] = fopen(fullfile(pwd(), [name ext]), 'w');
+        
+        if fid >= 0
+            
+            nbytes = fprintf(fid, doc.Text);
+            if nbytes <= 0
+                MExc = ExceptionMessage('Internal', 'message', ...
+                    'Non positive number of bytes written to backup file.');
+                error(MExc.id,MExc.message);
+            end
+            
+            status = fclose(fid);
+            if ~isequal(status,0)
+                MExc = ExceptionMessage('Internal', 'message', ...
+                    'Could not close file where backup was written to.');
+                error(MExc.id,MExc.message);
+            end
+            
+        else % fid < 0
+            
+            MExc = ExceptionMessage('Internal', 'message', ...
+                ['Could not create backup. Cause: ' message]);
+            error(MExc.id,MExc.message);
+            
+        end
+        
+    else % isempty(p)
+        
+        MExc = ExceptionMessage('Internal', 'message', ...
+            'Cannot create backup of a buffer without a name.');
         
         error(MExc.id,MExc.message);
         
     end
     
-else
-    
-    MExc = ExceptionMessage('Internal', 'message', ...
-        'Cannot create backup of unsaved file.');
-    
-    % Create a backup in current working directory ( pwd() )
-    % How does p look like if there is no editor open? empty?
-    
-    error(MExc.id,MExc.message);
-    
 end
-		       
+
 end
