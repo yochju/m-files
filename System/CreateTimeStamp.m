@@ -19,6 +19,27 @@ function out = CreateTimeStamp(str)
 
 % Last revision on: 23.11.2012 11:50
 
+%% Notes
+
+%% Parse input and output.
+
+narginchk(0,1);
+nargoutchk(0,1);
+
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
+% parser.addOptional('str', '', @(x) validateattributes( x, {'char'}, ...
+%     {'row', 'nonempty'}, mfilename, 'str', 1) );
+% 
+% parser.parse(varargin{:});
+% opts = parser.Results;
+
+%% Run code.
+
 if nargin == 0
     out = datestr(now,'yyyymmddHHMMSS');
 elseif nargin == 1
