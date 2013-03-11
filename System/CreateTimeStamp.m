@@ -72,6 +72,7 @@ if nargin == 0
 elseif nargin == 1
     try
         validateattributes(str, {'char'}, {'row'}, mfilename, 'str', 1);
+        out = [ str '_' datestr(now,'yyyymmddHHMMSS') ];
     catch err
         if strcmp(err.identifier,'MATLAB:CreateTimeStamp:invalidType')
             out = datestr(now,'yyyymmddHHMMSS');
