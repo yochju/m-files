@@ -44,7 +44,21 @@
 /*
  * Mex files are compiled with:
  * mex -v -largeArrayDims matmult.c -lmwblas -lm -lcxsparse -lmexHelperBLAS
+ */
 
+#ifndef mexHelperBLAS_H
+#define	mexHelperBLAS_H
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+int mfiles_cs2mx(const cs *in, mxArray *out);
+int mfiles_mx2cs(const mxArray *in, cs *out);
+
+/* Computes: diag(x)*y */
+int mfiles_dxdoty( const mxArray *x, mxArray *y );
+ 
 /* Computes: alpha A*B + beta C */
 int mfiles_dgemm00(
               double   alpha,
@@ -92,3 +106,9 @@ int mfiles_dgemv1(
         const mxArray *x,
               double   beta,
               mxArray *y);
+
+#ifdef	__cplusplus
+}
+#endif
+
+#endif	/* mexHelperBLAS_H */
