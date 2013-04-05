@@ -27,14 +27,17 @@
 #include <math.h>
 
 #include <cblas.h>
-#include <suitesparse/cs.h>
+#include <cs.h>
 
 #include <mexHelperBLAS.h>
 
 /* - MISC --------------------------------------------------------------------*/
 
 
-int mfiles_cs2mx(const cs *in, mxArray *out) {
+int mfiles_cs2mx(const cs_di *in, mxArray *out) {
+    if (!out) {
+        return EXIT_FAILURE;
+    }
     mxSetM(out, in->m);
     mxSetN(out, in->n);
     mxSetNzmax(out, in->nzmax);
@@ -45,7 +48,10 @@ int mfiles_cs2mx(const cs *in, mxArray *out) {
 }
 
 
-int mfiles_mx2cs(const mxArray *in, cs *out) {
+int mfiles_mx2cs(const mxArray *in, cs_di *out) {
+    if (!out) {
+        return EXIT_FAILURE;
+    }
     out->m = mxGetM(in);
     out->n = mxGetN(in);
     out->nzmax = mxGetNzmax(in);

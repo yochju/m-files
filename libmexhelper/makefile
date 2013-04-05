@@ -15,22 +15,22 @@
 ## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 CC=gcc
-CFLAGS=-c -Wall -O3 -DNDEBUG
+CFLAGS=-c -Wall -O3 -DNDEBUG -fpic
 IFLAGS=-I. -I/usr/local/MATLAB/R2012a/extern/include/ -I$(HOME)/Software/include
 LFLAGS=-L. -L$(HOME)/Software/lib
 LDFLAGS=-lmwblas -lm -lopenblas -lcxsparse
 SOURCES=$(wildcard *.c)
 HEADERS=$(wildcard *.h)
 OBJECTS=$(SOURCES:.c=.o)
-STATICLIB=libmexhelper.a
+LIBNAME=libmexHelperBLAS.so
 
 .PHONY: clean
 
 all: $(OBJECTS)
-	ar rcs $(STATICLIB) $(OBJECTS)
+	$(CC) -shared -o $(LIBNAME) $(OBJECTS)
 	
 %.o: %.c
-	$(CC) $(CFLAGS) $(IFLAGS) $<
+	$(CC) $(CFLAGS) $(LFLAGS) $(IFLAGS) $< $(LDFLAGS)
 	
 clean:
 	rm -rf $(OBJECTS) $(STATICLIB) $(SHAREDLIB)

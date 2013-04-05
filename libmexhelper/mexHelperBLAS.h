@@ -48,13 +48,15 @@
 
 #ifndef mexHelperBLAS_H
 #define	mexHelperBLAS_H
+#include <cs.h>
+#include <mex.h>
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-int mfiles_cs2mx(const cs *in, mxArray *out);
-int mfiles_mx2cs(const mxArray *in, cs *out);
+int mfiles_cs2mx(const cs_di *in, mxArray *out);
+int mfiles_mx2cs(const mxArray *in, cs_di *out);
 
 /* Computes: diag(x)*y */
 int mfiles_dxdoty( const mxArray *x, mxArray *y );
