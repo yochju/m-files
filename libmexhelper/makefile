@@ -1,4 +1,3 @@
-##
 ## Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify it under
@@ -16,10 +15,10 @@
 ## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 CC=gcc
-CFLAGS=-c -Wall -O3
-IFLAGS=-I. -I/usr/local/MATLAB/R2012a/extern/include/
-LFLAGS=
-LDFLAGS=-lmwblas -lm -lcxsparse
+CFLAGS=-c -Wall -O3 -DNDEBUG
+IFLAGS=-I. -I/usr/local/MATLAB/R2012a/extern/include/ -I$(HOME)/Software/include
+LFLAGS=-L. -L$(HOME)/Software/lib
+LDFLAGS=-lmwblas -lm -lopenblas -lcxsparse
 SOURCES=$(wildcard *.c)
 HEADERS=$(wildcard *.h)
 OBJECTS=$(SOURCES:.c=.o)
