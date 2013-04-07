@@ -1,7 +1,7 @@
-function [x, varargout] = LinSolvePDHG(A, b, varargin)
+function [x, flag, relres, iter, resvec] = LinSolvePDHG(A, b, varargin)
 %% Solve linear system with PDHG Algorithm
 %
-% [x, flag, relres, iter, resvec] = LinSolvePDHG(A, b, tol, maxit, x0, mode, 
+% [x, flag, relres, iter, resvec] = LinSolvePDHG(A, b, tol, maxit, x0, mode,
 %                                                param)
 %
 % Input parameters (required):
@@ -43,15 +43,16 @@ function [x, varargout] = LinSolvePDHG(A, b, varargin)
 %
 % Output parameters:
 %
-% x : Minimiser of 0.5*||A*x-b||_2^2.
-%
-% Output parameters (optional):
-%
+% x      : Minimiser of 0.5*||A*x-b||_2^2.
 % flag   : flag indicating the stopping resaon. 0 means the suggested tolerance
 %          was reached. 1 indicates the maximum number of iterates was reached.
 % relres : relative residual of the final solution.
 % iter   : number of iterations performed.
 % resvec : residual vector.
+%
+% Output parameters (optional):
+%
+% -
 %
 % Description:
 %
@@ -87,7 +88,7 @@ function [x, varargout] = LinSolvePDHG(A, b, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 07.04.2013 11:30
+% Last revision on: 07.04.2013 21:00
 
 %% Notes
 
@@ -105,7 +106,7 @@ parser.StructExpand = true;
 parser.addRequired('A', @(x) validateattributes(x, {'numeric'}, ...
     {'2d', 'nonempty', 'finite'}, mfilename, 'A', 1));
 parser.addRequired('b', @(x) validateattributes(x, {'numeric'}, ...
-    {'column', 'numel', size(A,2), 'nonempty', 'finite'}, mfilename, 'b', 2));
+    {'column', 'numel', size(A,1), 'nonempty', 'finite'}, mfilename, 'b', 2));
 
 parser.addParamValue('tol', 1e-10, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'}, ...
@@ -131,9 +132,9 @@ opts = parser.Results;
 ExcM = ExceptionMessage('Input', 'message', 'Invalid parameter specification.');
 
 if isfield(opts.param,'theta')
-        theta = opts.param.theta;
-        assert(isscalar(theta), ExcM.id, ExcM.message);
-        assert((theta>=0)&&(theta<=1), ExcM.id, ExcM.message);
+    theta = opts.param.theta;
+    assert(isscalar(theta), ExcM.id, ExcM.message);
+    assert((theta>=0)&&(theta<=1), ExcM.id, ExcM.message);
 else
     theta = 1.0;
 end
@@ -174,7 +175,7 @@ else
         assert(isscalar(alpha), ExcM.id, ExcM.message);
         assert((alpha<=2)&&(alpha>=0), ExcM.id, ExcM.message);
     else
-        alpha = 1.0;
+        alpha = 1.9;
     end
     K = abs(A);
     % If a row or column sum is 0, we have to prevent a division by 0. At the
@@ -189,8 +190,12 @@ else
     sigma(row0) = 1;
 end
 
-for i = 1:opts.maxit
-    if norm(A*x-b) < (opts.tol)*norm(b)
+flag = 1;
+for iter = 1:opts.maxit
+    resvec = A*x-b;
+    relres = norm(resvec)/norm(b);
+    if relres < opts.tol
+        flag = 0;
         break;
     end
     % Note that the next lines work for scalar and matrix valued sigma and tau.
@@ -205,7 +210,5 @@ for i = 1:opts.maxit
     xbar = x + theta*(x-xold);
 end
 
-% Handle the output data.
-% TODO.
 end
 
