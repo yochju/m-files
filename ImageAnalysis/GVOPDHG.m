@@ -88,9 +88,12 @@ function [x, flag, relres, iter, resvec] = GVOPDHG(M, C, f, varargin)
 
 %% Notes
 
+% TODO: Optimise default parameters.
+% TODO: Optimise stopping criteria.
+
 %% Parse input and output.
 
-narginchk(2,6);
+narginchk(3,13);
 nargoutchk(0,5);
 
 parser = inputParser;
@@ -102,9 +105,9 @@ parser.StructExpand = true;
 parser.addRequired('M', @(x) validateattributes(x, {'numeric'}, ...
     {'2d', 'nonempty', 'finite'}, mfilename, 'M', 1));
 parser.addRequired('C', @(x) validateattributes(x, {'numeric'}, ...
-    {'2d', 'nonempty', 'finite'}, mfilename, 'C', 2));
+    {'2d', 'size', size(M), 'nonempty', 'finite'}, mfilename, 'C', 2));
 parser.addRequired('f', @(x) validateattributes(x, {'numeric'}, ...
-    {'column', 'numel', size(A,1), 'nonempty', 'finite'}, mfilename, 'f', 3));
+    {'column', 'numel', size(M,1), 'nonempty', 'finite'}, mfilename, 'f', 3));
 
 parser.addParamValue('tol', 1e-10, @(x) validateattributes(x, ...
     {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'}, ...
@@ -140,6 +143,7 @@ end
 x = opts.x0;
 xbar = opts.x0;
 d = zeros(size(x));
+dbar = d;
 y = zeros(size(x));
 
 if ~strcmp(opts.mode,'precondition')
@@ -157,6 +161,8 @@ if ~strcmp(opts.mode,'precondition')
     else
         tau = 1;
     end
+    tauC = tau;
+    tauM = tau;
     sigma = 1.0/(tau*L^2+0.01);
 else
     % Setup the preconditioning matrices (we just store the diagonal entries).
@@ -167,7 +173,7 @@ else
     else
         alpha = 1.9;
     end
-    K = abs(A);
+    K = abs([M -C]);
     % If a row or column sum is 0, we have to prevent a division by 0. At the
     % moment we set those entries back to 1. I'm not sure this is the optimal
     % choice. The references don't mention this case.
@@ -195,7 +201,7 @@ for iter = 1:opts.maxit
     xold = x;
     dold = d;
     x = x + tauC.*(C*y);
-    d = (1 + tauM).\(d - tauM*(transpose(M)*y-f));
+    d = (1 + tauM).\(d - tauM.*(transpose(M)*y-f));
     xbar = x + theta*(x-xold);
     dbar = d + theta*(d-dold);
 end

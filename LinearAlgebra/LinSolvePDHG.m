@@ -92,9 +92,11 @@ function [x, flag, relres, iter, resvec] = LinSolvePDHG(A, b, varargin)
 
 %% Notes
 
+% TODO: Optimise default parameters.
+
 %% Parse input and output.
 
-narginchk(2,6);
+narginchk(2,12);
 nargoutchk(0,5);
 
 parser = inputParser;
