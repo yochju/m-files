@@ -22,15 +22,17 @@ LDFLAGS=-lmwblas -lm -lopenblas -lcxsparse
 SOURCES=$(wildcard *.c)
 HEADERS=$(wildcard *.h)
 OBJECTS=$(SOURCES:.c=.o)
-LIBNAME=libmexHelperBLAS.so
+LIBNAME_SHARED=libmexhelper.so
+LIBNAME_STATIC=libmexhelper.a
 
 .PHONY: clean
 
 all: $(OBJECTS)
-	$(CC) -shared -o $(LIBNAME) $(OBJECTS)
+	$(CC) -shared -o $(LIBNAME_SHARED) $(OBJECTS)
+	ar rcs $(LIBNAME_STATIC) $(OBJECTS)
 	
 %.o: %.c
 	$(CC) $(CFLAGS) $(LFLAGS) $(IFLAGS) $< $(LDFLAGS)
 	
 clean:
-	rm -rf $(OBJECTS) $(STATICLIB) $(SHAREDLIB)
+	rm -rf $(OBJECTS) $(LIBNAME_SHARED) $(LIBNAME_STATIC)
