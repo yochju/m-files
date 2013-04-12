@@ -55,8 +55,8 @@
 extern "C" {
 #endif
 
-int mfiles_cs2mx(const cs_di *in, mxArray *out);
-int mfiles_mx2cs(const mxArray *in, cs_di *out);
+int mfiles_cs2mx(const cs *in, mxArray *out);
+int mfiles_mx2cs(const mxArray *in, cs *out);
 
 /* Computes: diag(x)*y */
 int mfiles_dxdoty( const mxArray *x, mxArray *y );

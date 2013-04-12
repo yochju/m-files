@@ -34,7 +34,7 @@
 /* - MISC --------------------------------------------------------------------*/
 
 
-int mfiles_cs2mx(const cs_di *in, mxArray *out) {
+int mfiles_cs2mx(const cs *in, mxArray *out) {
     if (!out) {
         return EXIT_FAILURE;
     }
@@ -48,7 +48,7 @@ int mfiles_cs2mx(const cs_di *in, mxArray *out) {
 }
 
 
-int mfiles_mx2cs(const mxArray *in, cs_di *out) {
+int mfiles_mx2cs(const mxArray *in, cs *out) {
     if (!out) {
         return EXIT_FAILURE;
     }
@@ -56,8 +56,8 @@ int mfiles_mx2cs(const mxArray *in, cs_di *out) {
     out->n = mxGetN(in);
     out->nzmax = mxGetNzmax(in);
     out->nz = -1;
-    out->p = (int *) mxGetJc(in);
-    out->i = (int *) mxGetIr(in);
+    out->p = (size_t *) mxGetJc(in);
+    out->i = (size_t *) mxGetIr(in);
     out->x = (double *) mxGetPr(in);
     return EXIT_SUCCESS;
 }
