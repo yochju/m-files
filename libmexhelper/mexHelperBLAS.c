@@ -33,7 +33,6 @@
 
 /* - MISC --------------------------------------------------------------------*/
 
-
 int mfiles_cs2mx(const cs *in, mxArray *out) {
     if (!out) {
         return EXIT_FAILURE;
