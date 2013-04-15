@@ -16,7 +16,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Last revision on: 01.04.2013 21:30 */
+/* Last revision on: 15.04.2013 14:00 */
+
+/* The following lines force cxsparse to use long* for the index arrays. By
+ * default they use int. However mwIndex is equivalent to size_t. Thus we run
+ * into trouble on 64bit computers.
+ */ 
+#if defined(__LP64__) || defined(_LP64)
+#define CS_LONG
+#endif
 
 #include <mex.h>
 #include <matrix.h>
