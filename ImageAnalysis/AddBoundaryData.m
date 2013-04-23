@@ -103,7 +103,7 @@ if isequal(opts.size, inf)
     end
 end
 
-switch opts.type
+switch lower(opts.type)
     case 'dirichlet'
         if isempty(opts.data)
             out = padarray(opts.in, opts.size);
