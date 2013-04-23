@@ -52,8 +52,8 @@ function M = KroneckerSum(A,B)
 
 %% Check input parameters
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 [ra ca] = size(A);
 [rb cb] = size(B);
