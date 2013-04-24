@@ -25,7 +25,7 @@ function out = ImageChannelFun( in, fun )
 %
 % See also
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -41,12 +41,12 @@ function out = ImageChannelFun( in, fun )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 05.06.2012 09:56
+% Last revision on: 24.04.2013 09:45
 
 %% Check Input and Output Arguments
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;

@@ -10,7 +10,7 @@ function sOut = PeriodicExtension( sIn , dim , repetitions , mirror )
 %
 % See also fliplr, flipud, flipdim
 
-% Copyright 2011 Laurent Hoeltgen <hoeltgman@gmail.com>
+% Copyright 2011, 2012, 2013 Laurent Hoeltgen <hoeltgman@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -27,8 +27,10 @@ function sOut = PeriodicExtension( sIn , dim , repetitions , mirror )
 % Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 % MA 02110-1301, USA.
 
-error(nargchk(2,4,nargin));
-error(nargoutchk(0,1,nargout));
+% Last revision on: 24.04.2013 09:40
+
+narginchk(2,4);
+nargoutchk(0,1);
 
 if nargin < 2
     dim = 1;

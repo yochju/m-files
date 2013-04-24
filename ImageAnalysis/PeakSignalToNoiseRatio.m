@@ -22,7 +22,7 @@ function err = PeakSignalToNoiseRatio(I1,I2,M)
 %
 % See also norm, MeanSquareError.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -38,13 +38,13 @@ function err = PeakSignalToNoiseRatio(I1,I2,M)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/04/16 12:25
+% Last revision on: 24.04.2013 09:45
 
 %% Check input parameters
 
-error(nargchk(2, 3, nargin));
-error(nargoutchk(0, 1, nargout));
-dim = size(I1);
+narginchk(2, 3);
+nargoutchk(0, 1);
+
 assert(isequal(size(I1),size(I2)), ...
     'ImageAnalysis:MeanSquareError:BadInput', ...
     'Input data has not the same dimensions.');

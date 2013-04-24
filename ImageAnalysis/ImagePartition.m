@@ -28,7 +28,7 @@ function out = ImagePartition( in, blockSize, varargin )
 %
 % See also mat2cell, cell2mat, num2cell
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -44,16 +44,14 @@ function out = ImagePartition( in, blockSize, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 25.05.2012 13:57
+% Last revision on: 24.04.2013 09:45
 
 %% Notes
 
-% Has been implemented in @Image.
-
 %% Check Input and Output Arguments
 
-error(nargchk(2, 3, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 3);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;

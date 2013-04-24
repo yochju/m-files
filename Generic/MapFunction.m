@@ -22,7 +22,7 @@ function out = MapFunction( in , fun )
 %
 % See also
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -38,12 +38,12 @@ function out = MapFunction( in , fun )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 04.06.2012 15:10
+% Last revision on: 24.04.2013 09:55
 
 %% Check Input and Output Arguments
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -69,7 +69,7 @@ if iscell(opts.in)
         'This functionality has not been implemented yet.');
 else
     data = num2cell(opts.in,length(size(opts.in)));
-    [dummy n] = shiftdim(data{1});
+    [~, n] = shiftdim(data{1});
     data = cellfun(@shiftdim,data,'UniformOutput',false);
     fundata = cellfun(@(x) shiftdim(fun(x),-n), data, 'UniformOutput', false);
     out = cell2mat(fundata);

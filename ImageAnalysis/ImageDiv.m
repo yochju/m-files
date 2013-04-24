@@ -37,7 +37,7 @@ function out = ImageDiv( in, varargin )
 %
 % See also ImageDx, ImageDy, ImageGrad
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -53,13 +53,13 @@ function out = ImageDiv( in, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 05.05.2012 16:57
+% Last revision on: 24.04.2013 09:45
 
 %% Check Input and Output Arguments
 
 % asserts that there's at least 1 input parameter.
-error(nargchk(1, max(nargin,0), nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, max(nargin,0));
+nargoutchk(0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;

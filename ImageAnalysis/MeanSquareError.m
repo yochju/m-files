@@ -27,7 +27,7 @@ function err = MeanSquareError(I1,I2)
 %
 % See also norm, PeakSignalToNoiseRatio
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -43,12 +43,12 @@ function err = MeanSquareError(I1,I2)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/04/16 12:16
+% Last revision on: 24.04.2013 09:45
 
 %% Check input parameters
 
-error(nargchk(2, 2, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(2, 2);
+nargoutchk(0, 1);
 dim = size(I1);
 assert(isequal(size(I1),size(I2)), ...
     'ImageAnalysis:MeanSquareError:BadInput', ...

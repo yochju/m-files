@@ -16,7 +16,7 @@ function M = ExtractEntriesM(C)
 %
 % See also speye, eye.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -32,12 +32,12 @@ function M = ExtractEntriesM(C)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2012/03/14 16:55
+% Last revision on: 24.04.2013 09:45
 
 %% Check input parameters
 
-error(nargchk(1, 1, nargin));
-error(nargoutchk(0, 1, nargout));
+narginchk(1, 1);
+nargoutchk(0, 1);
 
 %% Compute Matrix
 
