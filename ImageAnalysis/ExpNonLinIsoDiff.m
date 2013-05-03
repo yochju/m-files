@@ -64,7 +64,7 @@ function [out] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 01.05.2013 09:25
+% Last revision on: 03.05.2013 09:25
 
 %% Notes
 %
@@ -92,7 +92,7 @@ parser.addParamValue('lambda', 0.5, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'lambda'));
 parser.addParamValue('sigma', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'sigma'));
-parser.addParamValue('tau', 0.25, @(x) validateattributes(x, ...
+parser.addParamValue('tau', 0.20, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'tau'));
 parser.addParamValue('its', 1, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'its'));
