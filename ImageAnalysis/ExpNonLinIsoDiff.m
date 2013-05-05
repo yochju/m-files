@@ -12,15 +12,17 @@ function [out] = ExpNonLinIsoDiff(in, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% lambda       : diffusivity parameter (default = 0.5).
-% sigma        : smoothing parameter used for the computation of the gradient
-%                magnitude (default = 0).
-% tau          : time step size (default = 0.25).
-% its          : number of iterations (default = 1).
-% diffusivity  : which diffusivity should be used ('charbonnier' or
-%               'perona-malik') (default = charbonnier).
-% gradmag      : options to be used for the computation of the gradient
-%                magnitude (default = struct('scheme','central')).
+% lambda         : diffusivity parameter (default = 0.5).
+% sigma          : smoothing parameter used for the computation of the gradient
+%                  magnitude (default = 0).
+% tau            : time step size (default = 0.25).
+% its            : number of iterations (default = 1).
+% diffusivity    : which diffusivity should be used ('charbonnier', 
+%                  'perona-malik' or 'custom') (default = charbonnier).
+% diffusivityfun : function handle for custom diffusivty,
+%                  (default = @(x) ones(size(x))
+% gradmag        : options to be used for the computation of the gradient
+%                  magnitude (default = struct('scheme','central')).
 %
 % Input parameters (optional):
 %
@@ -97,8 +99,12 @@ parser.addParamValue('tau', 0.20, @(x) validateattributes(x, ...
 parser.addParamValue('its', 1, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'its'));
 parser.addParamValue('diffusivity', 'charbonnier', ...
-    @(x) strcmpi(x, validatestring(x, {'charbonnier', 'perona-malik'}, ...
+    @(x) strcmpi(x, validatestring(x, ...
+    {'charbonnier', 'perona-malik', 'custom'}, ...
     mfilename, 'diffusivity')));
+parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
+    @(x) validateattributes(x, {'function_handle'}, {'scalar'}, ...
+    mfilename, 'diffusivityfun'));
 parser.addParamValue('gradmag', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'gradmag'));
 
@@ -113,6 +119,8 @@ switch lower(opts.diffusivity)
         diffuse = @(x) 1.0./sqrt(1.0 + x/opts.lambda^2);
     case 'perona-malik'
         diffuse = @(x) 1.0./(1.0 + x/opts.lambda^2);
+    case 'custom'
+        diffuse = opts.diffusivityfun;
 end
 
 out = in;
