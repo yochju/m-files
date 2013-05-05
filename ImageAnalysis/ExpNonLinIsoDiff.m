@@ -16,6 +16,8 @@ function [out] = ExpNonLinIsoDiff(in, varargin)
 % sigma          : smoothing parameter used for the computation of the gradient
 %                  magnitude (default = 0).
 % tau            : time step size (default = 0.25).
+% timestepmethod : how the time steps are chosen. ('fixed', 'adaptive', 'fed')
+%                  (default 'fixed')
 % its            : number of iterations (default = 1).
 % diffusivity    : which diffusivity should be used ('charbonnier', 
 %                  'perona-malik' or 'custom') (default = charbonnier).
@@ -96,6 +98,10 @@ parser.addParamValue('sigma', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'sigma'));
 parser.addParamValue('tau', 0.20, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'tau'));
+parser.addParamValue('timestepmethod', 'fixed', ...
+    @(x) strcmpi(x, validatestring(x, ...
+    {'fixed', 'adaptive', 'fed'}, ...
+    mfilename, 'timestepmethod')));
 parser.addParamValue('its', 1, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'its'));
 parser.addParamValue('diffusivity', 'charbonnier', ...
@@ -121,6 +127,15 @@ switch lower(opts.diffusivity)
         diffuse = @(x) 1.0./(1.0 + x/opts.lambda^2);
     case 'custom'
         diffuse = opts.diffusivityfun;
+end
+
+switch lower(opts.timestepmethod)
+    case 'fixed'
+        ts = opts.tau;
+    case 'adaptive'
+        ts = -1.0; % Cannot be computed here.
+    case 'fed'
+        ts = -1.0; % Cannot be computed here.
 end
 
 out = in;
@@ -159,6 +174,11 @@ for i = 1:opts.its
     S4 = (1.0/2.0)*(gIplus+g);
     S3 = - S1 - S2 - S4 - S5;
     
+    if strcmpi(opts.timestepmethod,'adaptive')
+        % Multiplying by 1.01 ensures that we are really below the threshold.
+        ts = 1./(1.01*max(abs(S3(:))));
+    end
+    
     % Set up the cell array for the non constant convolution.
     S={ ...
         S0, S1, S0 ; ...
@@ -166,7 +186,7 @@ for i = 1:opts.its
         S0, S5, S0 };
     
     % Perform a explicit diffusion step
-    out = out + opts.tau*NonConstantConvolution(out, S, 'correlation', true);
+    out = out + ts*NonConstantConvolution(out, S, 'correlation', true);
 end
 
 end
