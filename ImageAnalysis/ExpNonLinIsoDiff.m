@@ -23,7 +23,8 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 %                  struct([])
 % its            : number of iterations (default = 1).
 % diffusivity    : which diffusivity should be used ('charbonnier',
-%                  'perona-malik' or 'custom') (default = charbonnier).
+%                  'perona-malik', 'exp-perona-malik', 'weickert' or 'custom')
+%                  (default = charbonnier).
 % diffusivityfun : function handle for custom diffusivty,
 %                  (default = @(x) ones(size(x))
 % gradmag        : options to be used for the computation of the gradient
