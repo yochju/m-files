@@ -52,7 +52,10 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 %
 % Example:
 %
-% -
+% I = rand(256,256)
+% [J, T, its] = ExpNonLinIsoDiff(I,'its',1000,'diffusivity','weickert', ...
+%    'timestepmethod', 'fixed', 'lambda', 3.5, 'tau',0.25, 'sigma', 3.0, ...
+%    'processTime', 320);
 %
 % See also
 
@@ -73,7 +76,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 07.05.2013 12:00
+% Last revision on: 09.05.2013 19:10
 
 %% Notes
 %
