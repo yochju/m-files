@@ -20,7 +20,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 %                  (default 'fixed
 % processTime    : total diffusion time of the process.
 % fedopts        : options used for computing the fed time steps. (default
-%                  struct([])
+%                  struct([]))
 % its            : number of iterations (default = 1).
 % diffusivity    : which diffusivity should be used ('charbonnier',
 %                  'perona-malik', 'exp-perona-malik', 'weickert' or 'custom')
@@ -76,7 +76,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 09.05.2013 19:10
+% Last revision on: 11.05.2013 21:00
 
 %% Notes
 %
