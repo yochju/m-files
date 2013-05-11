@@ -45,9 +45,8 @@ function [out, varargout] = ExpLinDiff(in, varargin)
 % Example:
 %
 % I = rand(256,256)
-% [J, T, its] = ExpLinDiff(I,'its',1000,'diffusivity','weickert', ...
-%    'timestepmethod', 'fixed', 'lambda', 3.5, 'tau',0.25, 'sigma', 3.0, ...
-%    'processTime', 320);
+% [J, T, its] = ExpLinDiff(I, 'its', 1000, 'timestepmethod', 'fixed', ...
+%    'tau',0.25, 'processTime', 320);
 %
 % See also ExpNonLinIsoDiff
 
