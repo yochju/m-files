@@ -85,6 +85,8 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % TODO:
 % - Add Gridsizes.
 % - Add FED.
+% - Allow a vector of timesteps to be passed. In that case, the
+%   number of iterations coincides with the length of the vector.
 
 %% Parse input and output.
 
