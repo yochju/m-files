@@ -94,7 +94,7 @@ catch err
         if exist(template,'file')~=2
             
             excM = ExceptionMessage('NotFound', ...
-                'Template file does not seem to exist.');
+                'message', 'Template file does not seem to exist.');
             MExc = MException(excM.id,excM.message);
             err = addCause(err, MExc);
             rethrow(err);

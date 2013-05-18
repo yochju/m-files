@@ -57,7 +57,7 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 %
 % See also JacobiSolver
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -73,7 +73,7 @@ function [x, varargout] = GaussSeidelSolver(A, b, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 11:45
+% Last revision on: 18.05.2013 19:55
 
 %% Parse input.
 
@@ -178,7 +178,8 @@ if opts.check
     T = -(D+L)\U;
     r = eigs(T,1);
     if abs(r) >= 1
-        ExcM = ExceptionMessage('Input','Method may not converge.');
+        ExcM = ExceptionMessage('Input', ...
+            'message', 'Method may not converge.');
         warning(ExcM.id,ExcM.message);
     end
     flag = -1;
