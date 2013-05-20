@@ -1,8 +1,8 @@
-function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
+function [M varargout] = FiniteDiff1DM(len, knots, order, varargin)
 %% Returns the matrix corresponding to a 1D finite difference scheme.
 %
-% M = FiniteDiff1DM(len,knots,order,varargin)
-% [M cons] = FiniteDiff1DM(len,knots,order,varargin)
+% M = FiniteDiff1DM(len, knots, order, varargin)
+% [M cons] = FiniteDiff1DM(len, knots, order, varargin)
 %
 % Input Parameters (required):
 %
@@ -44,11 +44,11 @@ function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 %
 % Get standard finite difference matrix for second derivative with Dirichlet
 % boundary conditions of signal of lenggth 10.
-% FiniteDiff1DM(10,[-1 0 1],2,'GridSize',1.0,'Boundary','Dirichlet')
+% FiniteDiff1DM(10, [-1 0 1], 2, 'GridSize', 1.0, 'Boundary', 'Dirichlet')
 %
-% See also DiffFilter1DM.
+% See also DiffFilter1D.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -64,7 +64,7 @@ function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 09.12.2012 20:00
+% Last revision: 20.05.2013 10:31
 
 %% Notes
 
@@ -116,7 +116,7 @@ AM = abs(max(knots));
 % We first set up a matrix to a signal which is extended on both sides such that
 % we do not have to worry about boundary conditions here. Those will be included
 % in the next step by considering the respective padding.
-temp = spdiags(repmat(coeffs,len,1),knots+Am,len,len+Am+AM);
+temp = spdiags(repmat(coeffs, len, 1), knots+Am, len, len+Am+AM);
 
 %% Take care of the boundary conditions.
 switch opts.boundary
