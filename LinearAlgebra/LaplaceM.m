@@ -50,13 +50,18 @@ function [M varargout] = LaplaceM(r,c,varargin)
 % is based on separable finite difference schemes (which can be specified
 % through the options). The returned matrix is sparse. Boundary conditions can
 % be specified through optional parameters. Accepted values are 'Neumann' or
-% 'Dirichlet'. Default is the same as for FiniteDiff1DM.
+% 'Dirichlet'. Default is the same as for FiniteDiff1DM. Note that the x-axis
+% on a 2D signal is assumed to be going from left to right and the y-axis from
+% top to bottom.
 %
 % Example
 %
-% LaplaceM(4,5);
+% Compute laplacian of a 3x5 Signal with row-wise numbering and Dirichlet 
+% boundaries along rows (x-axis) and Neumann conditions along columns (y-axis)
 %
-% See also DiffFilter1D, FiniteDiff1DM
+% LaplaceM(3, 5, 'labeling', 'row', 'boundaryR', 'Dirichlet')
+%
+% See also DiffFilter1D, FiniteDiff1DM, GradientM
 
 % Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
