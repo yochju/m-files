@@ -35,17 +35,20 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 % Description:
 %
 % Determines the coefficients of a finite difference scheme based on the given
-% knot points through a taylor expansion. knots can be a row or column vector,
-% but the function always returns the coefficients in a row vector.
+% knot points through a Taylor expansion. knots can be a row or column vector,
+% but the function always returns the coefficients in a row vector. The
+% positions inside knots are labeled as follows: 0 corresponds to the position
+% where the derivative should be evaluated. Negative entries correspond to
+% positions to the left. Positive entries to positions to the right.
 %
 % Example
 %
-% Get standard finite difference scheme for second derivative.
+% Get standard finite difference scheme for second derivative, e.g. ([1 -2 1])
 % DiffFilter1D([-1 0 1], 2, 'GridSize', 1.0)
 %
 % See also FiniteDiff1DM.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -61,7 +64,7 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 08.12.2012 21:30
+% Last revision: 20.05.2013 10:26
 
 %% Notes
 
@@ -119,7 +122,7 @@ limit = opts.tolerance;
 
 x = knots(:);
 n = numel(x);
-taylor = @(x,y) x.^y/factorial(y);
+taylor = @(x,y) x.^y/factorial(y); % Note: In Matlab 0^0 = 1.
 
 % Determine the stencil.
 
@@ -137,7 +140,6 @@ else
         'Stencil leads to a linear system which cannot be solved.');
     error(ExcM.id, ExcM.message);
 end
-
 
 % Determine the consistency order if required.
 
