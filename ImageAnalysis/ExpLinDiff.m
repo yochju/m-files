@@ -14,7 +14,7 @@ function [out, varargout] = ExpLinDiff(in, varargin)
 %
 % tau            : time step size (default = 0.25).
 % timestepmethod : how the time steps are chosen. ('fixed', 'fed')
-%                  (default 'fixed
+%                  (default 'fixed')
 % processTime    : total diffusion time of the process.
 % fedopts        : options used for computing the fed time steps. (default
 %                  struct([]))
@@ -145,7 +145,7 @@ for i = 1:opts.its
     % Compute total diffusion time.
     diffTime = diffTime + ts;
     
-    if (diffTime >= opts.processTime)
+    if abs(diffTime - opts.processTime) < 10e-10
         % Stop iterating when we reach the specified process time.
         break;
     end
