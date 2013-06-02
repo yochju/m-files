@@ -18,10 +18,10 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % tau            : time step size (default = 0.25).
 % timestepmethod : how the time steps are chosen. ('fixed', 'adaptive', 'fed')
 %                  (default 'fixed
-% processTime    : total diffusion time of the process.
+% processTime    : total diffusion time of the process. (default = inf).
 % fedopts        : options used for computing the fed time steps. (default
 %                  struct([]))
-% its            : number of iterations (default = 1).
+% its            : number of iterations (default = inf).
 % diffusivity    : which diffusivity should be used ('charbonnier',
 %                  'perona-malik', 'exp-perona-malik', 'weickert' or 'custom')
 %                  (default = charbonnier).
@@ -131,6 +131,18 @@ parser.addParamValue('gradmag', struct('scheme','central'), ...
 parser.parse( in, varargin{:});
 opts = parser.Results;
 
+% Handle those cases, where it is not clear how far the process should run.
+if isinf(opts.its) && isinf(opts.processTime)
+    % Neither the maximal number of iterations, nor the total process time have
+    % been specified. Impossible to find until what point to diffuse. Aborting.
+    ExcM = ExceptionMessage('Input', 'message', ...
+        'Either the number of iterations or the total time must be specified.');
+    error(ExcM.id, ExcM.message);
+elseif ~isinf(opts.its) && ~isinf(opts.processTime)
+    % Both have been specified. In that case, the processTime wins.
+    opts.its = intmax;
+end
+
 %% Run code.
 
 % Define the diffusivity function to be used.
@@ -161,7 +173,7 @@ out = in;
 diffTime = 0;
 
 % Iterate.
-for i = 1:opts.its
+for i = 1:min(intmax,opts.its)
     % Compute the gradient magnitude of the smoothed image.
     if opts.sigma > 0
         temp = imfilter( ...
