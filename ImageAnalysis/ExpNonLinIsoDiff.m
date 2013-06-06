@@ -76,7 +76,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.05.2013 21:00
+% Last revision on: 06.06.2013 14:10
 
 %% Notes
 %
@@ -145,20 +145,6 @@ end
 
 %% Run code.
 
-% Define the diffusivity function to be used.
-switch lower(opts.diffusivity)
-    case 'charbonnier'
-        diffuse = @(x) 1.0./sqrt(1.0 + x/opts.lambda^2);
-    case 'perona-malik'
-        diffuse = @(x) 1.0./(1.0 + x/opts.lambda^2);
-    case 'exp-perona-malik'
-        diffuse = @(x) exp(-x./(2*opts.lambda^2));
-    case 'weickert'
-        diffuse = @(x) weickertdiffusivity(x,opts.lambda);
-    case 'custom'
-        diffuse = opts.diffusivityfun;
-end
-
 switch lower(opts.timestepmethod)
     case 'fixed'
         ts = opts.tau;
@@ -169,47 +155,21 @@ switch lower(opts.timestepmethod)
 end
 
 out = in;
-[nr nc] = size(out);
 diffTime = 0;
 
 % Iterate.
 for i = 1:min(intmax,opts.its)
-    % Compute the gradient magnitude of the smoothed image.
-    if opts.sigma > 0
-        temp = imfilter( ...
-            out, fspecial('gaussian', [7 7], opts.sigma), 'symmetric', 'same');
-    else
-        temp = out;
-    end
-    g = diffuse(ImageGradMag(temp, ...
-        'xSettings',opts.gradmag, ...
-        'ySettings',opts.gradmag).^2);
     
-    % Compute the diffusivities.
-    gIminus = circshift(g,[0 1]);
-    gIminus(:,1)=gIminus(:,2);
-    
-    gIplus = circshift(g,[0 -1]);
-    gIplus(:,nc)=gIplus(:,nc-1);
-    
-    gJplus = circshift(g,[1 0]);
-    gJplus(1,:)=gJplus(2,:);
-    
-    gJminus = circshift(g,[-1 0]);
-    gJminus(nr,:)=gJminus(nr-1,:);
-    
-    % Set up the stencil entries.
-    S0 =zeros(nr,nc);
-    S1 = (1.0/2.0)*(gJplus+g);
-    S5 = (1.0/2.0)*(gJminus+g);
-    S2 = (1.0/2.0)*(gIminus+g);
-    S4 = (1.0/2.0)*(gIplus+g);
-    S3 = - S1 - S2 - S4 - S5;
+    S = IsoDiffStencil(in, ...
+        'sigma', opts.sigma, ...
+        'diffusivity', opts.diffusivity, ...
+        'diffusivityfun', opts.diffusivityfun, ...
+        'gradmag', opts.gradmag );
     
     % Set time step to maximal value for the current step.
     if strcmpi(opts.timestepmethod,'adaptive')
         % Multiplying by 1.01 ensures that we are really below the threshold.
-        ts = 1./(1.01*max(abs(S3(:))));
+        ts = 1./(1.01*max(abs(S{2,2}(:))));
     end
     
     % If the next timestep would exceed the specified process Time, make it
@@ -217,12 +177,6 @@ for i = 1:min(intmax,opts.its)
     if opts.processTime > 0
         ts = min(ts, opts.processTime-diffTime);
     end
-    
-    % Set up the cell array for the non constant convolution.
-    S={ ...
-        S0, S1, S0 ; ...
-        S2, S3, S4 ; ...
-        S0, S5, S0 };
     
     % Perform a explicit diffusion step.
     out = out + ts*NonConstantConvolution(out, S, 'correlation', true);
@@ -238,14 +192,8 @@ end
 if nargout >= 2
     varargout{1} = diffTime;
 end
+
 if nargout >= 3
-    varargout{2} = i;
-
+    varargout{2} = i; 
 end
-end
-
-function y = weickertdiffusivity(x,lambda)
-    y = zeros(size(x));
-    y(abs(x)<100*eps) = 1;
-    y(abs(x)>=100*eps) = 1 - exp(-3.31488./((x(abs(x)>=100*eps).^4)./lambda^8));
 end
