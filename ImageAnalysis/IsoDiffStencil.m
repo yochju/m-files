@@ -12,6 +12,7 @@ function stencil = IsoDiffStencil(in, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
+% lambda         : diffusivity parameter (default = 0.5).
 % sigma          : smoothing parameter used for the computation of the gradient
 %                  magnitude (default = 0).
 % diffusivity    : which diffusivity should be used ('charbonnier',
@@ -63,13 +64,13 @@ function stencil = IsoDiffStencil(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 06.06.2013 14:10
+% Last revision on: 06.06.2013 15:10
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(1, 9);
+narginchk(1, 11);
 nargoutchk(0, 1);
 
 parser = inputParser;
@@ -81,6 +82,8 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
     {'nonempty','finite','2d'}, mfilename, 'in', 1));
 
+parser.addParamValue('lambda', 0.5, @(x) validateattributes(x, ...
+    {'double'}, {'scalar', 'nonnegative'}, mfilename, 'lambda'));
 parser.addParamValue('sigma', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'sigma'));
 parser.addParamValue('diffusivity', 'custom', ...
