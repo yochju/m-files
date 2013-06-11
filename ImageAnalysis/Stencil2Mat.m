@@ -32,13 +32,53 @@ function M = Stencil2Mat(stencil, varargin)
 %
 % Description:
 %
-% -
+% Generates the matrix corresponding to a (non-constant) convolution with a 3x3
+% Stencil on a 2D signal. The signal is assumed to be indexed columnwise, e.g.
+% the convolution can be done by M*x(:), where M is the output matrix and x the
+% signal.
 %
 % Example:
 %
-% -
+% nr = 3+randi(768,1);
+% nc = 3+randi(768,1);
+%     
+% S22 = rand(nr, nc);
+% 
+% S12 = rand(nr, nc);
+% S21 = rand(nr, nc);
+% S23 = rand(nr, nc);
+% S32 = rand(nr, nc);
+%     
+% S11 = rand(nr, nc);
+% S13 = rand(nr, nc);
+% S31 = rand(nr, nc);
+% S33 = rand(nr, nc);
+%     
+% S = { S11 S12 S13 ; S21 S22 S23 ; S31 S32 S33 };
 %
-% See also
+% % With Dirichlet Boundary Conditions:
+%
+% M = Stencil2Mat(S,'boundary','dirichlet');
+%         
+% x = rand(nr*nc,1);
+% y1 = M*x(:);
+% temp = NonConstantConvolution(reshape(x,nr,nc), S, 'boundary', 'Dirichlet', 'correlation', true);
+% y2 = temp(:);
+%
+% % y1 and y2 are identical.
+%
+% With Neumann Boundary Conditions:
+% 
+% M = Stencil2Mat(S,'boundary','neumann');
+%         
+% x = rand(nr*nc,1);
+% y1 = M*x(:);
+% temp = NonConstantConvolution(reshape(x,nr,nc), S, 'boundary', 'Neumann', 'correlation', true);
+% y2 = temp(:);
+%
+% % y1 and y2 are identical.
+%
+% See also NonConstantConvolution
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -61,9 +101,6 @@ function M = Stencil2Mat(stencil, varargin)
 %% Notes
 
 % TODO: Extend to stencils of arbitrary size.
-% TODO: For very large matrices and random coefficients, there seems to be a
-%       slight numerical inaccuracy occuring (either here, or in
-%       NonConstantConvolution). The source of this inaccuracy is unknown.
 
 %% Parse input and output.
 
