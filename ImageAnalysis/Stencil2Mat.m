@@ -94,45 +94,42 @@ opts = parser.Results;
 % Take care of all the difficulties, such as boundary conditions and overlaps in
 % the stencil. This is much easier than fiddling around with the matrix.
 if strcmpi(opts.boundary,'Neumann')
-    for i = 1:nc
-        % Top neighbour mirroring.
-        stencil{2,2}(1,i) = stencil{2,2}(1,i) + stencil{1,2}(1,i);
-        stencil{1,2}(1,i) = 0;
-        
-        stencil{2,1}(1,i) = stencil{2,1}(1,i) + stencil{1,1}(1,i);
-        stencil{1,1}(1,i) = 0;
-        stencil{2,3}(1,i) = stencil{2,3}(1,i) + stencil{1,3}(1,i);
-        stencil{1,3}(1,i) = 0;
-        
-        % Bottom neighbour mirroring.
-        stencil{2,2}(nr,i) = stencil{2,2}(nr,i) + stencil{3,2}(nr,i);
-        stencil{3,2}(nr,i) = 0;
-        
-        stencil{2,1}(nr,i) = stencil{2,1}(nr,i) + stencil{3,1}(nr,i);
-        stencil{3,1}(nr,i) = 0;
-        stencil{2,3}(nr,i) = stencil{2,3}(nr,i) + stencil{3,3}(nr,i);
-        stencil{3,3}(nr,i) = 0;
-    end
     
-    for i = 1:nr
-        % Left neighbour mirroring.
-        stencil{2,2}(i,1) = stencil{2,2}(i,1) + stencil{2,1}(i,1);
-        stencil{2,1}(i,1) = 0;
-        
-        stencil{1,2}(i,1) = stencil{1,2}(i,1) + stencil{1,1}(i,1);
-        stencil{1,1}(i,1) = 0;
-        stencil{3,2}(i,1) = stencil{3,2}(i,1) + stencil{3,1}(i,1);
-        stencil{3,1}(i,1) = 0;
-        
-        % Right neighbour mirroring.
-        stencil{2,2}(i,nc) = stencil{2,2}(i,nc) + stencil{2,3}(i,nc);
-        stencil{2,3}(i,nc) = 0;
-        
-        stencil{1,2}(i,nc) = stencil{1,2}(i,nc) + stencil{1,3}(i,nc);
-        stencil{1,3}(i,nc) = 0;
-        stencil{3,2}(i,nc) = stencil{3,2}(i,nc) + stencil{3,3}(i,nc);
-        stencil{3,3}(i,nc) = 0;
-    end
+    % Top neighbour mirroring.
+    stencil{2,2}(1,1:nc) = stencil{2,2}(1,1:nc) + stencil{1,2}(1,1:nc);
+    stencil{1,2}(1,1:nc) = 0;
+    
+    stencil{2,1}(1,1:nc) = stencil{2,1}(1,1:nc) + stencil{1,1}(1,1:nc);
+    stencil{1,1}(1,1:nc) = 0;
+    stencil{2,3}(1,1:nc) = stencil{2,3}(1,1:nc) + stencil{1,3}(1,1:nc);
+    stencil{1,3}(1,1:nc) = 0;
+    
+    % Bottom neighbour mirroring.
+    stencil{2,2}(nr,1:nc) = stencil{2,2}(nr,1:nc) + stencil{3,2}(nr,1:nc);
+    stencil{3,2}(nr,1:nc) = 0;
+    
+    stencil{2,1}(nr,1:nc) = stencil{2,1}(nr,1:nc) + stencil{3,1}(nr,1:nc);
+    stencil{3,1}(nr,1:nc) = 0;
+    stencil{2,3}(nr,1:nc) = stencil{2,3}(nr,1:nc) + stencil{3,3}(nr,1:nc);
+    stencil{3,3}(nr,1:nc) = 0;
+    
+    % Left neighbour mirroring.
+    stencil{2,2}(1:nr,1) = stencil{2,2}(1:nr,1) + stencil{2,1}(1:nr,1);
+    stencil{2,1}(1:nr,1) = 0;
+    
+    stencil{1,2}(1:nr,1) = stencil{1,2}(1:nr,1) + stencil{1,1}(1:nr,1);
+    stencil{1,1}(1:nr,1) = 0;
+    stencil{3,2}(1:nr,1) = stencil{3,2}(1:nr,1) + stencil{3,1}(1:nr,1);
+    stencil{3,1}(1:nr,1) = 0;
+    
+    % Right neighbour mirroring.
+    stencil{2,2}(1:nr,nc) = stencil{2,2}(1:nr,nc) + stencil{2,3}(1:nr,nc);
+    stencil{2,3}(1:nr,nc) = 0;
+    
+    stencil{1,2}(1:nr,nc) = stencil{1,2}(1:nr,nc) + stencil{1,3}(1:nr,nc);
+    stencil{1,3}(1:nr,nc) = 0;
+    stencil{3,2}(1:nr,nc) = stencil{3,2}(1:nr,nc) + stencil{3,3}(1:nr,nc);
+    stencil{3,3}(1:nr,nc) = 0;
     
     % Corners.
     stencil{2,2}(1,1) = stencil{2,2}(1,1) + stencil{1,1}(1,1);
@@ -140,24 +137,23 @@ if strcmpi(opts.boundary,'Neumann')
     stencil{2,2}(1,nc) = stencil{2,2}(1,nc) + stencil{1,3}(1,nc);
     stencil{2,2}(nr,nc) = stencil{2,2}(nr,nc) + stencil{3,3}(nr,nc);
 else
-
-    for i = 1:nc 
-        stencil{1,2}(1,i) = 0;
-        stencil{1,1}(1,i) = 0;
-        stencil{1,3}(1,i) = 0;
-        stencil{3,2}(nr,i) = 0;
-        stencil{3,1}(nr,i) = 0;
-        stencil{3,3}(nr,i) = 0;
-    end
     
-    for i = 1:nr
-        stencil{2,1}(i,1) = 0;
-        stencil{1,1}(i,1) = 0;
-        stencil{3,1}(i,1) = 0;
-        stencil{2,3}(i,nc) = 0;
-        stencil{1,3}(i,nc) = 0;
-        stencil{3,3}(i,nc) = 0;
-    end
+    % Dirichlet conditions don't need the mirroring but the setting to 0 is
+    % still necessary.
+    
+    stencil{1,2}(1,1:nc) = 0;
+    stencil{1,1}(1,1:nc) = 0;
+    stencil{1,3}(1,1:nc) = 0;
+    stencil{3,2}(nr,1:nc) = 0;
+    stencil{3,1}(nr,1:nc) = 0;
+    stencil{3,3}(nr,1:nc) = 0;
+    
+    stencil{2,1}(1:nr,1) = 0;
+    stencil{1,1}(1:nr,1) = 0;
+    stencil{3,1}(1:nr,1) = 0;
+    stencil{2,3}(1:nr,nc) = 0;
+    stencil{1,3}(1:nr,nc) = 0;
+    stencil{3,3}(1:nr,nc) = 0;
     
 end
 
