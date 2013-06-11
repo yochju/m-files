@@ -87,6 +87,74 @@ opts = parser.Results;
 
 [nr nc] = size(stencil{1,1});
 
+if strcmpi(opts.boundary,'Neumann')
+    for i = 1:nc
+        % Top neighbour mirroring.
+        stencil{2,2}(1,i) = stencil{2,2}(1,i) + stencil{1,2}(1,i);
+        stencil{1,2}(1,i) = 0;
+        
+        stencil{2,1}(1,i) = stencil{2,1}(1,i) + stencil{1,1}(1,i);
+        stencil{1,1}(1,i) = 0;
+        stencil{2,3}(1,i) = stencil{2,3}(1,i) + stencil{1,3}(1,i);
+        stencil{1,3}(1,i) = 0;
+        
+        % Bottom neighbour mirroring.
+        stencil{2,2}(nr,i) = stencil{2,2}(nr,i) + stencil{3,2}(nr,i);
+        stencil{3,2}(nr,i) = 0;
+        
+        stencil{2,1}(nr,i) = stencil{2,1}(nr,i) + stencil{3,1}(nr,i);
+        stencil{3,1}(nr,i) = 0;
+        stencil{2,3}(nr,i) = stencil{2,3}(nr,i) + stencil{3,3}(nr,i);
+        stencil{3,3}(nr,i) = 0;
+    end
+    
+    for i = 1:nr
+        % Left neighbour mirroring.
+        stencil{2,2}(i,1) = stencil{2,2}(i,1) + stencil{2,1}(i,1);
+        stencil{2,1}(i,1) = 0;
+        
+        stencil{1,2}(i,1) = stencil{1,2}(i,1) + stencil{1,1}(i,1);
+        stencil{1,1}(i,1) = 0;
+        stencil{3,2}(i,1) = stencil{3,2}(i,1) + stencil{3,1}(i,1);
+        stencil{3,1}(i,1) = 0;
+        
+        % Right neighbour mirroring.
+        stencil{2,2}(i,nc) = stencil{2,2}(i,nc) + stencil{2,3}(i,nc);
+        stencil{2,3}(i,nc) = 0;
+        
+        stencil{1,2}(i,nc) = stencil{1,2}(i,nc) + stencil{1,3}(i,nc);
+        stencil{1,3}(i,nc) = 0;
+        stencil{3,2}(i,nc) = stencil{3,2}(i,nc) + stencil{3,3}(i,nc);
+        stencil{3,3}(i,nc) = 0;
+    end
+    
+    % Corners.
+    stencil{2,2}(1,1) = stencil{2,2}(1,1) + stencil{1,1}(1,1);
+    stencil{2,2}(nr,1) = stencil{2,2}(nr,1) + stencil{3,1}(nr,1);
+    stencil{2,2}(1,nc) = stencil{2,2}(1,nc) + stencil{1,3}(1,nc);
+    stencil{2,2}(nr,nc) = stencil{2,2}(nr,nc) + stencil{3,3}(nr,nc);
+else
+
+    for i = 1:nc 
+        stencil{1,2}(1,i) = 0;
+        stencil{1,1}(1,i) = 0;
+        stencil{1,3}(1,i) = 0;
+        stencil{3,2}(nr,i) = 0;
+        stencil{3,1}(nr,i) = 0;
+        stencil{3,3}(nr,i) = 0;
+    end
+    
+    for i = 1:nr
+        stencil{2,1}(i,1) = 0;
+        stencil{1,1}(i,1) = 0;
+        stencil{3,1}(i,1) = 0;
+        stencil{2,3}(i,nc) = 0;
+        stencil{1,3}(i,nc) = 0;
+        stencil{3,3}(i,nc) = 0;
+    end
+    
+end
+
 M = spdiags( ...
     [ ...
     stencil{1,1}(:) stencil{2,1}(:) stencil{3,1}(:) ...
@@ -102,74 +170,83 @@ M = spdiags( ...
 % systems, because Matlab only uses 31 bit for the index. We use the (slightly)
 % faster method for small matrices and switch to the other one when the data
 % gets too large.
-[str, msize] = computer;
-if (nr*nc)^2 < msize
-    %% TODO : The methods still differ somewhere...
-    M(sub2ind(size(M),1:nr:nr*nc,1:nr:nr*nc)) = 0;
-    M(sub2ind(size(M),1:nr:nr*nc,nr+(1:nr:nr*nc))) = 0;
-    M(sub2ind(size(M),1:nr:nr*nc,2*nr+(1:nr:nr*nc))) = 0;
-    
-    M(sub2ind(size(M),nr:nr:nr*nc,nr+1+(1:nr:nr*nc))) = 0;
-    M(sub2ind(size(M),nr:nr:nr*nc,2*nr+1+(1:nr:nr*nc))) = 0;
-    M(sub2ind(size(M),nr:nr:nr*nc,3*nr+1+(1:nr:nr*nc))) = 0;
-else
-    for i = 1:nr:(nr*nc)
-        M(i, i) = 0;             % S11
-        M(i, i+nr) = 0;          % S12
-        M(i, i+2*nr) = 0;        % S13
-        M(i+(nr-1), i+nr) = 0;   % S31
-        M(i+(nr-1), i+2*nr) = 0; % S32
-        M(i+(nr-1), i+3*nr) = 0; % S32
-    end
-end
+% [str, msize] = computer;
+% if (nr*nc)^2 < msize
+%     M(sub2ind(size(M),1:nr:nr*nc,1:nr:nr*nc)) = 0;
+%     M(sub2ind(size(M),1:nr:nr*nc,nr+(1:nr:nr*nc))) = 0;
+%     M(sub2ind(size(M),1:nr:nr*nc,2*nr+(1:nr:nr*nc))) = 0;
+%
+%     M(sub2ind(size(M),nr:nr:nr*nc,nr+1+(1:nr:nr*nc))) = 0;
+%     M(sub2ind(size(M),nr:nr:nr*nc,2*nr+1+(1:nr:nr*nc))) = 0;
+%     M(sub2ind(size(M),nr:nr:nr*nc,3*nr+1+(1:nr:nr*nc))) = 0;
+% else
+%     for i = 1:nr:(nr*nc)
+%         M(i, i) = 0;               % S11
+%         M(i, i+nr) = 0;            % S12
+%         M(i, i+2*nr) = 0;          % S13
+%         M(i+(nr-1), i+nr+1) = 0;   % S31
+%         M(i+(nr-1), i+2*nr+1) = 0; % S32
+%         M(i+(nr-1), i+3*nr+1) = 0; % S32
+%     end
+% end
 
 % Crop the Matrix M to get the relevant part only.
 % Calling sparse here another time makes sense. If the stencil contains 0s, they
 % will vanish from the matrix here.
 M = sparse(M(:,((nr+1)+1):((nr+1)+nr*nc)));
 
-% Neumann boundary conditions need special treatment. Dirichlet boundary
-% conditions are handled automatically by cropping and setting to 0.
-if strcmpi(opts.boundary,'Neumann')
-    % Neumann boundary conditions can be handled by adding the coefficients of
-    % the stencil that hang out of the image back onto the central stencil entry
-    % (e.g. main diagonal).
-    
-    % Direct left neighbour.
-    for i = 1:nr
-        M(i,i) = M(i,i) + stencil{2,1}(i,1);
-    end
-    
-    % Direct right neighbour.
-    for i = 1:nr
-        M((nc-1)*nr+i,(nc-1)*nr+i) = ...
-            M((nc-1)*nr+i,(nc-1)*nr+i) + stencil{2,3}(i,nc);
-    end
-    
-    % Top neighbour.
-    for i = 1:nc
-        M(1+(i-1)*nr,1+(i-1)*nr) = ...
-            M(1++(i-1)*nr,1+(i-1)*nr) + stencil{1,2}(1,i);
-    end
-    
-    % Bottom neighbour.
-    for i = 1:nc
-        M(nr+(i-1)*nr,nr+(i-1)*nr) = ...
-            M(nr+(i-1)*nr,nr+(i-1)*nr) + stencil{3,2}(nr,i);
-    end
-    
-    % Upper left neighbour.
-    M(1,1) = M(1,1) + stencil{1,1}(1,1);
-    
-    % Upper right neighbour.
-    M((nc-1)*nr,(nc-1)*nr) = M((nc-1)*nr,(nc-1)*nr) + stencil{1,3}(1,nc);
-    
-    % Lower left neighbour.
-    M(nr,nr) = M(nr,nr) + stencil{3,1}(nr,1);
-    
-    % Lower right neighbour.
-    M(nr*nc,nr*nc) = M(nr*nc,nr*nc) + stencil{3,3}(nr,nc);
-    
-end
+% % Neumann boundary conditions need special treatment. Dirichlet boundary
+% % conditions are handled automatically by cropping and setting to 0.
+% if strcmpi(opts.boundary,'Neumann')
+%     % Neumann boundary conditions can be handled by adding the coefficients of
+%     % the stencil that hang out of the image back onto the central stencil entry
+%     % (e.g. main diagonal).
+%
+%     % Direct left neighbour.
+%     for i = 1:nr
+%         M(i,i) = M(i,i) + stencil{2,1}(i,1);
+%     end
+%
+%     % Direct right neighbour.
+%     for i = 1:nr
+%         M((nc-1)*nr+i,(nc-1)*nr+i) = ...
+%             M((nc-1)*nr+i,(nc-1)*nr+i) + stencil{2,3}(i,nc);
+%     end
+%
+%     % Top, upper left and upper right neighbour.
+%     for i = 1:nc
+%         M(1+(i-1)*nr,1+(i-1)*nr) = ...
+%             M(1+(i-1)*nr,1+(i-1)*nr) + stencil{1,2}(1,i);
+%
+% %        M(1+(i-1)*nr,1+(i-1)*nr) = ...
+% %            M(1+(i-1)*nr,1+(i-1)*nr) + stencil{1,1}(1,i);
+% %        M(1+(i-1)*nr,1+(i-1)*nr+1) = ...
+% %            M(1+(i-1)*nr,1+(i-1)*nr+1) + stencil{1,3}(1,i);
+%     end
+%
+%     % Bottom, lower left and lower right neighbour.
+%     for i = 1:nc
+%         M(nr+(i-1)*nr,nr+(i-1)*nr) = ...
+%             M(nr+(i-1)*nr,nr+(i-1)*nr) + stencil{3,2}(nr,i);
+%
+% %        M(nr+(i-1)*nr,nr+(i-1)*nr) = ...
+% %            M(nr+(i-1)*nr,nr+(i-1)*nr) + stencil{3,1}(nr,i);
+% %        M(nr+(i-1)*nr,nr+(i-1)*nr) = ...
+% %            M(nr+(i-1)*nr,nr+(i-1)*nr) + stencil{3,3}(nr,i);
+%     end
+%
+%     % Upper left neighbour
+%     M(1,1) = M(1,1) + stencil{1,1}(1,1);
+%
+%     % Upper right neighbour.
+%     M((nc-1)*nr,(nc-1)*nr) = M((nc-1)*nr,(nc-1)*nr) + stencil{1,3}(1,nc);
+%
+%     % Lower left neighbour.
+%     M(nr,nr) = M(nr,nr) + stencil{3,1}(nr,1);
+%
+%     % Lower right neighbour.
+%     M(nr*nc,nr*nc) = M(nr*nc,nr*nc) + stencil{3,3}(nr,nc);
+%
+% end
 
 end
