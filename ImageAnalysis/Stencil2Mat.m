@@ -41,25 +41,25 @@ function M = Stencil2Mat(stencil, varargin)
 %
 % nr = 3+randi(768,1);
 % nc = 3+randi(768,1);
-%     
+%
 % S22 = rand(nr, nc);
-% 
+%
 % S12 = rand(nr, nc);
 % S21 = rand(nr, nc);
 % S23 = rand(nr, nc);
 % S32 = rand(nr, nc);
-%     
+%
 % S11 = rand(nr, nc);
 % S13 = rand(nr, nc);
 % S31 = rand(nr, nc);
 % S33 = rand(nr, nc);
-%     
+%
 % S = { S11 S12 S13 ; S21 S22 S23 ; S31 S32 S33 };
 %
 % % With Dirichlet Boundary Conditions:
 %
 % M = Stencil2Mat(S,'boundary','dirichlet');
-%         
+%
 % x = rand(nr*nc,1);
 % y1 = M*x(:);
 % temp = NonConstantConvolution(reshape(x,nr,nc), S, 'boundary', 'Dirichlet', 'correlation', true);
@@ -68,9 +68,9 @@ function M = Stencil2Mat(stencil, varargin)
 % % y1 and y2 are identical.
 %
 % With Neumann Boundary Conditions:
-% 
+%
 % M = Stencil2Mat(S,'boundary','neumann');
-%         
+%
 % x = rand(nr*nc,1);
 % y1 = M*x(:);
 % temp = NonConstantConvolution(reshape(x,nr,nc), S, 'boundary', 'Neumann', 'correlation', true);
@@ -114,7 +114,7 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 parser.addRequired('stencil', @(x) validateattributes(x, {'cell'}, ...
-    {}, mfilename, 'stencil', 1));
+    {'size', [3,3]}, mfilename, 'stencil', 1));
 
 parser.addParamValue('boundary', 'Neumann', ...
     @(x) strcmpi(x, validatestring(x, {'Dirichlet', 'Neumann'}, mfilename, ...
@@ -123,10 +123,16 @@ parser.addParamValue('boundary', 'Neumann', ...
 parser.parse( stencil, varargin{:});
 opts = parser.Results;
 
-%% Run code.
+[nr nc] = size(stencil{1});
+for i = 2:9
+    if ~isequal([nr nc], size(stencil{i}))
+        ExcM = ExceptionMessage('Input', 'message', ...
+            'All stencil entries must have same size.');
+        error(ExcM.id, ExcM.message);
+    end
+end
 
-% TODO: There is no check whether all the entries have the same size.
-[nr nc] = size(stencil{1,1});
+%% Run code.
 
 % Take care of all the difficulties, such as boundary conditions and overlaps in
 % the stencil. This is much easier than fiddling around with the matrix.
