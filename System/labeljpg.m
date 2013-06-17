@@ -84,6 +84,7 @@ for i = 1:length(listing)
 end
 
 % Get the names of all jpg/JPG files.
+% Todo: Handle .jpeg extensions.
 filesl = dir('*.jpg');
 filesL = dir('*.JPG');
 files = cell(1,length(filesl)+length(filesL));
