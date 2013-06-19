@@ -29,6 +29,9 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 %                  (default = @(x) ones(size(x))
 % gradmag        : options to be used for the computation of the gradient
 %                  magnitude (default = struct('scheme','central')).
+% convolve       : whether to compute the explicit time steps through a non
+%                  constant convolution or through a matrix vector produt. The
+%                  default is to use a convolution. (logical, default = true).
 %
 % Input parameters (optional):
 %
@@ -53,8 +56,8 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % Example:
 %
 % I = rand(256,256)
-% [J, T, its] = ExpNonLinIsoDiff(I,'its',1000,'diffusivity','weickert', ...
-%    'timestepmethod', 'fixed', 'lambda', 3.5, 'tau',0.25, 'sigma', 3.0, ...
+% [J, T, its] = ExpNonLinIsoDiff(I,'its', 1000, 'diffusivity', 'weickert', ...
+%    'timestepmethod', 'fixed', 'lambda', 3.5, 'tau', 0.25, 'sigma', 3.0, ...
 %    'processTime', 320);
 %
 % See also ExpLinDiff
@@ -76,7 +79,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 06.06.2013 14:10
+% Last revision on: 19.06.2013 12:00
 
 %% Notes
 %
@@ -87,10 +90,11 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % - Add FED.
 % - Allow a vector of timesteps to be passed. In that case, the
 %   number of iterations coincides with the length of the vector.
+% - Add handling of different boundary conditions.
 
 %% Parse input and output.
 
-narginchk(1, 21);
+narginchk(1, 23);
 nargoutchk(0, 3);
 
 parser = inputParser;
@@ -127,6 +131,8 @@ parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
     mfilename, 'diffusivityfun'));
 parser.addParamValue('gradmag', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'gradmag'));
+parser.addParamValue('convolve', true, @(x) validateattributes(x, ...
+    {'logical'}, {'scalar'}, mfilename, 'convolve'));
 
 parser.parse( in, varargin{:});
 opts = parser.Results;
@@ -179,7 +185,14 @@ for i = 1:min(intmax,opts.its)
     end
     
     % Perform a explicit diffusion step.
-    out = out + ts*NonConstantConvolution(out, S, 'correlation', true);
+    if opts.convolve
+        out = out + ts*NonConstantConvolution(out, S, 'correlation', true);
+    else
+        A = Stencil2Mat(S, 'boundary', 'Neumann');
+        temp = out(:);
+        temp = temp + ts*(A*temp);
+        out = reshape(temp, size(out));
+    end
     % Compute total diffusion time.
     diffTime = diffTime + ts;
     
