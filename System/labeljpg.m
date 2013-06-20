@@ -85,6 +85,10 @@ end
 
 % Get the names of all jpg/JPG files.
 % Todo: Handle .jpeg extensions.
+% Something like:
+% A = dir();
+% B = regexp({A(:).name}, '.+\.jp(e)?g', 'match', 'ignorecase'); B{:}
+% should do the trick. This would also eliminate the need to do 2 scans.
 filesl = dir('*.jpg');
 filesL = dir('*.JPG');
 files = cell(1,length(filesl)+length(filesL));
