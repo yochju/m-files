@@ -46,23 +46,23 @@ for i = 1:its
     A = spdiags( cbar - V , 0, N, N) - spdiags( W - cbar , 0, N, N)*D;
     B = spdiags( ubar - f + D * ubar , 0, N, N);
     % ! I have 2 gs for the same different data! BUG!
-    g = cbar.*((I+D)*ubar) - V.*f;
+    gk = cbar.*((I+D)*ubar) - V.*f;
     % Set up the linear system to obtain the dual variable.
     LHS = (1/(lambda+theta))*(A*(A')) + (1/(mu+theta))*(B*(B'));
-    RHS = (1/(lambda+theta))*A*(lambda*f+theta*ubar) + (1/(mu+theta))*B*(mu*g+theta*cbar) - g;
+    RHS = (1/(lambda+theta))*A*(lambda*f+theta*ubar) + ...
+        (1/(mu+theta))*B*(mu*g+theta*cbar) - gk;
     % Compute dual variable.
     p = LHS\RHS;
-    disp(norm(LHS*p-RHS,2));
     % Compute primal variables.
     u = (1/(lambda+theta))*(lambda*f+theta*ubar-(A')*p);
     c = (1/(mu+theta))*(mu*g + theta*cbar - (B')*p);
     % Compute energy.
-    eArr(i) = EneR(u,c,f,lambda);
+    eArr(i) = EneR(u,c,f,g,lambda,mu);
 end
 u = Vec2Mat(u,nr,nc,'row');
 c = Vec2Mat(c,nr,nc,'row');
 end
 
-function e = EneR(u,c,f,lambda)
-e = norm(u-f,2)^2 + 0.5*lambda*norm(1-c,2)^2;
+function e = EneR(u,c,f,g,lambda,mu)
+e = 0.5*lambda*norm(u-f,2)^2 + 0.5*mu*norm(g-c,2)^2;
 end
