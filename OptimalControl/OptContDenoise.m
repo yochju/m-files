@@ -36,7 +36,7 @@ g = Mat2Vec(g,'row');
 V = Mat2Vec(V,'row');
 W = Mat2Vec(W,'row');
 % Array for storing energy values.
-eArr = inf(1,its);
+eArr = inf(4,its);
 % Perform iterates.
 for i = 1:its
     % Save old position for Taylor expansion.
@@ -45,7 +45,6 @@ for i = 1:its
     % Perform Taylor expansion
     A = spdiags( cbar - V , 0, N, N) - spdiags( W - cbar , 0, N, N)*D;
     B = spdiags( ubar - f + D * ubar , 0, N, N);
-    % ! I have 2 gs for the same different data! BUG!
     gk = cbar.*((I+D)*ubar) - V.*f;
     % Set up the linear system to obtain the dual variable.
     LHS = (1/(lambda+theta))*(A*(A')) + (1/(mu+theta))*(B*(B'));
@@ -57,7 +56,14 @@ for i = 1:its
     u = (1/(lambda+theta))*(lambda*f+theta*ubar-(A')*p);
     c = (1/(mu+theta))*(mu*g + theta*cbar - (B')*p);
     % Compute energy.
-    eArr(i) = EneR(u,c,f,g,lambda,mu);
+    eArr(1,i) = EneR(u,c,f,g,lambda,mu);
+    eArr(2,i) = ErrConstr(u,c,f,V,W,D);
+    eArr(3,i) = norm(u-f,2)^2;
+    eArr(4,i) = norm(c-g,2)^2;
+    if abs(eArr(2,i))< 1e-10
+        eArr = eArr(:,1:i);
+        break;
+    end
 end
 u = Vec2Mat(u,nr,nc,'row');
 c = Vec2Mat(c,nr,nc,'row');
@@ -65,4 +71,8 @@ end
 
 function e = EneR(u,c,f,g,lambda,mu)
 e = 0.5*lambda*norm(u-f,2)^2 + 0.5*mu*norm(g-c,2)^2;
+end
+
+function e = ErrConstr(u,c,f,V,W,D)
+e = norm((c-V).*(u-f) - (W-c).*(D*u),2);
 end
