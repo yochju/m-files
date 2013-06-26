@@ -92,6 +92,7 @@ W = W(:);
 
 % Array for storing energy values.
 eArr = inf(4,outer*inner);
+counter = 1;
 
 for k = 1:outer
     
@@ -100,6 +101,7 @@ for k = 1:outer
     
     S = IsoDiffStencil(v, ...
         'sigma', opts.sigma, ...
+        'lambda', opts.lambda, ...
         'diffusivity', opts.diffusivity, ...
         'diffusivityfun', opts.diffusivityfun, ...
         'gradmag', opts.gradmag );
@@ -115,7 +117,6 @@ for k = 1:outer
         % Perform Taylor expansion
         A = spdiags( cbar - V , 0, N, N) - spdiags( W - cbar , 0, N, N)*D;
         B = spdiags( ubar - f + D * ubar , 0, N, N);
-        % ! I have 2 gs for the same different data! BUG!
         gk = cbar.*((I+D)*ubar) - V.*f;
         % Set up the linear system to obtain the dual variable.
         LHS = (1/(lam+theta))*(A*(A')) + (1/(m+theta))*(B*(B'));
@@ -128,16 +129,19 @@ for k = 1:outer
         c = (1/(m+theta))*(m*g + theta*cbar - (B')*p);
         
         % Compute energy.
-        eArr(1,(k-1)*inner + j) = EneR(u,c,f,g,lam,m);
-        eArr(2,(k-1)*inner + j) = ErrConstr(u,c,f,V,W,D);
-        eArr(3,(k-1)*inner + j) = norm(u-f,2)^2;
-        eArr(4,(k-1)*inner + j) = norm(c-g,2)^2;
-        if abs(eArr(2,(k-1)*inner + j))< 1e-10
-            eArr = eArr(:,1:((k-1)*inner + j));
+        eArr(1,counter) = EneR(u,c,f,g,lam,m);
+        eArr(2,counter) = ErrConstr(u,c,f,V,W,D);
+        eArr(3,counter) = norm(u-f,2)^2;
+        eArr(4,counter) = norm(c-g,2)^2;
+        if abs(eArr(2,counter)) < 1e-10
+            eArr = eArr(:,1:counter);
+            disp(['Inner Tolerance reached after ' num2str(j) ' iterations']);
             break;
         end
+        counter = counter + 1;
     end
-    if abs(eArr(2,(k-1)*inner + j))< 1e-10
+    if norm(u(:)-ubar(:),2) < 1e-10
+        disp(['Outer Tolerance reached after ' num2str(k) ' iterations']);
         break;
     end
 end
