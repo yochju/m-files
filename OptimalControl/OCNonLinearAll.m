@@ -1,4 +1,4 @@
-function OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
+function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
     N, M, L, theta, xi, varargin)
 %% Solve all (nonlinear) optimal control models.
 
@@ -21,7 +21,7 @@ function OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2013-06-28 17:50
+% Last revision: 2013-07-01 15:30
 
 %% Parse Input.
 
@@ -110,13 +110,13 @@ ckj = ones(size(f));
 v   = ones(size(f));
 
 % Count the number of iterations.
-counter = 0;
+counter = zeros(3, max([N ; M ; L]));
 
 for k = 1:N
     %% Update diffusivity
     
     % Compute stencil.
-    S = IsoDiffStencil(v                      , ...
+    S = IsoDiffStencil(reshape(v, [nr nc])    , ...
         'sigma',          opts.sigma          , ...
         'lambda',         opts.glambda        , ...
         'diffusivity',    opts.diffusivity    , ...
@@ -125,6 +125,9 @@ for k = 1:N
     
     % Transform stencil into Matrix.
     Dk = Stencil2Mat(S, 'boundary', 'Neumann');
+    
+    uk_old = ukj;
+    ck_old = ckj;
     
     for j = 1:M
         %% Update linearised model
@@ -141,6 +144,9 @@ for k = 1:N
         % Akj*ukj + Bkj*ckj - T(ukj, ckj; v)
         gkj = ckj.*((I+Dk)*ukj) - V.*f;
         
+        ukj_old = ukj;
+        ckj_old = ckj;
+        
         if abs(mu)>0
             %% There is a l1 term, we will use PDHG.
             
@@ -148,7 +154,9 @@ for k = 1:N
                 xi, L, lambda, mu, epsilon, theta);
             
             % Increment counter.
-            counter = counter + count;
+            disp(norm(Akj*ukj+Bkj*ckj-gkj,2));
+            disp(count)
+            counter(3,j) = counter(3,j) + count;
         else
             %% There are only quadratic terms, we use the KKT conditions.
             
@@ -156,14 +164,30 @@ for k = 1:N
                 lambda, epsilon, theta);
             
             % Increment counter.
-            counter = counter + 1;
+            counter(3,k) = counter(3,k) + 1;
+        end
+        
+        counter(2,k) = counter(2,k) + 1;
+        
+        if (norm(ukj_old-ukj,2) < 1e-8) || (norm(ckj_old-ckj,2) < 1e-8)
+            disp(['Breaking from inner loop at iteration (' num2str(k) ', ' num2str(j) ')']);
+            break;
         end
         
     end
     
     v = ukj;
+    counter(1,1) = counter(1,1) + 1;
+    
+    if (norm(uk_old-ukj,2) < 1e-8) || (norm(ck_old-ckj,2) < 1e-8)
+        disp(['Breaking from outer loop at iteration (' num2str(k) ')']);
+        break;
+    end
     
 end
+
+ukj = reshape(ukj, [nr nc]);
+ckj = reshape(ckj, [nr nc]);
 
 end
 
@@ -181,7 +205,7 @@ p = LHS\RHS;
 
 % Compute primal variables.
 ukjn = (lambda*f+theta*ukj-(Akj')*p)/(lambda+theta);
-ckjn = (epsilon*g + theta*ckj - (B')*p)/(epsilon+theta);
+ckjn = (epsilon*g + theta*ckj - (Bkj')*p)/(epsilon+theta);
 
 end
 
@@ -220,9 +244,15 @@ for n = 1:L
     yn = yn + zeta*(Akj*ukjnbar + Bkj*ckjnbar - gkj);
     
     % Primal update
-    ukjn = ukjn - tau*((Akj')*yn - lambda*f - theta*ukj);
+    ukjn = (ukjn - tau*((Akj')*yn - lambda*f - theta*ukj)) / ...
+        (1 + tau*(lambda + theta));
+    % ???
+    %     g + OCShrink( ...
+    %         (ckjn - tau*((Bkj')*yn - theta*ckj)-(1+tau*theta)*g) / ...
+    %         (1 + tau*epsilon + tau*theta), ...
+    %         tau*mu/(1 + tau*epsilon + tau*theta));
     ckjn = g + OCShrink( ...
-        (ckjn - tau*((Bkj')*yn+theta*ckj)-(1+tau*theta)*g) / ...
+        (ckjn - tau*((Bkj')*yn + theta*ckj)-(1+tau*theta)*g) / ...
         (1 + tau*epsilon + tau*theta), ...
         tau*mu/(1 + tau*epsilon + tau*theta));
     
@@ -232,6 +262,12 @@ for n = 1:L
     
     % Increment counter.
     counter = counter + 1;
+    
+    if (norm(ukjnold-ukjn,2) < -1) || (norm(ckjnold-ckjn,2) < -1)
+        disp(['PDHG Algorithm has reached fixpoint after ' num2str(n) ' iterations.']);
+        break;
+    end
+    
 end
 
 end
