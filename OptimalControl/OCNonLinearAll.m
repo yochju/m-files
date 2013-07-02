@@ -154,8 +154,6 @@ for k = 1:N
                 xi, L, lambda, mu, epsilon, theta);
             
             % Increment counter.
-            disp(norm(Akj*ukj+Bkj*ckj-gkj,2));
-            disp(count)
             counter(3,j) = counter(3,j) + count;
         else
             %% There are only quadratic terms, we use the KKT conditions.
@@ -171,6 +169,8 @@ for k = 1:N
         
         if (norm(ukj_old-ukj,2) < 1e-8) || (norm(ckj_old-ckj,2) < 1e-8)
             disp(['Breaking from inner loop at iteration (' num2str(k) ', ' num2str(j) ')']);
+            disp(['Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+            disp(['Distance c: ' num2str(norm(ckj_old-ckj,2))]);
             break;
         end
         
@@ -181,6 +181,8 @@ for k = 1:N
     
     if (norm(uk_old-ukj,2) < 1e-8) || (norm(ck_old-ckj,2) < 1e-8)
         disp(['Breaking from outer loop at iteration (' num2str(k) ')']);
+        disp(['Distance u: ' num2str(norm(uk_old-ukj,2))]);
+        disp(['Distance c: ' num2str(norm(ck_old-ckj,2))]);
         break;
     end
     
@@ -207,6 +209,9 @@ p = LHS\RHS;
 ukjn = (lambda*f+theta*ukj-(Akj')*p)/(lambda+theta);
 ckjn = (epsilon*g + theta*ckj - (Bkj')*p)/(epsilon+theta);
 
+disp(['Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
+disp(['Residual in constraint: ' num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+
 end
 
 function [ukjn ckjn counter] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
@@ -216,10 +221,13 @@ function [ukjn ckjn counter] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
 % Internal Parameter to steer the accuracy of the norm esitmate.
 tol = 1e-3;
 
-% Determine step sizes.
+% Determine the norm of the matrix [Akj Bkj] necessary for the upper bound on
+% the step sizes. normest uses power iterations to compute the norm.
 [nrm, ~] = normest([Akj Bkj], tol);
 
-% zeta*tau*||(Akj Bkj)||^2 < 1
+% We need zeta*tau*||(Akj Bkj)||^2 < 1. Setting zeta to 0.25 is an arbitrary
+% choice. Note, that we add some tol value to ensure that we are really below
+% the limit 1.
 zeta     = 0.25;
 tau      = 1/(zeta*nrm^2 + tol);
 
@@ -241,39 +249,58 @@ for n = 1:L
     ckjnold = ckjn;
     
     % Dual update.
+    % Solves:
+    % yn = argmin_y 1/2||y - (yn + zeta*Akj*ukjnbar + zeta*Bkj*ckjnbar||^2 + ...
+    % zeta*<y,gkj>
     yn = yn + zeta*(Akj*ukjnbar + Bkj*ckjnbar - gkj);
     
     % Primal update
+    % Solves:
+    % ukjn = argmin_x 1/2||x-(ukjn-tau*Akj'yn)||^2 + lambda*tau/2||x-f||^2 + ...
+    % tau*theta/2*||x-ukjn||^2
     ukjn = (ukjn - tau*((Akj')*yn - lambda*f - theta*ukj)) / ...
         (1 + tau*(lambda + theta));
-    % ???
-    %     g + OCShrink( ...
-    %         (ckjn - tau*((Bkj')*yn - theta*ckj)-(1+tau*theta)*g) / ...
-    %         (1 + tau*epsilon + tau*theta), ...
-    %         tau*mu/(1 + tau*epsilon + tau*theta));
+    % Solves:
+    % ckjn = argmin_x 1/2||x-(ckjn-tau*Bkj'yn)||^2 + tau*mu||x-g||_1 + ...
+    % tau*epsilon*||x-g||^2 + tau*theta/2*||x-ckjn||^2
     ckjn = g + OCShrink( ...
-        (ckjn - tau*((Bkj')*yn + theta*ckj)-(1+tau*theta)*g) / ...
+        (ckjn - tau*((Bkj')*yn - theta*ckj)-(1+tau*theta)*g) / ...
         (1 + tau*epsilon + tau*theta), ...
         tau*mu/(1 + tau*epsilon + tau*theta));
     
-    % Extrapolation step.
+    % Extrapolation step. Requires 0<=xi<=1.
     ukjnbar = ukjn + xi*(ukjn - ukjnold);
     ckjnbar = ckjn + xi*(ckjn - ckjnold);
     
     % Increment counter.
     counter = counter + 1;
     
-    if (norm(ukjnold-ukjn,2) < -1) || (norm(ckjnold-ckjn,2) < -1)
-        disp(['PDHG Algorithm has reached fixpoint after ' num2str(n) ' iterations.']);
+    % Stop if change in the variables drops below 1e-14, at least 1 iteration
+    % has been done and the constraints are fulfilled up to 1e-14.
+    if (n>1) && ...
+            ((norm(ukjnold-ukjn,2) < 1e-14) || ...
+            (norm(ckjnold-ckjn,2) < 1e-14)) && ...
+            (norm(Akj*ukjn+Bkj*ckjn-gkj,2) < 1e-14)
+        disp(['PDHG Algorithm stopped after ' num2str(n) ' iterations.']);
+        disp(['Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+        disp(['Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+        disp(['Residual in constraint: ' ...
+            num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
         break;
     end
     
 end
 
+disp('PDHG Algorithm used all the iterations. Final results are:')
+disp(['Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+disp(['Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+disp(['Residual in constraint: ' num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+
 end
 
-function y = OCShrink(x,lambda)
+function y = OCShrink(x, lambda)
 %% Soft shrinkage.
 
-y = sign(x).*max(abs(x)-lambda,0);
+% Solves y = argmin_y lambda||y||_1 + 1/2||y-x||^2
+y = sign(x).*max(abs(x)-lambda, 0);
 end
