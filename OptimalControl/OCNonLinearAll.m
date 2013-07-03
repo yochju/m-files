@@ -21,7 +21,7 @@ function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2013-07-01 15:30
+% Last revision: 2013-07-03 11:30
 
 %% Parse Input.
 
@@ -112,6 +112,8 @@ v   = ones(size(f));
 % Count the number of iterations.
 counter = zeros(3, max([N ; M ; L]));
 
+tic(2);
+
 for k = 1:N
     %% Update diffusivity
     
@@ -128,6 +130,8 @@ for k = 1:N
     
     uk_old = ukj;
     ck_old = ckj;
+    
+    tic(1);
     
     for j = 1:M
         %% Update linearised model
@@ -147,7 +151,7 @@ for k = 1:N
         ukj_old = ukj;
         ckj_old = ckj;
         
-        if abs(mu)>0
+        if (abs(mu)>100*eps('double'))
             %% There is a l1 term, we will use PDHG.
             
             [ukj ckj count] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
@@ -167,25 +171,57 @@ for k = 1:N
         
         counter(2,k) = counter(2,k) + 1;
         
-        if (norm(ukj_old-ukj,2) < 1e-8) || (norm(ckj_old-ckj,2) < 1e-8)
-            disp(['Breaking from inner loop at iteration (' num2str(k) ', ' num2str(j) ')']);
-            disp(['Distance u: ' num2str(norm(ukj_old-ukj,2))]);
-            disp(['Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+        if ((norm(ukj_old-ukj,2) < 1e-8) || (norm(ckj_old-ckj,2) < 1e-8))
+            %% Fixpoint has been reached for the linearised problem.
+            
+            time = toc(1);
+            
+            disp(['[OC] Breaking from inner loop at iteration (' ...
+                num2str(k) ', ' num2str(j) ')']);
+            disp(['[OC] Runtime: ' num2str(time)]);
+            disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+            disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
             break;
         end
         
     end
     
+    if (j >= M)
+        %% Iterations for linearised problem exhausted.
+        
+        time = toc(1);
+        disp('[OC] Iterations for linearised problem exhausted.');
+        disp(['[OC] Runtime: ' num2str(time)]);
+        disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+        disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+    end
+    
     v = ukj;
     counter(1,1) = counter(1,1) + 1;
     
-    if (norm(uk_old-ukj,2) < 1e-8) || (norm(ck_old-ckj,2) < 1e-8)
-        disp(['Breaking from outer loop at iteration (' num2str(k) ')']);
-        disp(['Distance u: ' num2str(norm(uk_old-ukj,2))]);
-        disp(['Distance c: ' num2str(norm(ck_old-ckj,2))]);
+    if ((norm(uk_old-ukj,2) < 1e-8) || (norm(ck_old-ckj,2) < 1e-8))
+        %% Reached fixpoint for lagged diffusivity.
+        
+        time = toc(2);
+        
+        disp(['[OC] Breaking from outer loop at iteration (' num2str(k) ')']);
+        disp(['[OC] Runtime: ' num2str(time)]);
+        disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
+        disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
         break;
     end
     
+end
+
+if (k>=N)
+    %% Iterations for lagged diffusivity exhausted.
+    
+    time = toc(2);
+    
+    disp('[OC] Lagged diffusivity updates exhausted.');
+    disp(['[OC] Runtime: ' num2str(time)]);
+    disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
+    disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
 end
 
 ukj = reshape(ukj, [nr nc]);
@@ -197,20 +233,40 @@ function [ukjn ckjn] = OCKKT(f, g, Akj, Bkj, gkj, ukj, ckj, ...
     lambda, epsilon, theta)
 %% Solve linearised model with only quadratic terms using the KKT conditions
 
-% Set up the linear system to obtain the dual variable.
+% Solves
+
+% argmin_{u,c} lambda/2||u-f||^2 + epsilon/2||c-g||^2 + theta/2||u-ukj||^2 + ...
+% theta/2||c-ckj||^2
+% under the condition: Akj*u + Bkj*c = gkj
+
+tic();
+
+%% Set up the linear system to obtain the dual variable.
 LHS = (Akj*(Akj'))/(lambda+theta) + (Bkj*(Bkj'))/(epsilon+theta);
 RHS = (Akj/(lambda+theta))*(lambda*f+theta*ukj) + ...
     (Bkj/(epsilon+theta))*(epsilon*g+theta*ckj) - gkj;
 
-% Compute dual variable.
+%% Compute dual variable.
 p = LHS\RHS;
+if (norm(LHS*p-RHS,2) > 1e-10)
+    %% We couldn't find an accurate value for the lagrangian multipliers.
+    ExcM = ExceptionMessage('Internal', 'message', ...
+        '[KKT] Failed to compute lagrangian multiplier.');
+    warning(ExcM.id, ExcM.message);
+end
 
-% Compute primal variables.
+%% Compute primal variables.
 ukjn = (lambda*f+theta*ukj-(Akj')*p)/(lambda+theta);
 ckjn = (epsilon*g + theta*ckj - (Bkj')*p)/(epsilon+theta);
 
-disp(['Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
-disp(['Residual in constraint: ' num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+%% Debug and log.
+
+time = toc();
+
+disp(['[KKT] Runtime: ' num2str(time)]);
+disp(['[KKT] Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
+disp(['[KKT] Residual in constraint: ' ...
+    num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
 
 end
 
@@ -241,6 +297,8 @@ ckjnbar = ckjn;
 % Count the number of iterations.
 counter = 0;
 
+tic();
+
 for n = 1:L
     %% Iterate
     
@@ -248,18 +306,21 @@ for n = 1:L
     ukjnold = ukjn;
     ckjnold = ckjn;
     
-    % Dual update.
+    %% Dual update.
+    
     % Solves:
     % yn = argmin_y 1/2||y - (yn + zeta*Akj*ukjnbar + zeta*Bkj*ckjnbar||^2 + ...
     % zeta*<y,gkj>
     yn = yn + zeta*(Akj*ukjnbar + Bkj*ckjnbar - gkj);
     
-    % Primal update
+    %% Primal update
+    
     % Solves:
     % ukjn = argmin_x 1/2||x-(ukjn-tau*Akj'yn)||^2 + lambda*tau/2||x-f||^2 + ...
     % tau*theta/2*||x-ukjn||^2
     ukjn = (ukjn - tau*((Akj')*yn - lambda*f - theta*ukj)) / ...
         (1 + tau*(lambda + theta));
+    
     % Solves:
     % ckjn = argmin_x 1/2||x-(ckjn-tau*Bkj'yn)||^2 + tau*mu||x-g||_1 + ...
     % tau*epsilon*||x-g||^2 + tau*theta/2*||x-ckjn||^2
@@ -268,33 +329,46 @@ for n = 1:L
         (1 + tau*epsilon + tau*theta), ...
         tau*mu/(1 + tau*epsilon + tau*theta));
     
-    % Extrapolation step. Requires 0<=xi<=1.
+    %% Extrapolation step. Requires 0<=xi<=1.
+    
     ukjnbar = ukjn + xi*(ukjn - ukjnold);
     ckjnbar = ckjn + xi*(ckjn - ckjnold);
+    
+    %% Debug and log.
     
     % Increment counter.
     counter = counter + 1;
     
-    % Stop if change in the variables drops below 1e-14, at least 1 iteration
-    % has been done and the constraints are fulfilled up to 1e-14.
     if (n>1) && ...
             ((norm(ukjnold-ukjn,2) < 1e-14) || ...
             (norm(ckjnold-ckjn,2) < 1e-14)) && ...
             (norm(Akj*ukjn+Bkj*ckjn-gkj,2) < 1e-14)
-        disp(['PDHG Algorithm stopped after ' num2str(n) ' iterations.']);
-        disp(['Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
-        disp(['Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
-        disp(['Residual in constraint: ' ...
+        %% Stop if we close to a fixpoint that fulfills the constraints.
+        
+        time = toc();
+        
+        disp(['[PDHG] Algorithm stopped after ' num2str(n) ...
+            ' iterations. Results:']);
+        disp(['[PDHG] Runtime: ' num2str(time)]);
+        disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+        disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+        disp(['[PDHG] Residual in constraint: ' ...
             num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
-        break;
+        return;
     end
     
 end
 
-disp('PDHG Algorithm used all the iterations. Final results are:')
-disp(['Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
-disp(['Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
-disp(['Residual in constraint: ' num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+% Couldn't reach desired accuracy with specified number of iterations. Return
+% whatever we have got at this point.
+time = toc();
+
+disp('[PDHG] Algorithm used all the iterations. Final results are:');
+disp(['[PDHG] Runtime: ' num2str(time)]);
+disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+disp(['[PDHG] Residual in constraint: ' ...
+    num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
 
 end
 
