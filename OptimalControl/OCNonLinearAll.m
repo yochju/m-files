@@ -1,9 +1,70 @@
-function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
-    N, M, L, theta, xi, varargin)
+function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 %% Solve all (nonlinear) optimal control models.
+%
+% [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, ...)
+%
+% Input parameters (required):
+%
+% f : Input Signal. (2d double array)
+% lambda : Weight of the data term ||u-f||_2^2. (positive scalar)
+% mu : Weight of the data term ||c-g||_1 (nonnegative scalar)
+% epsilon : Weight of the data term ||c-g||_2^2 (nonnegative scalar)
+%
+% Input parameters (parameters):
+%
+% Parameters are either struct with the following fields and corresponding
+% values or option/value pairs, where the option is specified as a string.
+%
+% g : Model parameter. Indicates which values mask c should take, default =
+%     zeros(size(f))
+% V : Model parameter. Steers weighting of the data term in the PDE, default =
+%     zeros(size(f))
+% W : Model parameter. Steers weighting of the diffusion term in the PDE,
+%     default = zeros(size(f))
+% theta : Weight for the proximal term. Positive scalar, default = 0.1.
+% xi : Extrapolation stepsize for the PDHG Algorithm. Nonnegative scalar between
+%      0 and 1, default = 1.0.
+% N : Number of lagged diffusivity steps, positive integer, default = 1.
+% M : Number of linearisations, positive integer, default = 1000.
+% L : Number of PDHG iterations, positive integer, default = 100000.
+% glambda : parameter for the diffusivity, nonnegative scalar, default = 0.1
+% sigma : smoothing parameter for the diffusivity, nonnegative scalar, default =
+%         0.5
+% diffusivity : diffusivity function to be used, string, default =
+%               'charbonnier'.
+% diffusivityfun : function handle to custom diffusivity, function_handle,
+%                  default = @(x) ones(size(x)).
+% gradmag : options to compute gradient magnitude, struct, default =
+%           struct('scheme', 'central').
+%
+% Input parameters (optional):
+%
+% The number of optional parameters is always at most one. If a function takes
+% an optional parameter, it does not take any other parameters.
+%
+% -
+%
+% Output parameters:
+%
+% ukj : Reconstruction
+% ckj : Mask
+% counter : array containing the number of iterations performed.
+%
+% Output parameters (optional):
+%
+% -
+%
+% Description:
 %
 % Solves: argmin_{u,c} lambda/2||u-f||_2^2 + mu||c-g||_1 + epsilon/2||c-g||_2^2
 %         such that (c-V).*(u-f) - (W-c).*Du = 0
+%
+% where D is a differential operator of the Form
+%
+% div( g( ||nabla u_sigma||^2 ) nabla u )
+%
+% where u_sigma is gaussian convolved version of u with std. sigma. div is the
+% divergence and nabla the gradient operator.
 %
 % g, V, W are model parameters. Reasonable choices are:
 %
@@ -21,6 +82,90 @@ function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
 % mu : penalises non-sparse masks.
 % epsilon : if mu > 0, it acts as a regularising parameter and should be small.
 % if mu = 0, it acts as a counterweight to lambda.
+%
+% Example:
+%
+% [nr nc] = size(f);
+% g       = 0*ones([nr nc]);
+% V       = 0*ones([nr nc]);
+% W       = 1*ones([nr nc]);
+%
+% %% Linear denoising.
+%
+% lambda  = 1.0;
+% mu      = 0.0;
+% epsilon = 0.5;
+% 
+% N = 1;
+% M = 100;
+% L = 100;
+% 
+% theta = 0.1;
+% xi    = 1.0;
+% 
+% [u1 c1 d1] = OCNonLinearAll(f, lambda, mu, epsilon, ...
+%     'g', g, 'V', V, 'W', W, ...
+%     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
+%     'diffusivity', 'custom', 'diffusivityfun', @(x) ones(size(x)));
+% %% Non-Linear Denoising
+% 
+% lambda  = 1.0;
+% mu      = 0.0;
+% epsilon = 1.0;
+% 
+% N = 5;
+% M = 20;
+% L = 2000;
+% 
+% theta = 0.1;
+% xi    = 1.0;
+% 
+% [u2 c2 d2] = OCNonLinearAll(f, lambda, mu, epsilon, ...
+%     'g', g, 'V', V, 'W', W, ...
+%     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
+%     'diffusivity', 'perona-malik', 'glambda', 0.01, 'sigma', 0.1);
+%
+% %% Linear Inpainting
+% 
+% disp('Testing linear inpainting');
+% 
+% lambda  = 1.0;
+% mu      = 0.5;
+% epsilon = 1e-9;
+% 
+% N = 1;
+% M = 20;
+% L = 200;
+% 
+% theta = 0.1;
+% xi    = 1.0;
+% 
+% [u3 c3 d3] = OCNonLinearAll(f, lambda, mu, epsilon, ...
+%     'g', g, 'V', V, 'W', W, ...
+%     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
+%     'diffusivity', 'custom', 'diffusivityfun', @(x) ones(size(x)));
+%
+% %% Nonlinear Inpainting
+% 
+% disp('Testing non-linear inpainting');
+% 
+% lambda  = 1.0;
+% mu      = 0.5;
+% epsilon = 1e-9;
+% 
+% N = 2;
+% M = 20;
+% L = 200;
+% 
+% theta = 0.1;
+% xi    = 1.0;
+% 
+% [u4 c4 d4] = OCNonLinearAll(f, lambda, mu, epsilon, ...
+%     'g', g, 'V', V, 'W', W, ...
+%     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
+%     'diffusivity', 'perona-malik', 'glambda', 0.01, 'sigma', 0.1);
+%
+% See also
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -38,7 +183,7 @@ function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2013-07-03 11:30
+% Last revision: 2013-07-03 17:30
 
 %% Parse Input.
 
@@ -49,40 +194,40 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 parser.addRequired('f', @(x) validateattributes(x, {'numeric'}, ...
-    {'nonempty','finite','2d'}, mfilename, 'f', 1));
-
-parser.addRequired('g', @(x) validateattributes(x, {'numeric'}, ...
-    {'nonempty','finite','2d'}, mfilename, 'g', 2));
-
-parser.addRequired('V', @(x) validateattributes(x, {'numeric'}, ...
-    {'nonempty','finite','2d'}, mfilename, 'V', 3));
-
-parser.addRequired('W', @(x) validateattributes(x, {'numeric'}, ...
-    {'nonempty','finite','2d'}, mfilename, 'W', 4));
+    {'nonempty', 'finite', '2d'}, mfilename, 'f', 1));
 
 parser.addRequired('lambda', @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'nonnegative'}, mfilename, 'lambda', 5));
+    {'scalar', 'positive'}, mfilename, 'lambda', 2));
 
 parser.addRequired('mu', @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'nonnegative'}, mfilename, 'mu', 6));
+    {'scalar', 'nonnegative'}, mfilename, 'mu', 3));
 
 parser.addRequired('epsilon', @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'nonnegative'}, mfilename, 'epsilon', 7));
+    {'scalar', 'nonnegative'}, mfilename, 'epsilon', 4));
 
-parser.addRequired('N', @(x) validateattributes(x, ...
-    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'N', 8));
+parser.addParamValue('g', zeros(size(f)), @(x) validateattributes(x, ...
+    {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'g'));
 
-parser.addRequired('M', @(x) validateattributes(x, ...
-    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'M', 9));
+parser.addParamValue('V', zeros(size(f)), @(x) validateattributes(x, ...
+    {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'V'));
 
-parser.addRequired('L', @(x) validateattributes(x, ...
-    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'L', 10));
+parser.addParamValue('W', ones(size(f)), @(x) validateattributes(x, ...
+    {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'W'));
 
-parser.addRequired('theta', @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'nonnegative'}, mfilename, 'theta', 11));
+parser.addParamValue('theta', 0.1, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'positive'}, mfilename, 'theta'));
 
-parser.addRequired('xi', @(x) validateattributes(x, {'numeric'}, ...
-    {'scalar', 'nonnegative'}, mfilename, 'xi', 12));
+parser.addParamValue('xi', 1.0, @(x) validateattributes(x, {'numeric'}, ...
+    {'scalar', 'nonnegative', '<=', 1}, mfilename, 'xi'));
+
+parser.addParamValue('N', 1, @(x) validateattributes(x, ...
+    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'N'));
+
+parser.addParamValue('M', 1000, @(x) validateattributes(x, ...
+    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'M'));
+
+parser.addParamValue('L', 100000, @(x) validateattributes(x, ...
+    {'double'}, {'scalar', 'integer', 'positive'}, mfilename, 'L'));
 
 parser.addParamValue('glambda', 0.1, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'glambda'));
@@ -102,9 +247,18 @@ parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
 parser.addParamValue('gradmag', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'gradmag'));
 
-parser.parse( f, g, V, W, lambda, mu, epsilon, ...
-    N, M, L, theta, xi, varargin{:});
+parser.parse( f, lambda, mu, epsilon, varargin{:});
 opts = parser.Results;
+
+narginchk(4,30);
+nargoutchk(1,3);
+
+if ((abs(mu) < 100*eps) && (abs(epsilon) < 100*eps))
+    %% We need at least one counterweight to the data fidelity term ||u-f||^2.
+    ExcM = ExceptionMessage('Input', 'message', ...
+        'Either mu or epsilon must be positive!');
+    error(ExcM.id, ExcM.message);
+end
 
 %% Initialise variables and save some important data.
 
@@ -112,11 +266,19 @@ opts = parser.Results;
 Num = nr*nc;
 I = speye(Num, Num);
 
+% Get optional parameters.
+theta = opts.theta;
+xi = opts.xi;
+
+N = opts.N;
+M = opts.M;
+L = opts.L;
+
 % Reshape the data into vectors.
 f = f(:);
-g = g(:);
-V = V(:);
-W = W(:);
+g = opts.g(:);
+V = opts.V(:);
+W = opts.W(:);
 
 % Give the model the full information available at the begginning.
 ukj = f;
@@ -124,12 +286,12 @@ ckj = ones(size(f));
 
 % If N == 1, then we perform Dk corresponds to the Laplacian and we obtain the
 % linear model.
-v   = ones(size(f));
+v = ones(size(f));
 
 % Count the number of iterations.
 counter = zeros(3, max([N ; M ; L]));
 
-tic(2);
+id2 = tic();
 
 for k = 1:N
     %% Update diffusivity
@@ -148,7 +310,7 @@ for k = 1:N
     uk_old = ukj;
     ck_old = ckj;
     
-    tic(1);
+    id1 = tic();
     
     for j = 1:M
         %% Update linearised model
@@ -188,10 +350,10 @@ for k = 1:N
         
         counter(2,k) = counter(2,k) + 1;
         
-        if ((norm(ukj_old-ukj,2) < 1e-8) || (norm(ckj_old-ckj,2) < 1e-8))
+        if ((norm(ukj_old-ukj,2) < 1e-6) || (norm(ckj_old-ckj,2) < 1e-6))
             %% Fixpoint has been reached for the linearised problem.
             
-            time = toc(1);
+            time = toc(id1);
             
             disp(['[OC] Breaking from inner loop at iteration (' ...
                 num2str(k) ', ' num2str(j) ')']);
@@ -206,7 +368,7 @@ for k = 1:N
     if (j >= M)
         %% Iterations for linearised problem exhausted.
         
-        time = toc(1);
+        time = toc(id1);
         disp('[OC] Iterations for linearised problem exhausted.');
         disp(['[OC] Runtime: ' num2str(time)]);
         disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
@@ -216,10 +378,10 @@ for k = 1:N
     v = ukj;
     counter(1,1) = counter(1,1) + 1;
     
-    if ((norm(uk_old-ukj,2) < 1e-8) || (norm(ck_old-ckj,2) < 1e-8))
+    if ((norm(uk_old-ukj,2) < 1e-6) || (norm(ck_old-ckj,2) < 1e-6))
         %% Reached fixpoint for lagged diffusivity.
         
-        time = toc(2);
+        time = toc(id2);
         
         disp(['[OC] Breaking from outer loop at iteration (' num2str(k) ')']);
         disp(['[OC] Runtime: ' num2str(time)]);
@@ -230,15 +392,24 @@ for k = 1:N
     
 end
 
-if (k>=N)
+if ((k>=N) && (N > 1))
     %% Iterations for lagged diffusivity exhausted.
     
-    time = toc(2);
+    time = toc(id2);
     
     disp('[OC] Lagged diffusivity updates exhausted.');
     disp(['[OC] Runtime: ' num2str(time)]);
     disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
     disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
+end
+
+if (N == 1)
+    %% Completed model without linear diffusivity
+    
+    time = toc(id2);
+    
+    disp('[OC] Completed model without lagged diffusivity.');
+    disp(['[OC] Runtime: ' num2str(time)]);
 end
 
 ukj = reshape(ukj, [nr nc]);
@@ -357,9 +528,9 @@ for n = 1:L
     counter = counter + 1;
     
     if (n>1) && ...
-            ((norm(ukjnold-ukjn,2) < 1e-14) || ...
-            (norm(ckjnold-ckjn,2) < 1e-14)) && ...
-            (norm(Akj*ukjn+Bkj*ckjn-gkj,2) < 1e-14)
+            ((norm(ukjnold-ukjn,2) < 1e-6) || ...
+            (norm(ckjnold-ckjn,2) < 1e-6)) && ...
+            (norm(Akj*ukjn+Bkj*ckjn-gkj,2) < 1e-10)
         %% Stop if we close to a fixpoint that fulfills the constraints.
         
         time = toc();
