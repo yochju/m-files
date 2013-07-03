@@ -36,6 +36,7 @@ function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 %                  default = @(x) ones(size(x)).
 % gradmag : options to compute gradient magnitude, struct, default =
 %           struct('scheme', 'central').
+% debug : whether to output debugging messages, boolean, default = false.
 %
 % Input parameters (optional):
 %
@@ -95,71 +96,71 @@ function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 % lambda  = 1.0;
 % mu      = 0.0;
 % epsilon = 0.5;
-% 
+%
 % N = 1;
 % M = 100;
 % L = 100;
-% 
+%
 % theta = 0.1;
 % xi    = 1.0;
-% 
+%
 % [u1 c1 d1] = OCNonLinearAll(f, lambda, mu, epsilon, ...
 %     'g', g, 'V', V, 'W', W, ...
 %     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
 %     'diffusivity', 'custom', 'diffusivityfun', @(x) ones(size(x)));
 % %% Non-Linear Denoising
-% 
+%
 % lambda  = 1.0;
 % mu      = 0.0;
 % epsilon = 1.0;
-% 
+%
 % N = 5;
 % M = 20;
 % L = 2000;
-% 
+%
 % theta = 0.1;
 % xi    = 1.0;
-% 
+%
 % [u2 c2 d2] = OCNonLinearAll(f, lambda, mu, epsilon, ...
 %     'g', g, 'V', V, 'W', W, ...
 %     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
 %     'diffusivity', 'perona-malik', 'glambda', 0.01, 'sigma', 0.1);
 %
 % %% Linear Inpainting
-% 
+%
 % disp('Testing linear inpainting');
-% 
+%
 % lambda  = 1.0;
 % mu      = 0.5;
 % epsilon = 1e-9;
-% 
+%
 % N = 1;
 % M = 20;
 % L = 200;
-% 
+%
 % theta = 0.1;
 % xi    = 1.0;
-% 
+%
 % [u3 c3 d3] = OCNonLinearAll(f, lambda, mu, epsilon, ...
 %     'g', g, 'V', V, 'W', W, ...
 %     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
 %     'diffusivity', 'custom', 'diffusivityfun', @(x) ones(size(x)));
 %
 % %% Nonlinear Inpainting
-% 
+%
 % disp('Testing non-linear inpainting');
-% 
+%
 % lambda  = 1.0;
 % mu      = 0.5;
 % epsilon = 1e-9;
-% 
+%
 % N = 2;
 % M = 20;
 % L = 200;
-% 
+%
 % theta = 0.1;
 % xi    = 1.0;
-% 
+%
 % [u4 c4 d4] = OCNonLinearAll(f, lambda, mu, epsilon, ...
 %     'g', g, 'V', V, 'W', W, ...
 %     'N', N, 'M', M, 'L', L, 'theta', theta, 'xi', xi, ...
@@ -186,6 +187,9 @@ function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 % Last revision: 2013-07-03 17:30
 
 %% Parse Input.
+
+narginchk(4,32);
+nargoutchk(1,3);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -247,11 +251,11 @@ parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
 parser.addParamValue('gradmag', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'gradmag'));
 
+parser.addParamValue('debug', false, @(x) validateattributes(x, ...
+    {'logical'}, {'scalar'}, mfilename, 'debug'));
+
 parser.parse( f, lambda, mu, epsilon, varargin{:});
 opts = parser.Results;
-
-narginchk(4,30);
-nargoutchk(1,3);
 
 if ((abs(mu) < 100*eps) && (abs(epsilon) < 100*eps))
     %% We need at least one counterweight to the data fidelity term ||u-f||^2.
@@ -334,7 +338,7 @@ for k = 1:N
             %% There is a l1 term, we will use PDHG.
             
             [ukj ckj count] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
-                xi, L, lambda, mu, epsilon, theta);
+                xi, L, lambda, mu, epsilon, theta, opts.debug);
             
             % Increment counter.
             counter(3,j) = counter(3,j) + count;
@@ -342,7 +346,7 @@ for k = 1:N
             %% There are only quadratic terms, we use the KKT conditions.
             
             [ukj ckj] = OCKKT(f, g, Akj, Bkj, gkj, ukj, ckj, ...
-                lambda, epsilon, theta);
+                lambda, epsilon, theta, opts.debug);
             
             % Increment counter.
             counter(3,k) = counter(3,k) + 1;
@@ -354,12 +358,13 @@ for k = 1:N
             %% Fixpoint has been reached for the linearised problem.
             
             time = toc(id1);
-            
-            disp(['[OC] Breaking from inner loop at iteration (' ...
-                num2str(k) ', ' num2str(j) ')']);
-            disp(['[OC] Runtime: ' num2str(time)]);
-            disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
-            disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+            if opts.debug
+                disp(['[OC] Breaking from inner loop at iteration (' ...
+                    num2str(k) ', ' num2str(j) ')']);
+                disp(['[OC] Runtime: ' num2str(time)]);
+                disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+                disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+            end
             break;
         end
         
@@ -369,10 +374,12 @@ for k = 1:N
         %% Iterations for linearised problem exhausted.
         
         time = toc(id1);
-        disp('[OC] Iterations for linearised problem exhausted.');
-        disp(['[OC] Runtime: ' num2str(time)]);
-        disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
-        disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+        if opts.debug
+            disp('[OC] Iterations for linearised problem exhausted.');
+            disp(['[OC] Runtime: ' num2str(time)]);
+            disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+            disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+        end
     end
     
     v = ukj;
@@ -383,10 +390,13 @@ for k = 1:N
         
         time = toc(id2);
         
-        disp(['[OC] Breaking from outer loop at iteration (' num2str(k) ')']);
-        disp(['[OC] Runtime: ' num2str(time)]);
-        disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
-        disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
+        if opts.debug
+            disp(['[OC] Breaking from outer loop at iteration (' ...
+                num2str(k) ')']);
+            disp(['[OC] Runtime: ' num2str(time)]);
+            disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
+            disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
+        end
         break;
     end
     
@@ -397,10 +407,12 @@ if ((k>=N) && (N > 1))
     
     time = toc(id2);
     
-    disp('[OC] Lagged diffusivity updates exhausted.');
-    disp(['[OC] Runtime: ' num2str(time)]);
-    disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
-    disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
+    if opts.debug
+        disp('[OC] Lagged diffusivity updates exhausted.');
+        disp(['[OC] Runtime: ' num2str(time)]);
+        disp(['[OC] Distance u: ' num2str(norm(uk_old-ukj,2))]);
+        disp(['[OC] Distance c: ' num2str(norm(ck_old-ckj,2))]);
+    end
 end
 
 if (N == 1)
@@ -408,8 +420,10 @@ if (N == 1)
     
     time = toc(id2);
     
-    disp('[OC] Completed model without lagged diffusivity.');
-    disp(['[OC] Runtime: ' num2str(time)]);
+    if opts.debug
+        disp('[OC] Completed model without lagged diffusivity.');
+        disp(['[OC] Runtime: ' num2str(time)]);
+    end
 end
 
 ukj = reshape(ukj, [nr nc]);
@@ -418,7 +432,7 @@ ckj = reshape(ckj, [nr nc]);
 end
 
 function [ukjn ckjn] = OCKKT(f, g, Akj, Bkj, gkj, ukj, ckj, ...
-    lambda, epsilon, theta)
+    lambda, epsilon, theta, debug)
 %% Solve linearised model with only quadratic terms using the KKT conditions
 
 % Solves
@@ -451,15 +465,17 @@ ckjn = (epsilon*g + theta*ckj - (Bkj')*p)/(epsilon+theta);
 
 time = toc();
 
-disp(['[KKT] Runtime: ' num2str(time)]);
-disp(['[KKT] Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
-disp(['[KKT] Residual in constraint: ' ...
-    num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+if debug
+    disp(['[KKT] Runtime: ' num2str(time)]);
+    disp(['[KKT] Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
+    disp(['[KKT] Residual in constraint: ' ...
+        num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+end
 
 end
 
 function [ukjn ckjn counter] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
-    xi, L, lambda, mu, epsilon, theta)
+    xi, L, lambda, mu, epsilon, theta, debug)
 %% Solve linearised model with l1 term using PDHG algorithm.
 
 % Internal Parameter to steer the accuracy of the norm esitmate.
@@ -535,13 +551,15 @@ for n = 1:L
         
         time = toc();
         
-        disp(['[PDHG] Algorithm stopped after ' num2str(n) ...
-            ' iterations. Results:']);
-        disp(['[PDHG] Runtime: ' num2str(time)]);
-        disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
-        disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
-        disp(['[PDHG] Residual in constraint: ' ...
-            num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+        if debug
+            disp(['[PDHG] Algorithm stopped after ' num2str(n) ...
+                ' iterations. Results:']);
+            disp(['[PDHG] Runtime: ' num2str(time)]);
+            disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+            disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+            disp(['[PDHG] Residual in constraint: ' ...
+                num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+        end
         return;
     end
     
@@ -551,12 +569,14 @@ end
 % whatever we have got at this point.
 time = toc();
 
-disp('[PDHG] Algorithm used all the iterations. Final results are:');
-disp(['[PDHG] Runtime: ' num2str(time)]);
-disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
-disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
-disp(['[PDHG] Residual in constraint: ' ...
-    num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+if debug
+    disp('[PDHG] Algorithm used all the iterations. Final results are:');
+    disp(['[PDHG] Runtime: ' num2str(time)]);
+    disp(['[PDHG] Distance u: ' num2str(norm(ukjnold-ukjn,2))]);
+    disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
+    disp(['[PDHG] Residual in constraint: ' ...
+        num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+end
 
 end
 
