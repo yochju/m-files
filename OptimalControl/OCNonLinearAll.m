@@ -1,9 +1,26 @@
 function [ukj ckj counter] = OCNonLinearAll(f, g, V, W, lambda, mu, epsilon, ...
     N, M, L, theta, xi, varargin)
 %% Solve all (nonlinear) optimal control models.
-
+%
 % Solves: argmin_{u,c} lambda/2||u-f||_2^2 + mu||c-g||_1 + epsilon/2||c-g||_2^2
 %         such that (c-V).*(u-f) - (W-c).*Du = 0
+%
+% g, V, W are model parameters. Reasonable choices are:
+%
+% g = 0, V = 0, W = 1:
+% argmin_{u,c} lambda/2||u-f||_2^2 + mu||c||_1 + epsilon/2||c||_2^2
+% such that c.*(u-f) - (1-c).*Du = 0
+%
+% g = 1, V = 1, W = 0:
+% argmin_{u,c} lambda/2||u-f||_2^2 + mu||c-1||_1 + epsilon/2||c-1||_2^2
+% such that (1-c).*(u-f) - c.*Du = 0
+%
+% lambda, mu, epsilon define the characteristics for the solution.
+%
+% lambda : penalises deviations from input signal.
+% mu : penalises non-sparse masks.
+% epsilon : if mu > 0, it acts as a regularising parameter and should be small.
+% if mu = 0, it acts as a counterweight to lambda.
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
