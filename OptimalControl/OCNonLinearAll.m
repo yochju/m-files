@@ -298,6 +298,9 @@ counter = zeros(3, max([N ; M ; L]));
 id2 = tic();
 
 for k = 1:N
+    if opts.debug
+        disp(['k = ' num2str(k)]);
+    end
     %% Update diffusivity
     
     % Compute stencil.
@@ -317,6 +320,9 @@ for k = 1:N
     id1 = tic();
     
     for j = 1:M
+        if opts.debug
+            disp(['k = ' num2str(k) ' j = ' num2str(j)]);
+        end
         %% Update linearised model
         
         % Perform Taylor expansion
@@ -366,6 +372,13 @@ for k = 1:N
                 disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
             end
             break;
+        else
+            time = toc(id1);
+            if opts.debug
+                disp(['[OC] Runtime: ' num2str(time)]);
+                disp(['[OC] Distance u: ' num2str(norm(ukj_old-ukj,2))]);
+                disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
+            end
         end
         
     end
