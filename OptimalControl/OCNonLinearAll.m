@@ -1,4 +1,4 @@
-function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
+function [ukj ckj counter debug] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 %% Solve all (nonlinear) optimal control models.
 %
 % [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, ...)
@@ -189,7 +189,7 @@ function [ukj ckj counter] = OCNonLinearAll(f, lambda, mu, epsilon, varargin)
 %% Parse Input.
 
 narginchk(4,32);
-nargoutchk(1,3);
+nargoutchk(1,4);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -294,6 +294,10 @@ v = ones(size(f));
 
 % Count the number of iterations.
 counter = zeros(3, max([N ; M ; L]));
+debug = inf(13,N*M*L);
+debugc1 = 1;
+debugc2 = 1;
+debugc3 = 1;
 
 id2 = tic();
 
@@ -346,6 +350,18 @@ for k = 1:N
             [ukj ckj count] = OCPDHG(f, g, Akj, Bkj, gkj, ukj, ckj, ...
                 xi, L, lambda, mu, epsilon, theta, opts.debug);
             
+            disp(['[DEBUG] Residual ' ...
+                num2str(OCErrorLin(ukj, ckj, Akj, Bkj, gkj))]);
+            disp(['[DEBUG] Error nonlagged' ...
+                num2str(OCErrorNLin(ukj, ckj, f, v, nr, nc, opts))]);
+            disp(['[DEBUG] Error nonlinear' ...
+                num2str(OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts))]);
+            disp(['[DEBUG] Energy orig' ...
+                num2str(OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts))]);
+            disp(['[DEBUG] Energy proxima' ...
+                num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
+                lambda, mu, epsilon, opts))]);
+                        
             % Increment counter.
             counter(3,j) = counter(3,j) + count;
         else
@@ -354,9 +370,27 @@ for k = 1:N
             [ukj ckj] = OCKKT(f, g, Akj, Bkj, gkj, ukj, ckj, ...
                 lambda, epsilon, theta, opts.debug);
             
+            disp(['[DEBUG] Residual ' ...
+                num2str(OCErrorLin(ukj, ckj, Akj, Bkj, gkj))]);
+            disp(['[DEBUG] Error nonlagged' ...
+                num2str(OCErrorNLin(ukj, ckj, f, v, nr, nc, opts))]);
+            disp(['[DEBUG] Error nonlinear' ...
+                num2str(OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts))]);
+            disp(['[DEBUG] Energy orig' ...
+                num2str(OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts))]);
+            disp(['[DEBUG] Energy proxima' ...
+                num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
+                lambda, mu, epsilon, opts))]);
+            
             % Increment counter.
             counter(3,k) = counter(3,k) + 1;
         end
+        
+        debug(1,debugc1) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
+        debug(2,debugc1) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
+        debug(3,debugc1) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
+        debug(4,debugc1) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
+        debugc1 = debugc1 + 1;
         
         counter(2,k) = counter(2,k) + 1;
         
@@ -383,6 +417,12 @@ for k = 1:N
         
     end
     
+    debug(6,debugc2) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
+    debug(7,debugc2) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
+    debug(8,debugc2) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
+    debug(9,debugc2) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
+    debugc2 = debugc2 + 1;
+    
     if (j >= M)
         %% Iterations for linearised problem exhausted.
         
@@ -394,6 +434,22 @@ for k = 1:N
             disp(['[OC] Distance c: ' num2str(norm(ckj_old-ckj,2))]);
         end
     end
+    
+    disp(['[DEBUG] Error nonlagged ' ...
+        num2str(OCErrorNLin(ukj, ckj, f, v, nr, nc, opts))]);
+    disp(['[DEBUG] Error nonlinear ' ...
+        num2str(OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts))]);
+    disp(['[DEBUG] Energy orig ' ...
+        num2str(OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts))]);
+    disp(['[DEBUG] Energy proxima ' ...
+        num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
+        lambda, mu, epsilon, opts))]);
+    
+    debug(10,debugc3) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
+    debug(11,debugc3) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
+    debug(12,debugc3) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
+    debug(13,debugc3) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
+    debugc3 = debugc3 + 1;
     
     v = ukj;
     counter(1,1) = counter(1,1) + 1;
@@ -412,7 +468,7 @@ for k = 1:N
         end
         break;
     end
-    
+        
 end
 
 if ((k>=N) && (N > 1))
@@ -483,6 +539,8 @@ if debug
     disp(['[KKT] Residual in dual system: ' num2str(norm(LHS*p-RHS,2))]);
     disp(['[KKT] Residual in constraint: ' ...
         num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+    disp(['[DEBUG KKT] Residual ' ...
+        num2str(OCErrorLin(ukjn, ckjn, Akj, Bkj, gkj))]);
 end
 
 end
@@ -572,6 +630,8 @@ for n = 1:L
             disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
             disp(['[PDHG] Residual in constraint: ' ...
                 num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+            disp(['[DEBUG PDHG] Residual ' ...
+                num2str(OCErrorLin(ukjn, ckjn, Akj, Bkj, gkj))]);
         end
         return;
     end
@@ -589,6 +649,8 @@ if debug
     disp(['[PDHG] Distance c: ' num2str(norm(ckjnold-ckjn,2))]);
     disp(['[PDHG] Residual in constraint: ' ...
         num2str(norm(Akj*ukjn+Bkj*ckjn-gkj,2),2)]);
+    disp(['[DEBUG PDHG] Residual ' ...
+        num2str(OCErrorLin(ukjn, ckjn, Akj, Bkj, gkj))]);
 end
 
 end
@@ -598,4 +660,56 @@ function y = OCShrink(x, lambda)
 
 % Solves y = argmin_y lambda||y||_1 + 1/2||y-x||^2
 y = sign(x).*max(abs(x)-lambda, 0);
+end
+
+function r = OCResidualNLin(u, c, f, v, nr, nc, opts)
+%% Compute residual of the non-linear PDE.
+
+% Compute stencil.
+S = IsoDiffStencil(reshape(v, [nr nc])    , ...
+    'sigma',          opts.sigma          , ...
+    'lambda',         opts.glambda        , ...
+    'diffusivity',    opts.diffusivity    , ...
+    'diffusivityfun', opts.diffusivityfun , ...
+    'gradmag',        opts.gradmag        );
+
+% Transform stencil into Matrix.
+D = Stencil2Mat(S, 'boundary', 'Neumann');
+
+r = (c - opts.V(:)).*(u-f) - (opts.W(:) - c).*(D*u);
+
+end
+
+function e = OCErrorNLin(u, c, f, v, nr, nc, opts)
+%% Compute the error of the non-linear PDE.
+
+r = OCResidualNLin(u, c, f, v, nr, nc, opts);
+e = norm(r)^2;
+end
+
+function r = OCResidualLin(u, c, A, B, g)
+%% Compute residual of the linearised PDE.
+
+r = A*u + B*c - g;
+end
+
+function e = OCErrorLin(u, c, A, B, g)
+%% Compute the error of the linearised PDE.
+
+r = OCResidualLin(u, c, A, B, g);
+e = norm(r,2)^2;
+end
+
+function e = OCEnergy(u, c, f, lambda, mu, epsilon, ops)
+%% Compute the energy without proximal term.
+
+e = 0.5*lambda*norm(u(:)-f(:),2)^2 + mu*norm(c(:)-ops.V(:),1) + ...
+    epsilon*norm(c(:)-ops.V(:),2)^2;
+end
+
+function e = OCEnergyProx(u, c, f, uk, ck, lambda, mu, epsilon, ops)
+%% Compute the energy with proximal term.
+
+e = OCEnergy(u, c, f, lambda, mu, epsilon, ops) ...
+    + 0.5*ops.theta*norm(u-uk,2)^2 + 0.5*ops.theta*norm(c-ck,2)^2;
 end
