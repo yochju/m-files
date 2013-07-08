@@ -184,7 +184,7 @@ function [ukj ckj counter debug] = OCNonLinearAll(f, lambda, mu, epsilon, vararg
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2013-07-03 17:30
+% Last revision: 2013-07-08 17:00
 
 %% Parse Input.
 
@@ -294,10 +294,7 @@ v = ones(size(f));
 
 % Count the number of iterations.
 counter = zeros(3, max([N ; M ; L]));
-debug = inf(13,N*M*L);
-debugc1 = 1;
-debugc2 = 1;
-debugc3 = 1;
+debug = inf(8, N*M);
 
 id2 = tic();
 
@@ -352,13 +349,13 @@ for k = 1:N
             
             disp(['[DEBUG] Residual ' ...
                 num2str(OCErrorLin(ukj, ckj, Akj, Bkj, gkj))]);
-            disp(['[DEBUG] Error nonlagged' ...
+            disp(['[DEBUG] Error nonlagged ' ...
                 num2str(OCErrorNLin(ukj, ckj, f, v, nr, nc, opts))]);
-            disp(['[DEBUG] Error nonlinear' ...
+            disp(['[DEBUG] Error nonlinear ' ...
                 num2str(OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts))]);
-            disp(['[DEBUG] Energy orig' ...
+            disp(['[DEBUG] Energy orig ' ...
                 num2str(OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts))]);
-            disp(['[DEBUG] Energy proxima' ...
+            disp(['[DEBUG] Energy proxima ' ...
                 num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
                 lambda, mu, epsilon, opts))]);
                         
@@ -372,13 +369,13 @@ for k = 1:N
             
             disp(['[DEBUG] Residual ' ...
                 num2str(OCErrorLin(ukj, ckj, Akj, Bkj, gkj))]);
-            disp(['[DEBUG] Error nonlagged' ...
+            disp(['[DEBUG] Error nonlagged ' ...
                 num2str(OCErrorNLin(ukj, ckj, f, v, nr, nc, opts))]);
-            disp(['[DEBUG] Error nonlinear' ...
+            disp(['[DEBUG] Error nonlinear ' ...
                 num2str(OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts))]);
-            disp(['[DEBUG] Energy orig' ...
+            disp(['[DEBUG] Energy orig ' ...
                 num2str(OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts))]);
-            disp(['[DEBUG] Energy proxima' ...
+            disp(['[DEBUG] Energy proxima ' ...
                 num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
                 lambda, mu, epsilon, opts))]);
             
@@ -386,11 +383,10 @@ for k = 1:N
             counter(3,k) = counter(3,k) + 1;
         end
         
-        debug(1,debugc1) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
-        debug(2,debugc1) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
-        debug(3,debugc1) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
-        debug(4,debugc1) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
-        debugc1 = debugc1 + 1;
+        debug(1,(k-1)*N+j) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
+        debug(2,(k-1)*N+j) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
+        debug(3,(k-1)*N+j) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
+        debug(4,(k-1)*N+j) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
         
         counter(2,k) = counter(2,k) + 1;
         
@@ -417,11 +413,11 @@ for k = 1:N
         
     end
     
-    debug(6,debugc2) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
-    debug(7,debugc2) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
-    debug(8,debugc2) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
-    debug(9,debugc2) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
-    debugc2 = debugc2 + 1;
+    debug(5,k) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
+    debug(6,k) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
+    debug(7,k) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
+    debug(8,k) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
+
     
     if (j >= M)
         %% Iterations for linearised problem exhausted.
@@ -444,12 +440,6 @@ for k = 1:N
     disp(['[DEBUG] Energy proxima ' ...
         num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
         lambda, mu, epsilon, opts))]);
-    
-    debug(10,debugc3) = OCErrorLin(ukj, ckj, Akj, Bkj, gkj);
-    debug(11,debugc3) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
-    debug(12,debugc3) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
-    debug(13,debugc3) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
-    debugc3 = debugc3 + 1;
     
     v = ukj;
     counter(1,1) = counter(1,1) + 1;
