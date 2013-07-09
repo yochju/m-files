@@ -79,6 +79,32 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 
 %% Parse input and output.
 
+narginchk(5,5);
+nargoutchk(0,1);
+
+parser = inputParser;
+parser.FunctionName = mfilename;
+parser.CaseSensitive = false;
+parser.KeepUnmatched = true;
+parser.StructExpand = true;
+
+parser.addRequired('a', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonempty','finite','2d'}, mfilename, 'a', 1));
+
+parser.addRequired('b', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonempty','finite','2d', 'size', size(a)}, mfilename, 'b', 1));
+
+parser.addRequired('c', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonempty','finite','2d', 'size', size(a)}, mfilename, 'c', 1));
+
+parser.addRequired('alpha', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonempty','finite','2d', 'size', size(a)}, mfilename, 'alpha', 1));
+
+parser.addRequired('beta', @(x) validateattributes(x, {'numeric'}, ...
+    {'nonempty','finite','2d', 'size', size(a)}, mfilename, 'beta', 1));
+
+parser.parse( a, b, c, alpha, beta);
+
 %% Run code.
 
 out = cell(3,3);
