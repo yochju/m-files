@@ -177,6 +177,11 @@ for i = 1:min(intmax,opts.its)
     if strcmpi(opts.timestepmethod, 'adaptive')
         % Multiplying by 1.01 ensures that we are really below the threshold.
         ts = 1./(1.01*max(abs(S{2,2}(:))));
+        if ts < 1e-3
+            ExcM = ExceptionMessage('Internal', 'message', ...
+                'Time stepsize is very small.');
+            warning(ExcM.id, ExcM.message);
+        end
     end
     
     % If the next timestep would exceed the specified process Time, make it
@@ -208,6 +213,6 @@ if nargout >= 2
 end
 
 if nargout >= 3
-    varargout{2} = i; 
+    varargout{2} = i;
 end
 end
