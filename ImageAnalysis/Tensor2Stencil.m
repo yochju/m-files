@@ -63,17 +63,22 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 2013-07-08 17:30
+% Last revision on: 2013-07-09 14:00
 
 %% Notes
 
-% Implements the discretisation from:
+% Implementation is based on the following paper:
 %
-% J. Weickert, K. Hagenburg, M. Breuß, O. Vogel:
-% Linear osmosis models for visual computing.
-% In A. Heyden, F. Kahl, C. Olsson, M. Oskarsson, X.-C. Tai (Eds.):
-% Energy Minimization Methods in Computer Vision and Pattern Recognition.
-% Lecture Notes in Computer Science, Vol. 8081, 26-39, Springer, Berlin, 2013
+% L^2-Stable Nonstandard finite Differences for Anisotropic Diffusion
+% Joachim Weickert, Martin Welk, Marco Wickert
+% In A. Kuijper, K. Bredies, T. Pock, H. Bischof (Eds.): Scale Space and
+% Variational Methods in Computer Vision: Lecture Notes in Computer Science,
+% Vol. 7893, pp. 380-391, Springer, Berlin, 2013
+% DOI: 10.1007/978-3-642-38267-3_32
+% Print ISBN: 978-3-642-38266-6
+% Online ISBN: 978-3-642-38267-3
+% Also available at:
+% http://www.mia.uni-saarland.de/Publications/weickert-ssvm13.pdf
 
 % TODO: b = 0 should yield the same results as for IsoDiffStencil. Check this.
 
