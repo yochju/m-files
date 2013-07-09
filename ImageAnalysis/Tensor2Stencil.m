@@ -81,6 +81,7 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 % http://www.mia.uni-saarland.de/Publications/weickert-ssvm13.pdf
 
 % TODO: b = 0 should yield the same results as for IsoDiffStencil. Check this.
+% TODO: Respect grid size.
 
 %% Parse input and output.
 
@@ -114,33 +115,33 @@ parser.parse( a, b, c, alpha, beta);
 
 out = cell(3,3);
 
-out{1,1} = InterPixelValue((beta-1).*b + alpha.*(a+c),-1, 1);
+out{1,1} = 0.5*InterPixelValue((beta-1).*b + alpha.*(a+c),-1, 1);
 
-out{1,2} = InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1, 1) + ...
-    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1, 1);
+out{1,2} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1, 1) + ...
+    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1, 1));
 
-out{1,3} = InterPixelValue((beta+1)*b + alpha*(a+c), 1, 1);
+out{1,3} = 0.5*InterPixelValue((beta+1)*b + alpha*(a+c), 1, 1);
 
 
-out{2,1} = InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1, 1) + ...
-    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1,-1);
+out{2,1} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1, 1) + ...
+    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1,-1));
 
-out{2,2} = - ( ...
+out{2,2} = - 0.5*( ...
     InterPixelValue(((1-alpha).*(a+c) - (beta-1).*b), 1, 1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta+1).*b), 1,-1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta+1).*b),-1, 1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta-1).*b),-1,-1) );
 
-out{2,3} = InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1, 1) + ...
-    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1,-1);
+out{2,3} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1, 1) + ...
+    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1,-1));
 
 
-out{3,1} = InterPixelValue((beta+1).*b + alpha.*(a+c),-1,-1);
+out{3,1} = 0.5*InterPixelValue((beta+1).*b + alpha.*(a+c),-1,-1);
 
-out{3,2} = InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1,-1) + ...
-    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1,-1);
+out{3,2} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b), 1,-1) + ...
+    InterPixelValue(((1-alpha).*c - alpha.*a + beta.*b),-1,-1));
 
-out{3,3} = InterPixelValue((beta-1).*b + alpha.*(a+c), 1,-1);
+out{3,3} = 0.5*InterPixelValue((beta-1).*b + alpha.*(a+c), 1,-1);
 
 end
 
