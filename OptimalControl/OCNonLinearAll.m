@@ -358,7 +358,7 @@ for k = 1:N
             disp(['[DEBUG] Energy proxima ' ...
                 num2str(OCEnergyProx(ukj, ckj, f, ukj_old, ckj_old, ...
                 lambda, mu, epsilon, opts))]);
-                        
+            
             % Increment counter.
             counter(3,j) = counter(3,j) + count;
         else
@@ -417,7 +417,7 @@ for k = 1:N
     debug(6,k) = OCErrorNLin(ukj, ckj, f, v, nr, nc, opts);
     debug(7,k) = OCErrorNLin(ukj, ckj, f, ukj, nr, nc, opts);
     debug(8,k) = OCEnergy(ukj, ckj, f, lambda, mu, epsilon, opts);
-
+    
     
     if (j >= M)
         %% Iterations for linearised problem exhausted.
@@ -458,7 +458,7 @@ for k = 1:N
         end
         break;
     end
-        
+    
 end
 
 if ((k>=N) && (N > 1))
@@ -702,4 +702,37 @@ function e = OCEnergyProx(u, c, f, uk, ck, lambda, mu, epsilon, ops)
 
 e = OCEnergy(u, c, f, lambda, mu, epsilon, ops) ...
     + 0.5*ops.theta*norm(u-uk,2)^2 + 0.5*ops.theta*norm(c-ck,2)^2;
+end
+
+function out = OCParabolicSolver(u, c, f, tau, its, nr, nc, opts)
+%% Solve the inpainting PDE by an explicit parabolic approach.
+
+out = u;
+
+for i = 1:its
+    %% Iterate until its is reached or fixpoint has been attained.
+    
+    % Save old iterate.
+    old = out;
+    
+    % Compute stencil.
+    S = IsoDiffStencil(reshape(out, [nr nc])  , ...
+        'sigma',          opts.sigma          , ...
+        'lambda',         opts.glambda        , ...
+        'diffusivity',    opts.diffusivity    , ...
+        'diffusivityfun', opts.diffusivityfun , ...
+        'gradmag',        opts.gradmag        );
+    
+    % Transform stencil into Matrix.
+    D = Stencil2Mat(S, 'boundary', 'Neumann');
+    
+    % Compute new iterate.
+    out = out + tau*((c - opts.V(:)).*(out-f) - (opts.W(:) - c).*(D*out));
+    
+    % Compare to old iterate to see if a fixpoint has been reached.
+    if norm(old-out,2) < 1e-6
+        break;
+    end
+end
+
 end
