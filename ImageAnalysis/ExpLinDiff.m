@@ -48,7 +48,7 @@ function [out, varargout] = ExpLinDiff(in, varargin)
 % [J, T, its] = ExpLinDiff(I, 'its', 1000, 'timestepmethod', 'fixed', ...
 %    'tau',0.25, 'processTime', 320);
 %
-% See also ExpNonLinIsoDiff
+% See also ExpNonLinIsoDiff, ExpNonLinAniDiff
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -66,7 +66,7 @@ function [out, varargout] = ExpLinDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.05.2013 21:00
+% Last revision on: 09.07.2013 15:50
 
 %% Notes
 %

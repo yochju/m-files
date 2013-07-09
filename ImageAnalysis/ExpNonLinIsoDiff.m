@@ -60,7 +60,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 %    'timestepmethod', 'fixed', 'lambda', 3.5, 'tau', 0.25, 'sigma', 3.0, ...
 %    'processTime', 320);
 %
-% See also ExpLinDiff
+% See also ExpLinDiff, ExpNonLinAniDiff
 
 % Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>, Martin Schmidt
 % <schmidt@mia.uni-saarland.de>
@@ -79,7 +79,7 @@ function [out, varargout] = ExpNonLinIsoDiff(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 19.06.2013 17:00
+% Last revision on: 09.07.2013 15.51
 
 %% Notes
 %
