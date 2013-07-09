@@ -1,4 +1,4 @@
-function [ out ] = ImageDiffusionTensor(in, varargin)
+function [ out ] = DiffusionTensor(in, varargin)
 %% Computes the diffusion tensor J(K_sigma((nabla u).(nabla u)'));
 %
 % [ out ] = ImageDiffusionTensor(in, ...)
