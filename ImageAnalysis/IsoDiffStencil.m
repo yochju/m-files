@@ -19,7 +19,10 @@ function stencil = IsoDiffStencil(in, varargin)
 %                  'perona-malik', 'exp-perona-malik', 'weickert' or 'custom')
 %                  (default = charbonnier).
 % diffusivityfun : function handle for custom diffusivty,
-%                  (default = @(x) ones(size(x))
+%                  (default = @(x) ones(size(x)). Note that the function must be
+%                  scalar valued function which is pointwise applicable on
+%                  arrays of arbitrary size. Further, it should return 1.0 for
+%                  0.0 as input. A warning is emitted otherwise.
 % gradmag        : options to be used for the computation of the gradient
 %                  magnitude (default = struct('scheme','central')).
 %
@@ -110,9 +113,14 @@ switch lower(opts.diffusivity)
     case 'exp-perona-malik'
         diffuse = @(x) exp(-x./(2*opts.lambda^2));
     case 'weickert'
-        diffuse = @(x) weickertdiffusivity(x,opts.lambda);
+        diffuse = @(x) weickertdiffusivity(x, opts.lambda);
     case 'custom'
         diffuse = opts.diffusivityfun;
+        if abs(diffuse(0)-1.0) >= 1e-10
+            ExcM = ExceptionMessage('Input', 'message', ...
+                'Diffusivity should return 1 for input 0.');
+            warning(ExcM.id, ExcM.message);
+        end
 end
 
 if opts.sigma > 0
