@@ -153,7 +153,7 @@ function out = InterPixelValue(in, xshift, yshift)
 % Perform the interpolation step. The variables xshift and yshift should contain
 % the values +1 or -1 depending on whether the next or the previous pixel should
 % be considered. Note that this fills entries outside of the domain with NaN.
-out = interp2(X,Y,Z,X+xshift/2,X+yshift/2,'linear');
+out = interp2(X, Y, in, X+xshift/2, Y+yshift/2, 'linear');
 
 % Use Neumann bounday conditions to get the missing values. Note that mirroring
 % implies that linear interpolation doesn't change the value.

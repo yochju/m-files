@@ -90,10 +90,12 @@ function [out, varargout] = ExpNonLinAniDiff(in, varargin)
 % - Allow a vector of timesteps to be passed. In that case, the
 %   number of iterations coincides with the length of the vector.
 % - Add handling of different boundary conditions.
+% - Model specific settings for alpha and beta are cumbersome to realise at the
+%   moment.
 
 %% Parse input and output.
 
-narginchk(1, 23);
+narginchk(1, 27);
 nargoutchk(0, 3);
 
 parser = inputParser;
@@ -128,6 +130,10 @@ parser.addParamValue('diffusivity', 'charbonnier', ...
 parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
     @(x) validateattributes(x, {'function_handle'}, {'scalar'}, ...
     mfilename, 'diffusivityfun'));
+parser.addParamValue('alpha', zeros(size(in)), @(x) validateattributes(x, ...
+    {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'alpha'));
+parser.addParamValue('beta', zeros(size(in)), @(x) validateattributes(x, ...
+    {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'beta'));
 parser.addParamValue('grad', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'grad'));
 parser.addParamValue('convolve', true, @(x) validateattributes(x, ...
@@ -172,8 +178,9 @@ for i = 1:min(intmax,opts.its)
         'diffusivityfun', opts.diffusivityfun, ...
         'grad', opts.grad);
     
-    S = Tensor2Stencil(T(:,:,1,1), T(:,:,1,2), T(:,:,2,2), alpha, beta);
-        
+    S = Tensor2Stencil(T(:,:,1,1), T(:,:,1,2), T(:,:,2,2), ...
+        opts.alpha, opts.beta);
+    
     % Set time step to maximal value for the current step.
     if strcmpi(opts.timestepmethod, 'adaptive')
         % Multiplying by 1.01 ensures that we are really below the threshold.
@@ -209,6 +216,6 @@ if nargout >= 2
 end
 
 if nargout >= 3
-    varargout{2} = i; 
+    varargout{2} = i;
 end
 end

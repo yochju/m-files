@@ -151,7 +151,7 @@ else
 end
 
 % Compute Image gradient.
-grad = ImageGrad(temp, 'xSettings', opts.gradmag, 'ySettings',opts.gradmag);
+grad = ImageGrad(temp, 'xSettings', opts.grad, 'ySettings', opts.grad);
 
 % Compute squared euclidean norm of the gradient.
 gMag = grad(:,:,1).^2 + grad(:,:,2).^2;
@@ -187,4 +187,10 @@ out(:,:,1,2) = l1.*v1(:,:,1).*v1(:,:,2) + l2*v2(:,:,1).*v2(:,:,2);
 out(:,:,2,1) = out(:,:,1,2); % The tensor is symmetric by definition.
 out(:,:,2,2) = l1.*v1(:,:,2).^2 + l2*v2(:,:,2).^2;
 
+end
+
+function y = weickertdiffusivity(x,lambda)
+y = zeros(size(x));
+y(abs(x)<100*eps) = 1;
+y(abs(x)>=100*eps) = 1 - exp(-3.31488./((x(abs(x)>=100*eps).^4)./lambda^8));
 end
