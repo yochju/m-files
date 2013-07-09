@@ -87,6 +87,10 @@ function [ out ] = ImageDiffusionTensor(in, varargin)
 % Teubner, Stuttgart, 1998.
 % Available from: http://www.mia.uni-saarland.de/weickert/book.html
 
+% TODO: Extend this code to compute the structure tensor too. Requires
+% convolving the matrix entrie of nabla(u)*nabla(u)'. v1 and v2 will then be the
+% eigenvectors and l1 and l2 the corresponding eigenvalues.
+
 %% Parse input and output.
 
 narginchk(1, 11);
