@@ -35,22 +35,28 @@ function [ out ] = Structure2DiffusionTensor(in, varargin)
 %
 % Output parameters:
 %
-% -
+% out : diffusion tensor. If in is an nr*nc image, then out is a nr*nc*3 array
+%       where the latter index denote the tensor entries. The first channel
+%       contains the coefficiens D(1,1) of the tensor D, the second channel
+%       contains the entries D(1,2) (or D(2,1), since the tensor is symmetric)
+%       and the third channel contains the enty D(2,2).
 %
 % Output parameters (optional):
 %
-% out : diffusion tensor. If in is an nr*nc image, then out is a nr*nc*2*2 array
-%       where the latter two indices denote the tensor entries.
+% -
 %
 % Description:
 %
-% Computes the diffusion tensor g( K_rho * nabla(u).nabla(u)'), where nabla(u)
-% is the gradient of the image u and where g is a scalar valued smooth
-% function
+% Computes the diffusion tensor g( K_rho * nabla(u_sigma).nabla(u_sigma)'),
+% where nabla(u_sigma) is the gradient of the smoothed image u and where g is a
+% scalar valued smooth function
 %
 % Example:
 %
-% -
+% I = rand(256, 256);
+% J = StructureTensor(I, 'sigma', 0.1);
+% K = Structure2DiffusionTensor(J, 'mode', 'eced', ...
+%     'diffusivity', 'charbonnier', 'lambda', 0.25);
 %
 % See also StructureTensor
 
@@ -70,7 +76,7 @@ function [ out ] = Structure2DiffusionTensor(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 09.07.2013 15:10
+% Last revision on: 12.07.2013 15:10
 
 %% Notes
 
@@ -171,6 +177,7 @@ norm2 = sqrt(vecs(:,:,2,1).^2 + vecs(:,:,2,2).^2);
 % Normalise vectors.
 vecs(:,:,1,1) = vecs(:,:,1,1)./norm1;
 vecs(:,:,1,2) = vecs(:,:,1,2)./norm1;
+
 vecs(:,:,2,1) = vecs(:,:,2,1)./norm2;
 vecs(:,:,2,2) = vecs(:,:,2,2)./norm2;
 
