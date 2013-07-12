@@ -207,17 +207,19 @@ for i = 1:min(intmax,opts.its)
     % Check if alpha and beta have been specified. If not, set them to get the
     % non-negativity discretisation from the references. While not the best
     % possible choice for every case, it is reasonable for most applications.
-    if all(isinf(opts.alpha))
+    if all(isinf(opts.alpha(:))) || all(isinf(opts.beta(:)))
         opts.alpha = zeros(size(in));
-    end
-    if all(isinf(opts.beta))
         opts.beta = sign(DT(:,:,2));
+        % Enable the nonnegative flag to check that non-central stencil entries
+        % should be positive. The check does not make sense for all stencil as
+        % some choices always lead to negative entries.
+        nonnegative = true;
     end
     
     S = Tensor2Stencil(DT(:,:,1), DT(:,:,2), DT(:,:,3), opts.alpha, opts.beta);
     if (any(S{1,1}(:)<0) || any(S{1,2}(:)<0) || any(S{1,3}(:)<0) || ...
             any(S{2,1}(:)<0) || any(S{2,3}(:)<0) || any(S{3,1}(:)<0) || ...
-            any(S{3,2}(:)<0) || any(S{3,3}(:)<0) )
+            any(S{3,2}(:)<0) || any(S{3,3}(:)<0) ) && nonnegative
         % TODO: Currently this check triggers quite often. Check Tensor2Stencil.
         % The results look fine, though.
         ExcM = ExceptionMessage('Internal', 'message', ...
