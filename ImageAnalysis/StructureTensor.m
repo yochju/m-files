@@ -82,7 +82,6 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
     {'nonempty','finite','2d'}, mfilename, 'in', 1));
 
-
 parser.addParamValue('sigma', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'sigma'));
 
@@ -108,17 +107,10 @@ end
 % Compute image gradient.
 grad = ImageGrad(temp, 'xSettings', opts.grad, 'ySettings', opts.grad);
 
-% Compute squared euclidean norm of the gradient.
-gMag = grad(:,:,1).^2 + grad(:,:,2).^2;
-
-% Normalise gradient.
-grad(:,:,1) = grad(:,:,1)./sqrt(gMag);
-grad(:,:,2) = grad(:,:,2)./sqrt(gMag);
-
-% Gradient is 0 in flat regions. We use the convention 0/0 = 0.
-grad(or(isnan(grad),isinf(grad))) = 0;
-
-% Compute the tensor nabla(u).nabla(u)'
+% Compute the tensor nabla(u).nabla(u)'. Note that this tensor has one
+% eigenvector parallel to the gradient and one perpendicular to the gradient.
+% The eigenvalues are the squared euclidean norm of the gradient and 0. Note
+% that the structure tensor is based on the non-normalised gradient.
 [nr nc] = size(in);
 out = zeros(nr, nc, 3);
 out(:,:,1) = grad(:,:,1).^2;

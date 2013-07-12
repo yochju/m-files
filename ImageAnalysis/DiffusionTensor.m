@@ -170,18 +170,19 @@ v1 = grad;
 v2 = cat(3, -grad(:,:,2) , grad(:,:,1));
 
 % Apply the diffusivity on the eigenvalues. The eigenvalues of the matrix
-% grad*grad' are given by ||grad||^2 and 0. We apply the diffusivity on these
+% grad*grad' are given by ||grad||^2 and 0. We applyy the diffusivity on these
 % eigenvalues and use them for the diffusion tensor. Note that the eigenvalue
 % corresponding to the eigenvector perpendicular to the gradient is 0 and by
 % requirement, g(0)=1.0. This means, that we will apply full diffusion along
 % edges and inhibit diffusion across edges.
 l1 = diffuse(gMag);
-l2 = ones(size(in));
+l2 = diffuse(zeros(size(in)));
 
 % Allocate space for the tensor entries.
 out = zeros([size(in), 2, 2]);
 
-% out = [v1 v2]*diag(l1,l2)*[v1 v2]'.
+% out = [v1 v2]*diag(l1,l2)*[v1 v2]'. This computation is equivalent to the one
+% from the method StructureTensor if diffuse is the identity function.
 out(:,:,1,1) = l1.*v1(:,:,1).^2 + l2.*v2(:,:,1).^2;
 out(:,:,1,2) = l1.*v1(:,:,1).*v1(:,:,2) + l2.*v2(:,:,1).*v2(:,:,2);
 out(:,:,2,1) = out(:,:,1,2); % The tensor is symmetric by definition.
