@@ -12,7 +12,6 @@ function [out, varargout] = ExplicitDiffusion(in, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-
 % sigma          : smoothing parameter used for the structure tensor
 %                  computation. (default = 0).
 % rho            : smoothing parameter used for the structure tensor
@@ -37,6 +36,10 @@ function [out, varargout] = ExplicitDiffusion(in, varargin)
 %                  (default = charbonnier).
 % diffusivityfun : function handle for custom diffusivty,
 %                  (default = @(x) ones(size(x))
+% alpha          : discretisation parameter for the stencil. (default =
+%                  zeros(size(in)).
+% beta           : discretisation parameter for the stencil. (default =
+%                  zeros(size(in))
 % convolve       : whether to compute the explicit time steps through a non
 %                  constant convolution or through a matrix vector produt. The
 %                  default is to use a convolution. (logical, default = true).
@@ -86,11 +89,9 @@ function [out, varargout] = ExplicitDiffusion(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 09.07.2013 15:40
+% Last revision on: 12.07.2013 16:00
 
 %% Notes
-%
-% Thanks to Martin Schmidt for providing the code basis.
 %
 % TODO:
 % - Add Gridsizes.
@@ -98,12 +99,17 @@ function [out, varargout] = ExplicitDiffusion(in, varargin)
 % - Allow a vector of timesteps to be passed. In that case, the
 %   number of iterations coincides with the length of the vector.
 % - Add handling of different boundary conditions.
-% - Model specific settings for alpha and beta are cumbersome to realise at the
-%   moment.
+%
+% References
+%
+% Anisotropic Diffusion in Image Processing
+% J. Weickert,
+% Teubner, Stuttgart, 1998.
+% Available from: http://www.mia.uni-saarland.de/weickert/book.html
 
 %% Parse input and output.
 
-narginchk(1, 27);
+narginchk(1, 34);
 nargoutchk(0, 3);
 
 parser = inputParser;
@@ -146,9 +152,9 @@ parser.addParamValue('diffusivity', 'charbonnier', ...
 parser.addParamValue('diffusivityfun', @(x) ones(size(x)), ...
     @(x) validateattributes(x, {'function_handle'}, {'scalar'}, ...
     mfilename, 'diffusivityfun'));
-parser.addParamValue('alpha', zeros(size(in)), @(x) validateattributes(x, ...
+parser.addParamValue('alpha', inf(size(in)), @(x) validateattributes(x, ...
     {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'alpha'));
-parser.addParamValue('beta', zeros(size(in)), @(x) validateattributes(x, ...
+parser.addParamValue('beta', inf(size(in)), @(x) validateattributes(x, ...
     {'numeric'}, {'nonempty','finite','2d'}, mfilename, 'beta'));
 parser.addParamValue('grad', struct('scheme','central'), ...
     @(x) validateattributes(x, {'struct'}, {}, mfilename, 'grad'));
@@ -197,9 +203,31 @@ for i = 1:min(intmax,opts.its)
         'lambda', opts.lambda, 'diffusivity', opts.diffusivity, ...
         'diffusivityfun', opts.diffusivityfun ...
         );
-     
-    % FIXME: Adapting alpha and beta is difficult at the time being.
+    
+    % Check if alpha and beta have been specified. If not, set them to get the
+    % non-negativity discretisation from the references. While not the best
+    % possible choice for every case, it is reasonable for most applications.
+    if all(isinf(opts.alpha))
+        opts.alpha = zeros(size(in));
+    end
+    if all(isinf(opts.beta))
+        opts.beta = sign(DT(:,:,2));
+    end
+    
     S = Tensor2Stencil(DT(:,:,1), DT(:,:,2), DT(:,:,3), opts.alpha, opts.beta);
+    if (any(S{1,1}<0) || any(S{1,2}<0) || any(S{1,3}<0) || any(S{2,1}<0) || ...
+            any(S{2,3}<0) || any(S{3,1}<0) || any(S{3,2}<0) || any(S{3,3}<0) )
+        ExcM = ExceptionMessage('Internal', 'message', ...
+            ['Discrete Stencil may be unstable, some offdiagonal entries ' ...
+            'are negative']);
+        warning(ExcM.id, ExcM.message);
+    end
+    if any(S{1,1} + S{1,2} + S{1,3} + S{2,1} + S{2,2} + S{2,3} + S{3,1} + ...
+            S{3,2} + S{3,3}) > 10e-10
+        ExcM = ExceptionMessage('Internal', 'message', ...
+            'Discrete Stencil may violate average gray value preservation');
+        warning(ExcM.id, ExcM.message);
+    end
     
     % Set time step to maximal value for the current step.
     if strcmpi(opts.timestepmethod, 'adaptive')
