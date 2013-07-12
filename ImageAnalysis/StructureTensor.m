@@ -1,5 +1,5 @@
 function [ out ] = StructureTensor(in, varargin)
-%% Computes the structue tensor K_rho * nabla(u).nabla(u)'
+%% Computes the structue tensor K_rho * nabla(u_sigma).nabla(u_sigma)'
 %
 % [ out ] = StructureTensor(in, ...)
 %
@@ -14,10 +14,10 @@ function [ out ] = StructureTensor(in, varargin)
 % values or option/value pairs, where the option is specified as a string.
 %
 % sigma : smoothing applied on the input image before computing the gradient.
-%         (default = 0).
-% rho   : smoothing applied on the tensor entries. (default = 0)
+%         (scalar, default = 0).
+% rho   : smoothing applied on the tensor entries. (scalar, default = 0)
 % grad  : options to be used for the computation of the gradient
-%         (default = struct('scheme','central')).
+%         (struct, default = struct('scheme','central')).
 %
 % Input parameters (optional):
 %
@@ -28,12 +28,13 @@ function [ out ] = StructureTensor(in, varargin)
 %
 % Output parameters:
 %
-% -
+% out : structue tensor. If in is an nr*nc image, then out is a nr*nc*3 array
+%       where the latter index denotes the tensor entries. The first entry
+%       corresponds to (u_x)^2, the second to u_x*u_y and the third to (u_y).^2.
 %
 % Output parameters (optional):
 %
-% out : structue tensor. If in is an nr*nc image, then out is a nr*nc*3 array
-%       where the latter index denotes the tensor entries.
+% -
 %
 % Description:
 %
@@ -44,7 +45,8 @@ function [ out ] = StructureTensor(in, varargin)
 %
 % Example:
 %
-% -
+% I = random(256, 256);
+% J = StructureTensor(I, 'sigma', 0.1, 'rho', 1.5);
 %
 % See also Structure2DiffusionTensor
 
@@ -64,9 +66,15 @@ function [ out ] = StructureTensor(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 11.07.2013 15:00
+% Last revision on: 12.07.2013 15:00
 
 %% Notes
+
+% References:
+%
+% Förstner, W.; Gülch, E. (June 1987). "A Fast Operator for Detection and
+% Precise Location of Distinct Points, Corners and Centres of Circular
+% Features". ISPRS Intercommission Workshop, Interlaken.
 
 %% Parse input and output.
 
