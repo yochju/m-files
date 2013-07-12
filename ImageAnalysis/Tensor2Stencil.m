@@ -1,5 +1,5 @@
-function [out] = Tensor2Stencil(a, b, c, alpha, beta)
-%% Tensor2Stencil
+function [out] = Tensor2Stencil(a, b, c, alpha, beta, varargin)
+%% Generates the stencil corresponding to the tensor entries.
 %
 % [out] = Tensor2Stencil(a, b, c, alpha, beta)
 %
@@ -16,7 +16,7 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% -
+% size : gridsize (scalar, default 1.0)
 %
 % Input parameters (optional):
 %
@@ -27,7 +27,7 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 %
 % Output parameters:
 %
-% -
+% Corresponding stencil, can be used with NonConstantConvolution.
 %
 % Output parameters (optional):
 %
@@ -43,7 +43,12 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 %
 % Example:
 %
-% -
+% I = rand(256, 256);
+% J = StructureTensor(I, 'sigma', 0.1);
+% K = Structure2DiffusionTensor(J, 'mode', 'eced', ...
+%     'diffusivity', 'charbonnier', 'lambda', 0.25);
+% L = Tensor2Stencil(K(:,:,1), K(:,:,2), K(:,:,3), ...
+%          zeros(size(I)), sign(K(:,:,2)));
 %
 % See also IsoDiffStencil
 
@@ -63,7 +68,7 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 2013-07-09 14:00
+% Last revision on: 12.07.2013 16:15
 
 %% Notes
 
@@ -81,11 +86,10 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta)
 % http://www.mia.uni-saarland.de/Publications/weickert-ssvm13.pdf
 
 % TODO: b = 0 should yield the same results as for IsoDiffStencil. Check this.
-% TODO: Respect grid size.
 
 %% Parse input and output.
 
-narginchk(5,5);
+narginchk(5,7);
 nargoutchk(0,1);
 
 parser = inputParser;
@@ -109,7 +113,10 @@ parser.addRequired('alpha', @(x) validateattributes(x, {'numeric'}, ...
 parser.addRequired('beta', @(x) validateattributes(x, {'numeric'}, ...
     {'nonempty','finite','2d', 'size', size(a)}, mfilename, 'beta', 1));
 
-parser.parse( a, b, c, alpha, beta);
+parser.addParamValue('size', 1.0, @(x) validateattributes(x, ...
+    {'double'}, {'scalar', 'positive'}, mfilename, 'size'));
+
+parser.parse( a, b, c, alpha, beta, varargin{:});
 
 if any(abs(beta(:))>1-2*alpha(:))
     %% This is a requirement for positive semi-definiteness.
@@ -123,36 +130,42 @@ end
 
 out = cell(3,3);
 
-% The x-axis is pointing to the left, and the y-axis is pointing down, thus, the
-% the rows need to be switched w.r.t. to the stencil in the paper.
+h = opts.size^2;
 
-out{3,1} = 0.5*InterPixelValue((beta-1).*b + alpha.*(a+c),-1, 1);
+% The x-axis is pointing to the right, and the y-axis is pointing down, thus,
+% the the rows need to be switched w.r.t. to the stencil in the paper.
 
-out{3,2} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a - beta.*b), 1, 1) + ...
+out{3,1} = (1.0/(2.0*h))*InterPixelValue((beta-1).*b + alpha.*(a+c),-1, 1);
+
+out{3,2} = (1.0/(2.0*h))*(InterPixelValue(((1-alpha).*c - ...
+    alpha.*a - beta.*b), 1, 1) + ...
     InterPixelValue(((1-alpha).*c - alpha.*a - beta.*b),-1, 1));
 
-out{3,3} = 0.5*InterPixelValue((beta+1).*b + alpha.*(a+c), 1, 1);
+out{3,3} = (1.0/(2.0*h))*InterPixelValue((beta+1).*b + alpha.*(a+c), 1, 1);
 
 
-out{2,1} = 0.5*(InterPixelValue(((1-alpha).*a - alpha.*c - beta.*b),-1, 1) + ...
+out{2,1} = (1.0/(2.0*h))*(InterPixelValue(((1-alpha).*a - alpha.*c - ...
+    beta.*b),-1, 1) + ...
     InterPixelValue(((1-alpha).*a - alpha.*c - beta.*b),-1,-1));
 
-out{2,2} = - 0.5*( ...
+out{2,2} = - (1.0/(2.0*h))*( ...
     InterPixelValue(((1-alpha).*(a+c) - (beta-1).*b), 1, 1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta+1).*b), 1,-1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta+1).*b),-1, 1) + ...
     InterPixelValue(((1-alpha).*(a+c) - (beta-1).*b),-1,-1) );
 
-out{2,3} = 0.5*(InterPixelValue(((1-alpha).*a - alpha.*c - beta.*b), 1, 1) + ...
+out{2,3} = (1.0/(2.0*h))*(InterPixelValue(((1-alpha).*a - alpha.*c - ...
+    beta.*b), 1, 1) + ...
     InterPixelValue(((1-alpha).*a - alpha.*c - beta.*b), 1,-1));
 
 
-out{1,1} = 0.5*InterPixelValue((beta+1).*b + alpha.*(a+c),-1,-1);
+out{1,1} = (1.0/(2.0*h))*InterPixelValue((beta+1).*b + alpha.*(a+c),-1,-1);
 
-out{1,2} = 0.5*(InterPixelValue(((1-alpha).*c - alpha.*a - beta.*b), 1,-1) + ...
+out{1,2} = (1.0/(2.0*h))*(InterPixelValue(((1-alpha).*c - alpha.*a - ...
+    beta.*b), 1,-1) + ...
     InterPixelValue(((1-alpha).*c - alpha.*a - beta.*b),-1,-1));
 
-out{1,3} = 0.5*InterPixelValue((beta-1).*b + alpha.*(a+c), 1,-1);
+out{1,3} = (1.0/(2.0*h))*InterPixelValue((beta-1).*b + alpha.*(a+c), 1,-1);
 
 end
 
