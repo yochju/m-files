@@ -117,6 +117,7 @@ parser.addParamValue('size', 1.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'positive'}, mfilename, 'size'));
 
 parser.parse( a, b, c, alpha, beta, varargin{:});
+opts = parser.Results;
 
 if any(abs(beta(:))>1-2*alpha(:))
     %% This is a requirement for positive semi-definiteness.
