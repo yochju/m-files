@@ -37,9 +37,9 @@ function [out, varargout] = ExplicitDiffusion(in, varargin)
 % diffusivityfun : function handle for custom diffusivty,
 %                  (default = @(x) ones(size(x))
 % alpha          : discretisation parameter for the stencil. (default =
-%                  zeros(size(in)).
+%                  zeros(size(in))).
 % beta           : discretisation parameter for the stencil. (default =
-%                  zeros(size(in))
+%                  computed based on data from the diffusion tensor)
 % convolve       : whether to compute the explicit time steps through a non
 %                  constant convolution or through a matrix vector produt. The
 %                  default is to use a convolution. (logical, default = true).
@@ -132,7 +132,8 @@ parser.addParamValue('cedalpha', 0.01, @(x) validateattributes(x, ...
 parser.addParamValue('cedC', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'cedC'));
 parser.addParamValue('mode', 'eced', ...
-    @(x) strcmpi(x, validatestring(x, {'eced', 'ced'}, mfilename, 'mode')));
+    @(x) strcmpi(x, validatestring(x, {'linear', 'iso-nlin', 'eced', 'ced'}, ...
+    mfilename, 'mode')));
 parser.addParamValue('tau', 0.20, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'tau'));
 parser.addParamValue('processTime', inf, @(x) validateattributes(x, ...
@@ -207,6 +208,7 @@ for i = 1:min(intmax,opts.its)
     % Check if alpha and beta have been specified. If not, set them to get the
     % non-negativity discretisation from the references. While not the best
     % possible choice for every case, it is reasonable for most applications.
+    nonnegative = false;
     if all(isinf(opts.alpha(:))) || all(isinf(opts.beta(:)))
         opts.alpha = zeros(size(in));
         opts.beta = sign(DT(:,:,2));
@@ -222,10 +224,10 @@ for i = 1:min(intmax,opts.its)
             any(S{3,2}(:)<0) || any(S{3,3}(:)<0) ) && nonnegative
         % TODO: Currently this check triggers quite often. Check Tensor2Stencil.
         % The results look fine, though.
-        ExcM = ExceptionMessage('Internal', 'message', ...
-            ['Discrete Stencil may be unstable, some offdiagonal entries ' ...
-            'are negative']);
-        warning(ExcM.id, ExcM.message);
+%         ExcM = ExceptionMessage('Internal', 'message', ...
+%             ['Discrete Stencil may be unstable, some offdiagonal entries ' ...
+%             'are negative']);
+%         warning(ExcM.id, ExcM.message);
     end
     if any(S{1,1}(:) + S{1,2}(:) + S{1,3}(:) + S{2,1}(:) + S{2,2}(:) + ...
             S{2,3}(:) + S{3,1}(:) + S{3,2}(:) + S{3,3}(:) > 10e-10)

@@ -12,8 +12,10 @@ function [ out ] = Structure2DiffusionTensor(in, varargin)
 % Parameters are either struct with the following fields and corresponding
 % values or option/value pairs, where the option is specified as a string.
 %
-% mode           : which mode should be applied. Possible choices are 'eced' or
-%                  'ced'
+% mode           : which mode should be applied. Possible choices are 'linear'
+%                  (linear diffusion), 'iso-nlin' (nonlinear isotropic
+%                  diffusion), 'eced' (anisotropic diffusion) or 'ced'
+%                  (coherence enhancing diffusion). (default = 'lin').
 % lambda         : diffusivity parameter (default = 0.5).
 % alpha          : parameter for the ced mode.
 % C              : parameter for the ced mode.
@@ -76,7 +78,7 @@ function [ out ] = Structure2DiffusionTensor(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 12.07.2013 15:10
+% Last revision on: 17.07.2013 15:00
 
 %% Notes
 
@@ -115,8 +117,9 @@ parser.addParamValue('alpha', 0.0, @(x) validateattributes(x, ...
 parser.addParamValue('C', 0.0, @(x) validateattributes(x, ...
     {'double'}, {'scalar', 'nonnegative'}, mfilename, 'C'));
 
-parser.addParamValue('mode', 'eced', ...
-    @(x) strcmpi(x, validatestring(x, {'eced', 'ced'}, mfilename, 'mode')));
+parser.addParamValue('mode', 'linear', ...
+    @(x) strcmpi(x, validatestring(x, ...
+    {'linear', 'iso-nlin', 'eced', 'ced'}, mfilename, 'mode')));
 
 parser.addParamValue('diffusivity', 'custom', ...
     @(x) strcmpi(x, validatestring(x, ...
@@ -151,37 +154,64 @@ a = in(:,:,1);
 b = in(:,:,2);
 c = in(:,:,3);
 
-% Compute Eigenvalues of the structure tensor.
+% Compute Eigenvalues of the structure tensor. The structure tensor is 2x2
+% symmetric positive semidefinite matrix in every point. The eigendecomposition
+% for this matrix can be determined analytically and is used below.
 [nr nc] = size(in(:,:,1));
 vals = nan([nr nc 2]);
+% Smallest eigenvalue. If rho == 0, this should be 0.
 vals(:,:,1) = 0.5*(a+c-sqrt(4*b.^2+(a-c).^2));
+% Largest eigenvalue. If rho == 0, this is the squared gradient magnitude.
 vals(:,:,2) = 0.5*(a+c+sqrt(4*b.^2+(a-c).^2));
 
-% Compute Eigenvectors of the structue tensor.
+% Allocate space for the eigenvectors of the structue tensor.
 vecs = nan([nr nc 2 2]);
 
-ind = find(abs(b)<1e-10);
-[I, J] = ind2sub([nr nc],ind);
+% TODO: I have strong doubts, that this is numerically stable.
+
+% vecs(:,:,1,:) corresponds to the smallest eigenvalue.
 vecs(:,:,1,1) = a-c-sqrt(4*b.^2+(a-c).^2);
 vecs(:,:,1,2) = 2*b;
-% If b == 0, the matrix was already diagonal.
-vecs(I,J,1,1) = 1;
-vecs(I,J,1,2) = 0;
+
+% vecs(:,:,2,:) corresponds to the largest eigenvalue.
 vecs(:,:,2,1) = a-c+sqrt(4*b.^2+(a-c).^2);
 vecs(:,:,2,2) = 2*b;
-% If b == 0, the matrix was already diagonal.
-vecs(I,J,2,1) = 0;
-vecs(I,J,2,2) = 1;
+
+% Compute the norm of the two eigenvectors.
 norm1 = sqrt(vecs(:,:,1,1).^2 + vecs(:,:,1,2).^2);
 norm2 = sqrt(vecs(:,:,2,1).^2 + vecs(:,:,2,2).^2);
+
 % Normalise vectors.
+
 vecs(:,:,1,1) = vecs(:,:,1,1)./norm1;
 vecs(:,:,1,2) = vecs(:,:,1,2)./norm1;
+
+ind = find(norm1<100*eps);
+[I,J] = ind2sub(size(norm1),ind);
+vecs(I,J,1,1) = 1;
+vecs(I,J,1,2) = 0;
 
 vecs(:,:,2,1) = vecs(:,:,2,1)./norm2;
 vecs(:,:,2,2) = vecs(:,:,2,2)./norm2;
 
+ind = find(norm2<100*eps);
+[I,J] = ind2sub(size(norm2),ind);
+vecs(I,J,2,1) = 0;
+vecs(I,J,2,2) = 1;
+
+% We apply the function g onto the eigenvalues of the structure tensor. Note
+% that setting all both eigenvalues to the same value yields isotropic models.
+% The linear case is handled separately for convenience. If g(x)=1 for all x, it
+% can also be computed through the 'iso-nlin' case.
 switch lower(opts.mode)
+    case 'linear'
+        vals(:,:,1) = 1;
+        vals(:,:,2) = 1;
+    case 'iso-nlin'
+        % Note that this assumes, that rho == 0 holds and that the diffusivity
+        % fulfils diffuse(0) == 1.
+        vals(:,:,1) = 1;
+        vals(:,:,2) = diffuse(vals(:,:,2));
     case 'eced'
         vals = diffuse(vals);
     case 'ced'
@@ -190,6 +220,9 @@ switch lower(opts.mode)
         vals(:,:,2) = opts.alpha + ...
             (1-opts.alpha)*exp(-opts.C./(temp(:,:,1)-temp(:,:,2)).^2);
 end
+
+% TODO: The reference code has a comment about trace invariance... Should I
+% worry about that here?
 
 out = nan([nr nc 3]);
 out(:,:,1) = vals(:,:,1).*vecs(:,:,1,1).^2 + vals(:,:,2).*vecs(:,:,2,1).^2;
