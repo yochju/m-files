@@ -154,82 +154,88 @@ a = in(:,:,1);
 b = in(:,:,2);
 c = in(:,:,3);
 
-% Compute Eigenvalues of the structure tensor. The structure tensor is 2x2
-% symmetric positive semidefinite matrix in every point. The eigendecomposition
-% for this matrix can be determined analytically and is used below.
+% TODO: REMOVE ME!
+% a = [1 1 ; 0 1 ]; b = [ 0 0 ; 0 1 ]; c = [ 1 0 ; 1 1 ];
+% We have a matrix [a b ; b c] for every signal point. Our goal will be to
+% evaluate g([a b ; b c]), where g is a scalar valued function. This is done by
+% performing an eigendecomposition of the matrix, applying g onto both
+% eigenvalues and reconstructing the matrix. Note that the matrix entries might
+% vary significantly in magnitude, therefore, we should be very careful with the
+% computation of the eigenvalues (e.g. solving a quadratic equation). Note that
+% the eigenvalues are obtained by solving x^2 - tr(A)*x + det(A) == 0.
+% See:
+% http://en.wikipedia.org/wiki/Quadratic_equation#Floating-point_implementation
+
+% -trace(A)
+eb = -(a + c);
+% det(A)
+ec = a.*c - abs(b).^2;
+eq = -0.5*(eb + sign(eb).*sqrt(abs(eb).^2 - 4.*ec));
+
 [nr nc] = size(in(:,:,1));
 vals = nan([nr nc 2]);
 % Smallest eigenvalue. If rho == 0, this should be 0.
-vals(:,:,1) = 0.5*(a+c-sqrt(4*b.^2+(a-c).^2));
+vals(:,:,1) = ec./eq;
+ind = find(abs(eq)<100*eps);
+[I,J] = ind2sub(size(eq),ind);
+vals(I,J,1) = 0;
+
 % Largest eigenvalue. If rho == 0, this is the squared gradient magnitude.
-vals(:,:,2) = 0.5*(a+c+sqrt(4*b.^2+(a-c).^2));
+vals(:,:,2) = eq;
 
-% Allocate space for the eigenvectors of the structue tensor.
-vecs = nan([nr nc 2 2]);
+% Compute the first eigenvector of the structue tensor. Note that the second one
+% is orthogonal to the first one. Thus, if [x y] is our first vector, then [-y
+% x] will be the second one.
+vecs = nan([nr nc 2]);
+vecs(:,:,1) = 2*b;
+vecs(:,:,2) = c - a + sqrt(abs(a-c).^2+4.*abs(b).^2);
 
-% TODO: I have strong doubts, that this is numerically stable.
-
-% vecs(:,:,1,:) corresponds to the smallest eigenvalue.
-vecs(:,:,1,1) = a-c-sqrt(4*b.^2+(a-c).^2);
-vecs(:,:,1,2) = 2*b;
-
-% vecs(:,:,2,:) corresponds to the largest eigenvalue.
-vecs(:,:,2,1) = a-c+sqrt(4*b.^2+(a-c).^2);
-vecs(:,:,2,2) = 2*b;
-
-% Compute the norm of the two eigenvectors.
-norm1 = sqrt(vecs(:,:,1,1).^2 + vecs(:,:,1,2).^2);
-norm2 = sqrt(vecs(:,:,2,1).^2 + vecs(:,:,2,2).^2);
+% Compute the norm of the eigenvectors.
+nev = sqrt(vecs(:,:,1).^2 + vecs(:,:,2).^2);
 
 % Normalise vectors.
+vecs(:,:,1) = vecs(:,:,1)./nev;
+vecs(:,:,2) = vecs(:,:,2)./nev;
 
-vecs(:,:,1,1) = vecs(:,:,1,1)./norm1;
-vecs(:,:,1,2) = vecs(:,:,1,2)./norm1;
+ind = find(nev<100*eps);
+[I,J] = ind2sub(size(nev),ind);
+vecs(I,J,1) = 1;
+vecs(I,J,2) = 0;
 
-ind = find(norm1<100*eps);
-[I,J] = ind2sub(size(norm1),ind);
-vecs(I,J,1,1) = 1;
-vecs(I,J,1,2) = 0;
-
-vecs(:,:,2,1) = vecs(:,:,2,1)./norm2;
-vecs(:,:,2,2) = vecs(:,:,2,2)./norm2;
-
-ind = find(norm2<100*eps);
-[I,J] = ind2sub(size(norm2),ind);
-vecs(I,J,2,1) = 0;
-vecs(I,J,2,2) = 1;
-
+out = nan([nr nc 3]);
 % We apply the function g onto the eigenvalues of the structure tensor. Note
 % that setting all both eigenvalues to the same value yields isotropic models.
 % The linear case is handled separately for convenience. If g(x)=1 for all x, it
 % can also be computed through the 'iso-nlin' case.
 switch lower(opts.mode)
     case 'linear'
-        vals(:,:,1) = 1;
-        vals(:,:,2) = 1;
+        out(:,:,1) = ones(nr, nc);
+        out(:,:,2) = zeros(nr, nc);
+        out(:,:,3) = ones(nr, nc);
+        return;
     case 'iso-nlin'
         % Note that this assumes, that rho == 0 holds and that the diffusivity
         % fulfils diffuse(0) == 1.
-        vals(:,:,1) = 1;
-        vals(:,:,2) = diffuse(vals(:,:,2));
+        temp = diffuse(in(:,:,1)+in(:,:,3));
+        out(:,:,1) = temp;
+        out(:,:,2) = zeros(nr, nc);
+        out(:,:,3) = temp;
+        return;
     case 'eced'
         vals = diffuse(vals);
     case 'ced'
         temp = vals;
         vals(:,:,1) = opts.alpha;
+        % temp may contain complex numbers (with imaginary part 0), in that case
+        % we might wring values here. Using abs ensures, that the values are
+        % real.
         vals(:,:,2) = opts.alpha + ...
-            (1-opts.alpha)*exp(-opts.C./(temp(:,:,1)-temp(:,:,2)).^2);
+            (1-opts.alpha)*exp(-opts.C./abs(temp(:,:,1)-temp(:,:,2)).^2);
 end
 
-% TODO: The reference code has a comment about trace invariance... Should I
-% worry about that here?
-
-out = nan([nr nc 3]);
-out(:,:,1) = vals(:,:,1).*vecs(:,:,1,1).^2 + vals(:,:,2).*vecs(:,:,2,1).^2;
-out(:,:,2) = vals(:,:,1).*vecs(:,:,1,1).*vecs(:,:,1,2) + ...
-    vals(:,:,2).*vecs(:,:,2,1).*vecs(:,:,2,2);
-out(:,:,3) = vals(:,:,1).*vecs(:,:,1,2).^2 + vals(:,:,2).*vecs(:,:,2,2).^2;
-
+out(:,:,1) = vals(:,:,1).*vecs(:,:,1).^2 + vals(:,:,2).*vecs(:,:,2).^2;
+out(:,:,2) = (vals(:,:,1)-vals(:,:,2)).*vecs(:,:,1).*vecs(:,:,2);
+out(:,:,3) = vals(:,:,1) + vals(:,:,2) - out(:,:,1); 
 end
 
 function y = weickertdiffusivity(x, lambda)
