@@ -78,7 +78,7 @@ function [ out ] = Structure2DiffusionTensor(in, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 17.07.2013 15:00
+% Last revision on: 19.07.2013 12:00
 
 %% Notes
 
@@ -154,8 +154,6 @@ a = in(:,:,1);
 b = in(:,:,2);
 c = in(:,:,3);
 
-% TODO: REMOVE ME!
-% a = [1 1 ; 0 1 ]; b = [ 0 0 ; 0 1 ]; c = [ 1 0 ; 1 1 ];
 % We have a matrix [a b ; b c] for every signal point. Our goal will be to
 % evaluate g([a b ; b c]), where g is a scalar valued function. This is done by
 % performing an eigendecomposition of the matrix, applying g onto both
@@ -222,6 +220,11 @@ switch lower(opts.mode)
         out(:,:,3) = temp;
         return;
     case 'eced'
+        % If rho was set to 0 for the computation of the structure tensor, than
+        % this case corresponds to eed. In that setting, vals(:,:,1) should be 0
+        % (eigenvalue corresponding to the eigenvector perpendicular to the
+        % image gradient) and vals(:,:,2) = a + c = squared image gradient
+        % magnitude (eigenvalue parallel to the image gradient).
         vals = diffuse(vals);
     case 'ced'
         temp = vals;
