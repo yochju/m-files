@@ -86,6 +86,9 @@ function [out] = Tensor2Stencil(a, b, c, alpha, beta, varargin)
 % http://www.mia.uni-saarland.de/Publications/weickert-ssvm13.pdf
 
 % TODO: b = 0 should yield the same results as for IsoDiffStencil. Check this.
+% TODO: Check if all parameters are 1x1 entries. In that case, skip the
+%       interpolation.
+% TODO: Check that none of the parameters has size 1 along only one dimension.
 
 %% Parse input and output.
 
