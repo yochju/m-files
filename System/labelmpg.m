@@ -88,7 +88,8 @@ filesl = dir('*.mpg');
 filesL = dir('*.MPG');
 filesa = dir('*.avi');
 filesA = dir('*.AVI');
-files = cell(1,length(filesl)+length(filesL)+length(filesa)+length(filesA));
+files4 = dir('*.mp4');
+files = cell(1,length(filesl)+length(filesL)+length(filesa)+length(filesA)+length(files4));
 for i = 1:length(filesl)
     files{i} = filesl(i).name;
 end
@@ -100,6 +101,9 @@ for i = 1:length(filesa)
 end
 for i = 1:length(filesA)
     files{length(filesl)+length(filesL)+length(filesa)+i} = filesA(i).name;
+end
+for i = 1:length(files4)
+    files{length(filesl)+length(filesL)+length(filesa)+length(filesA)+i} = files4(i).name;
 end
 
 for i = 1:length(files)
