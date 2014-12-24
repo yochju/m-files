@@ -103,8 +103,15 @@ for i = 1:length(files)
 
     % Extract the time information from the photograph.
     data = imfinfo(files{i});
-    dTime = regexp(data.DateTime, ...
-        '(\d{4}):(\d{2}):(\d{2})\s(\d{2}):(\d{2}):(\d{2})','tokens');
+    if (true == isfield(data, 'DateTime'))
+        dTime = regexp(data.DateTime, ...
+            '(\d{4}):(\d{2}):(\d{2})\s(\d{2}):(\d{2}):(\d{2})', 'tokens');
+    elseif (true == isfield(data, 'DigitalCamera'))
+        if (true == isfield(data.DigitalCamera, 'DateTimeOriginal'))
+            dTime = regexp(data.DigitalCamera.DateTimeOriginal, ...
+            '(\d{4}):(\d{2}):(\d{2})\s(\d{2}):(\d{2}):(\d{2})', 'tokens');
+        end
+    end
     % Remove leading 0s.
     y = regexprep(dTime{1}(1),'^0+','');
     m = regexprep(dTime{1}(2),'^0+','');
@@ -116,10 +123,19 @@ for i = 1:length(files)
     end
     
     % Set up the filename.
-    target = [ ...
-        root y{1} '/' m{1} '/' d{1} '/' ...
-        regexprep(data.DateTime,'(\d{4}):(\d{2}):(\d{2})','$1-$2-$3')];
-    
+    if (true == isfield(data, 'DateTime'))
+        target = [ ...
+            root y{1} '/' m{1} '/' d{1} '/' ...
+            regexprep(data.DateTime,'(\d{4}):(\d{2}):(\d{2})','$1-$2-$3')];
+    elseif (true == isfield(data, 'DigitalCamera'))
+        if (true == isfield(data.DigitalCamera, 'DateTimeOriginal'))
+            target = [ ...
+                root y{1} '/' m{1} '/' d{1} '/' ...
+                regexprep(data.DigitalCamera.DateTimeOriginal, ...
+                '(\d{4}):(\d{2}):(\d{2})','$1-$2-$3')];
+        end
+    end
+
     % Copy the photograph. Add a number if it already exists.
     if isempty(dir([target '.jpg']))
         copyfile(files{i},[target '.jpg']);
