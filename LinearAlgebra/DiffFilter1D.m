@@ -1,8 +1,8 @@
-function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
+function [coeffs, varargout] = DiffFilter1D (knots, order, varargin)
 %% Returns the coefficients of a 1D finite difference scheme.
 %
-% [coeffs] = DiffFilter1D(knots,order,varargin)
-% [coeffs, cons] = DiffFilter1D(knots,order,varargin)
+% [coeffs] = DiffFilter1D (knots, order, varargin)
+% [coeffs, cons] = DiffFilter1D(knots, order, varargin)
 %
 % Input Parameters (required):
 %
@@ -45,7 +45,7 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 %
 % See also FiniteDiff1DM.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2014 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -61,7 +61,7 @@ function [coeffs, varargout] = DiffFilter1D(knots, order, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 08.12.2012 21:30
+% Last revision: 27.12.2014 20:1
 
 %% Notes
 
@@ -76,7 +76,7 @@ nargoutchk(0, 2);
 parser = inputParser;
 parser.FunctionName = mfilename;
 parser.CaseSensitive = false;
-parser.KeepUnmatched = true;
+parser.KeepUnmatched = false;
 parser.StructExpand = true;
 
 parser.addRequired('knots', @(x) validateattributes(x, {'numeric'}, ...
