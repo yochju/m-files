@@ -1,4 +1,4 @@
-function [M varargout] = FiniteDiff1DM(len,knots,order,varargin)
+function [M, varargout] = FiniteDiff1DM(len,knots,order,varargin)
 %% Returns the matrix corresponding to a 1D finite difference scheme.
 %
 % M = FiniteDiff1DM(len,knots,order,varargin)
@@ -103,7 +103,7 @@ opts = parser.Results;
 if nargout < 2
     coeffs = DiffFilter1D(knots, order, opts.optsFilter);
 else
-    [coeffs cons] = DiffFilter1D(knots, order, opts.optsFilter);
+    [coeffs, cons] = DiffFilter1D(knots, order, opts.optsFilter);
     varargout{1} = cons;
 end
 
