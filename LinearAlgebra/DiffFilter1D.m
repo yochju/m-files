@@ -61,7 +61,7 @@ function [coeffs, varargout] = DiffFilter1D (knots, order, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 27.12.2014 20:1
+% Last revision: 27.12.2014 20:15
 
 %% Notes
 
