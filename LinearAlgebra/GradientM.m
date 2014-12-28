@@ -1,8 +1,8 @@
-function [M varargout] = GradientM(r, c, varargin)
+function [M, varargout] = GradientM (r, c, varargin)
 %% Returns the matrix corresponding to the Gradient operator.
 %
-% M = GradientM(r, c, varargin)
-% [M cons] = GradientM(r, c, varargin)
+% M = GradientM (r, c, varargin)
+% [M cons] = GradientM (r, c, varargin)
 %
 % Input Parameters (required):
 %
@@ -65,7 +65,7 @@ function [M varargout] = GradientM(r, c, varargin)
 %
 % See also LaplaceM, DiffFilter1D, FiniteDiff1DM.
 
-% Copyright 2012, 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012 - 2014 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -81,19 +81,19 @@ function [M varargout] = GradientM(r, c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 20.05.2013 11:24
+% Last revision: 28.12.2014 10:02
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(2, 16);
-nargoutchk(0, 2);
+narginchk (2, 16);
+nargoutchk (0, 2);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
 parser.CaseSensitive = false;
-parser.KeepUnmatched = true;
+parser.KeepUnmatched = false;
 parser.StructExpand = true;
 
 parser.addRequired('r', @(x) validateattributes(x, {'numeric'}, ...
@@ -132,28 +132,26 @@ opts = parser.Results;
 %% Run code.
 
 if nargout < 2
-    MR = FiniteDiff1DM(c, opts.knotsR, 1, 'boundary', opts.boundaryR, ...
-        'optsFilter', opts.optsR);
-    MC = FiniteDiff1DM(r, opts.knotsC, 1, 'boundary', opts.boundaryC, ...
-        'optsFilter', opts.optsC);
+    MR = FiniteDiff1DM (c, opts.knotsR, 1, 'boundary', opts.boundaryR, ...
+        opts.optsR);
+    MC = FiniteDiff1DM (r, opts.knotsC, 1, 'boundary', opts.boundaryC, ...
+        opts.optsC);
     if r == 1
         M = MR;
     elseif c == 1
         M = MC;
     else
-        if strcmpi(opts.labeling,'col')
+        if strcmpi (opts.labeling,'col')
             M = [ kron(MR,speye(r,r)) ; kron(speye(c,c),MC) ];
         else
             M = [ kron(speye(r,r),MR) ; kron(MC,speye(c,c)) ];
         end
     end
 else
-    [MR consR] = FiniteDiff1DM(c, opts.knotsR, 1, ...
-        'boundary', opts.boundaryR, ...
-        'optsFilter', opts.optsR);
-    [MC consC] = FiniteDiff1DM(r, opts.knotsC, 1, ...
-        'boundary', opts.boundaryC, ...
-        'optsFilter', opts.optsC);
+    [MR, consR] = FiniteDiff1DM (c, opts.knotsR, 1, ...
+        'boundary', opts.boundaryR, opts.optsR);
+    [MC, consC] = FiniteDiff1DM (r, opts.knotsC, 1, ...
+        'boundary', opts.boundaryC, opts.optsC);
     if r == 1
         M = MR;
         varargout{1} = consR;
@@ -161,7 +159,7 @@ else
         M = MC;
         varargout{1} = consC;
     else
-        if strcmpi(opts.labeling,'col')
+        if strcmpi (opts.labeling,'col')
             M = [ kron(MR,speye(r,r)) ; kron(speye(c,c),MC) ];
         else
             M = [ kron(speye(r,r),MR) ; kron(MC,speye(c,c)) ];
