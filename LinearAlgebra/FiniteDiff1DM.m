@@ -48,7 +48,7 @@ function [M, varargout] = FiniteDiff1DM (len, knots, order, varargin)
 %
 % See also DiffFilter1D.
 
-% Copyright 2014 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012 - 2014 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
