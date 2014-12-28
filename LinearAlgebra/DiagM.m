@@ -1,7 +1,7 @@
-function M = DiagM(v)
+function M = DiagM (v)
 %% Returns a sparse matrix with input on its diagonal.
 %
-% M = DiagM(v)
+% M = DiagM (v)
 %
 % Input parameters (required):
 %
@@ -36,12 +36,12 @@ function M = DiagM(v)
 %
 % Example:
 %
-% v = rand(10,6,2);
-% M = DiagM(v);
+% v = rand (10, 6, 2);
+% M = DiagM (v);
 %
 % See also spdiags, sparse
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012-2014 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the Free
@@ -57,19 +57,19 @@ function M = DiagM(v)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 16:40
+% Last revision on: 28.12.2014 17:29
 
 %% Notes
 
 %% Parse input and output.
 
-narginchk(1, 1);
-nargoutchk(0, 1);
+narginchk (1, 1);
+nargoutchk (0, 1);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
 parser.CaseSensitive = false;
-parser.KeepUnmatched = true;
+parser.KeepUnmatched = false;
 parser.StructExpand = true;
 
 parser.addRequired('v', @(x) validateattributes(x, {'numeric'}, ...
