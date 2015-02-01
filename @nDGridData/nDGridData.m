@@ -19,27 +19,29 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 01.02.2015 10:45
+    % Last revision on: 01.02.2015 20:00
     
     properties
-        nr = 0; % Number of rows (positive integer)
-        nc = 0; % Number of columns (positive integer)
+        % Elementary properties for image structures.
+        
+        nr = 1; % Number of rows (positive integer)
+        nc = 1; % Number of columns (positive integer)
         
         br = 0; % Number of additional boundary rows on each side (nonnegative
-                % integer)
+        % integer)
         bc = 0; % Number of additional boundary columns on each side
-                % (nonnegative integer)
+        % (nonnegative integer)
         
         hr = 1.0; % Distance between two points along a row (positive scalar)
         hc = 1.0; % Distance between two points along a column (positive scalar)
     end
     
     properties (Abstract = true)
-        p    % Array containing the pixel values. Its size is adapted to target
-             % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
-             % for a multi channel image and [nr, nc, nd, pDim] for an image
-             % sequence. (array)
-             
+        p % Array containing the pixel values. Its size is adapted to target
+        % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
+        % for a multi channel image and [nr, nc, nd, pDim] for an image
+        % sequence. (array)
+        
         nd % Number of frames. (positive integer)
         hd % Difference between two frames. (positive scalar)
     end
@@ -49,6 +51,7 @@ classdef (Abstract = true) nDGridData
         % for different instances of the same class. This prevents that for
         % example an RGB image with range [0,1] gets added to an RGB image
         % with range [0, 255].
+        
         rangeMin % minimal possible value in each channel (array of size pDim)
         rangeMax % maximal possible value in each channel (array of size pDim)
     end
@@ -56,8 +59,8 @@ classdef (Abstract = true) nDGridData
     properties (Abstract = true, Hidden = true, Access = protected, ...
             Constant = true)
         pDim % Dimension of a pixel (number of channels), e.g. 1 for a scalar
-             % valued image, 3 for an RGB image, [3, 3] for a tensor valued
-             % image. (array of integers)
+        % valued image, 3 for an RGB image, [3, 3] for a tensor valued
+        % image. (array of integers)
         
         isIndexed  % Wether the colours are indexed via a colourmap (logical)
         isSequence % Wether the image is actually a movie (logical)
@@ -104,7 +107,7 @@ classdef (Abstract = true) nDGridData
             % to create an object with nr rows, nc coloumns, and default
             % values for all the other properties.
             
-            %% Parse the inputs passed to the constructor. 
+            %% Parse the inputs passed to the constructor.
             
             narginchk(2, 6);
             nargoutchk(0, 1);
@@ -146,7 +149,56 @@ classdef (Abstract = true) nDGridData
             
             obj.hr = parser.Results.hr;
             obj.hc = parser.Results.hc;
+        end % end nDGridData
+        
+        function obj = set.nr(obj, val)
+            % Sets the number of rows. If the input is negative, its absolute
+            % value is taken. If the number is non-integer, it is rounded. If it
+            % is 0, 1 is returned.
+            
+            obj.nr = max(1, round(abs(val)));
         end
-    end
-end
+        
+        function obj = set.nc(obj, val)
+            % Sets the number of coloumns. If the input is negative, its
+            % absolute value is taken. If the number is non-integer, it is
+            % rounded. If it is 0, 1 is returned.
+            
+            obj.nc = max(1, round(abs(val)));
+        end
+        
+        function obj = set.br(obj, val)
+            % Sets the number of boundary rows. If the input is negative, its
+            % absolute value is taken. If the number is non-integer, it is
+            % rounded.
+            
+            obj.br = round(abs(val));
+        end
+        
+        function obj = set.bc(obj, val)
+            % Sets the number of boundary coloumns. If the input is negative,
+            % its absolute value is taken. If the number is non-integer, it is
+            % rounded.
+            
+            obj.bc = round(abs(val));
+        end
+        
+        function obj = set.hr(obj, val)
+            % Sets the distance between points along a row. If the input is
+            % negative, its absolute value is taken. If the number is
+            % non-integer, it is rounded.
+            
+            obj.hr = abs(val);
+        end
+        
+        function obj = set.hc(obj, val)
+            % Sets the distance between points along a coloumn. If the input is
+            % negative, its absolute value is taken. If the number is
+            % non-integer, it is rounded.
+            
+            obj.hc = abs(val);
+        end
+        
+    end % end methods
+end % end classdef
 
