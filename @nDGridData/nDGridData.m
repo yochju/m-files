@@ -3,41 +3,110 @@ classdef (Abstract = true) nDGridData
     % Abstract class containing properties common to all image structures to are
     % derived from this class.
     
+    % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+    %
+    % This program is free software; you can redistribute it and/or modify it
+    % under the terms of the GNU General Public License as published by the Free
+    % Software Foundation; either version 3 of the License, or (at your option)
+    % any later version.
+    %
+    % This program is distributed in the hope that it will be useful, but
+    % WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    % or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    % for more details.
+    %
+    % You should have received a copy of the GNU General Public License along
+    % with this program; if not, write to the Free Software Foundation, Inc., 51
+    % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+    
+    % Last revision on: 01.02.2015 10:45
+    
     properties
         nr = 0; % Number of rows (positive integer)
         nc = 0; % Number of columns (positive integer)
-        nd = 1; % Number of frames (positive integer)
         
-        br = 0; % Number of additional boundary rows on each side
+        br = 0; % Number of additional boundary rows on each side (nonnegative
+                % integer)
         bc = 0; % Number of additional boundary columns on each side
+                % (nonnegative integer)
         
-        hr = 1.0; % Distance between two points along a row
-        hc = 1.0; % Distance between two points along a column
+        hr = 1.0; % Distance between two points along a row (positive scalar)
+        hc = 1.0; % Distance between two points along a column (positive scalar)
     end
     
     properties (Abstract = true)
-        pDim % Dimension of a pixel (number of channels), e.g. 1 for a scalar
-             % valued image, 3 for an RGB image, [3, 3] for a tensor valued
-             % image.
-        
         p    % Array containing the pixel values. Its size is adapted to target
              % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
              % for a multi channel image and [nr, nc, nd, pDim] for an image
-             % sequence.
-        
+             % sequence. (array)
+             
+        nd % Number of frames. (positive integer)
+        hd % Difference between two frames. (positive scalar)
+    end
+    
+    properties (Abstract = true, Constant = true)
+        % The range of possible data values is fixed and shall not differ
+        % for different instances of the same class. This prevents that for
+        % example an RGB image with range [0,1] gets added to an RGB image
+        % with range [0, 255].
         rangeMin % minimal possible value in each channel (array of size pDim)
         rangeMax % maximal possible value in each channel (array of size pDim)
     end
     
-    properties (Abstract = true, Hidden = true)
-        isIndexed  % Wether the colours are index via a colourmap (logical)
+    properties (Abstract = true, Hidden = true, Access = protected, ...
+            Constant = true)
+        pDim % Dimension of a pixel (number of channels), e.g. 1 for a scalar
+             % valued image, 3 for an RGB image, [3, 3] for a tensor valued
+             % image. (array of integers)
+        
+        isIndexed  % Wether the colours are indexed via a colourmap (logical)
         isSequence % Wether the image is actually a movie (logical)
     end
     
     methods
         function obj = nDGridData(nr, nc, varargin)
+            %% Constructor for nDGridData.
+            %
+            % obj = nDGridData(nr, nc, varargin)
+            %
+            % Input parameters (required):
+            %
+            % nr : Number of rows. (positive integer)
+            % nc : Number of coloumns. (positive integer)
+            %
+            % Input parameters (optional):
+            %
+            % br : Number of boundary rows on each side (nonnegative integer)
+            % bc : Number of boundary coloumns on each side (nonnegative
+            %      integer)
+            % hr : Distance between two pixels along a row. (positive scalar)
+            % hc : Distance between two pixels along a coloumn. (positive
+            %      scalar)
+            %
+            % Output parameters:
+            %
+            % obj : A nDGridData object with the specified or default
+            % values.
+            %
+            % Description:
+            %
+            % Serves as superclass constructor for specialised subclasses
+            % that need an initialisation in their own constructors. Note
+            % that this class is abstract and therefore cannot be
+            % instantiated.
+            %
+            % Example:
+            %
+            % Inside the constructor of a derived subclass call
+            %
+            % obj = obj@nDGridData(nr, nc);
+            %
+            % to create an object with nr rows, nc coloumns, and default
+            % values for all the other properties.
             
-            narginchk(2, 7);
+            %% Parse the inputs passed to the constructor. 
+            
+            narginchk(2, 6);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -49,10 +118,6 @@ classdef (Abstract = true) nDGridData
             parser.addRequired('nc', @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
                 'nDGridData', 'nc'));
-            
-            parser.addOptional('nd', 1, @(x) validateattributes( x, ...
-                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
-                'nDGridData', 'nd'));
             
             parser.addOptional('br', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
@@ -75,7 +140,6 @@ classdef (Abstract = true) nDGridData
             
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
-            obj.nd = parser.Results.nd;
             
             obj.br = parser.Results.br;
             obj.bc = parser.Results.bc;
