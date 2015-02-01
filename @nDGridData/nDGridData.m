@@ -66,6 +66,12 @@ classdef (Abstract = true) nDGridData
         isSequence % Wether the image is actually a movie (logical)
     end
     
+    methods (Abstract = true)
+        load(obj, fname) % Reads image from disk.
+        save(obj, fname) % Writes image to disk.
+        pad(obj, siz, varargin) % Changes the dummy boundary of an image.
+    end
+    
     methods
         function obj = nDGridData(nr, nc, varargin)
             %% Constructor for nDGridData.
