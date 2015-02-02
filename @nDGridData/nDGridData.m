@@ -42,9 +42,9 @@ classdef (Abstract = true) nDGridData
     
     properties (Abstract = true)
         p % Array containing the pixel values. Its size is adapted to target
-        % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
-        % for a multi channel image and [nr, nc, nd, pDim] for an image
-        % sequence. (array)
+          % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
+          % for a multi channel image and [nr, nc, nd, pDim] for an image
+          % sequence. (array)
         
         nd % Number of frames. (positive integer)
         hd % Difference between two frames. (positive scalar)
@@ -63,8 +63,8 @@ classdef (Abstract = true) nDGridData
     properties (Abstract = true, Hidden = true, Access = protected, ...
             Constant = true)
         pDim % Dimension of a pixel (number of channels), e.g. 1 for a scalar
-        % valued image, 3 for an RGB image, [3, 3] for a tensor valued
-        % image. (array of integers)
+             % valued image, 3 for an RGB image, [3, 3] for a tensor valued
+             % image. (array of integers)
         
         isIndexed  % Wether the colours are indexed via a colourmap (logical)
         isSequence % Wether the image is actually a movie (logical)
