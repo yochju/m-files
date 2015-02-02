@@ -34,6 +34,10 @@ classdef (Abstract = true) nDGridData
         
         hr = 1.0; % Distance between two points along a row (positive scalar)
         hc = 1.0; % Distance between two points along a column (positive scalar)
+        
+        comment = cell(0); % Used to save textual information on the image. Note
+                           % that not every image format supports comments when
+                           % writing to disk.
     end
     
     properties (Abstract = true)
