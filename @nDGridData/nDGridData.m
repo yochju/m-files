@@ -48,6 +48,8 @@ classdef (Abstract = true) nDGridData
         
         nd % Number of frames. (positive integer)
         hd % Difference between two frames. (positive scalar)
+        
+        colsp % The underlying colour space (ColourSpace object)
     end
     
     properties (Abstract = true, Constant = true)

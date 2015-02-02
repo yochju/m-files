@@ -28,6 +28,10 @@ classdef DoubleImage < ScalarImage
     properties (Hidden = true, Access = protected, Constant = true)        
         isIndexed = false; % Wether the colours are indexed via a colourmap (logical)
     end
+    
+    properties
+        colsp = ColourSpace.None;
+    end
               
     methods
         function obj = DoubleImage(nr, nc, varargin)
