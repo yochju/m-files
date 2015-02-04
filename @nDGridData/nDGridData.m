@@ -211,6 +211,16 @@ classdef (Abstract = true) nDGridData
             obj.hc = abs(val);
         end
         
+        function val = eq(obj1, obj2)
+            val = true;
+            
+            if ((obj1.nr ~= obj2.nr) || (obj1.nc ~= obj2.nc) || ...
+                    (obj1.br ~= obj2.br) || (obj1.bc ~= obj2.bc) || ...
+                    (obj1.hr ~= obj2.hr) || (obj1.hc ~= obj2.hc) )
+                val = false;
+            end
+        end
+
     end % end methods
 end % end classdef
 

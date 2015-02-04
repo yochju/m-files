@@ -55,6 +55,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = load(obj, fname)
         end
+        
+        function val = eq(obj1, obj2)
+            val = eq@nDGridData(obj1, obj2);
+        end
+        
     end
     
 end

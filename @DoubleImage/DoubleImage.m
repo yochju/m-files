@@ -41,7 +41,20 @@ classdef DoubleImage < ScalarImage
             
             obj = obj@ScalarImage(nr, nc);
         end
-
+        
+        function obj = plus(obj, obj2)
+            obj.p = obj.p + obj2.p;
+        end
+        
+        function val = eq(obj1, obj2)
+            val = eq@ScalarImage(obj1, obj2);
+            if (val)
+                if (max(abs(obj1.p(:)-obj2.p(:))) >= 1e-10)
+                    val = false;
+                end
+            end
+        end
+        
     end
     
 end
