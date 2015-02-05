@@ -42,8 +42,12 @@ classdef DoubleImage < ScalarImage
             obj = obj@ScalarImage(nr, nc);
         end
         
+        %function obj = plus(obj, obj2)
+        %    obj.p = obj.p + obj2.p;
+        %end
+        
         function obj = plus(obj, obj2)
-            obj.p = obj.p + obj2.p;
+            obj = plus@ScalarImage(obj, obj2);
         end
         
         function val = eq(obj1, obj2)
@@ -54,7 +58,7 @@ classdef DoubleImage < ScalarImage
                 end
             end
         end
-        
+                
     end
     
 end

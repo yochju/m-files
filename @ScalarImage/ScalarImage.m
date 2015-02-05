@@ -25,9 +25,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
     end
     
     properties (Hidden = true, Access = protected, Constant = true)
-        pDim = 1; % Dimension of a pixel (number of channels), e.g. 1 for a scalar
-                  % valued image, 3 for an RGB image, [3, 3] for a tensor valued
-                  % image. (array of integers)
+        pDim = 1; % Dimension of a pixel (number of channels), e.g. 1 for a
+                  % scalar valued image, 3 for an RGB image, [3, 3] for a tensor
+                  % valued image. (array of integers)
         
         isSequence = false; % Wether the image is actually a movie (logical)
     end
@@ -43,8 +43,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
             narginchk(2, 4);
             nargoutchk(0, 1);
             
-            obj = obj@nDGridData(nr, nc);
-            obj.p = nan(obj.nr, obj.nc);
+            obj = obj@nDGridData(nr, nc, varargin{:});
+            
+            obj.p = nan(obj.nr + 2*obj.br, obj.nc + 2*obj.bc);
         end
         
         function obj = pad(obj, siz, varargin)
@@ -54,6 +55,10 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = load(obj, fname)
+        end
+        
+        function obj = plus(obj, obj2)
+            obj = plus@nDGridData(obj, obj2);
         end
         
         function val = eq(obj1, obj2)

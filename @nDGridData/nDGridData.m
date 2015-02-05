@@ -214,10 +214,109 @@ classdef (Abstract = true) nDGridData
         function val = eq(obj1, obj2)
             val = true;
             
-            if ((obj1.nr ~= obj2.nr) || (obj1.nc ~= obj2.nc) || ...
-                    (obj1.br ~= obj2.br) || (obj1.bc ~= obj2.bc) || ...
+            if ( ~eqDims(obj1, obj2) || ...
                     (obj1.hr ~= obj2.hr) || (obj1.hc ~= obj2.hc) )
                 val = false;
+            end
+        end
+        
+        function val = eqDims(obj1, obj2)
+            val = true;
+            
+            if ((obj1.nr ~= obj2.nr) || (obj1.nc ~= obj2.nc) || ...
+                    (obj1.br ~= obj2.br) || (obj1.bc ~= obj2.bc))
+                val = false;
+            end
+        end
+        
+        %% Implementation of arithmetic operations for images.
+        % All arithmetic operations require that the involved dimensions nr, nc,
+        % br and bc match. No check on hr and hc is done. Should such a check be
+        % necessary, then it can always be done in a subclass. Also operations
+        % on arrays and images do not have any size check since it is not
+        % possible to know what is image and what is boundary.
+        
+        function obj = plus(obj, obj2)
+            %% Addition of two images. All dimensions must agree.
+            
+            % Check argument types so that we can handle any imaginable case of
+            % combinations like 3 + q, q + 3 and q + p, where q and p are
+            % images. Note that either obj or obj2 must be an image. Otherwise
+            % this method isn't called.
+            if isnumeric(obj)
+                obj = plus(obj2, obj);
+            elseif isnumeric(obj2)
+                obj.p = obj.p + obj2;
+            elseif eqDims(obj, obj2)
+                obj.p = obj.p + obj2.p;
+            else
+                MExc = ExceptionMessage('BadDim', ...
+                    'message', 'Image Dimensions do not match.');
+                error(MExc.id, MExc.message);
+            end
+        end
+        
+        function obj = uplus(obj)
+            %% Unary plus
+            obj.p = uplus(obj.p);
+        end
+        
+        
+        function obj = minus(obj, obj2)
+            %% Substraction of two images. All dimensions must agree.
+            
+            % Check argument types so that we can handle any imaginable case of
+            % combinations like 3 - q, q - 3 and q - p, where q and p are
+            % images. Note that either obj or obj2 must be an image. Otherwise
+            % this method isn't called.
+            if isnumeric(obj)
+                obj = uminus(minus(obj2, obj));
+            elseif isnumeric(obj2)
+                obj.p = obj.p - obj2;
+            elseif eqDims(obj, obj2)
+                obj.p = obj.p - obj2.p;
+            else
+                MExc = ExceptionMessage('BadDim', ...
+                    'message', 'Image Dimensions do not match.');
+                error(MExc.id, MExc.message);
+            end
+        end
+                
+        function obj = uminus(obj)
+            %% Unary minus
+            obj.p = uminus(obj.p);
+        end
+        
+        function obj = times(obj, obj2)
+            %% Pointwise product of two images. All dimensions must agree.
+            
+            % Check argument types so that we can handle any imaginable case of
+            % combinations like 3 .* q, q .* 3 and q .* p, where q and p are
+            % images. Note that either obj or obj2 must be an image. Otherwise
+            % this method isn't called.
+            if isnumeric(obj)
+                obj = times(obj2, obj);
+            elseif isnumeric(obj2)
+                obj.p = obj.p .* obj2;
+            elseif eqDims(obj, obj2)
+                obj.p = obj.p .* obj2.p;
+            else
+                MExc = ExceptionMessage('BadDim', ...
+                    'message', 'Image Dimensions do not match.');
+                error(MExc.id, MExc.message);
+            end
+        end
+                        
+        function obj = mtimes(obj, obj2)
+            %% Matrix product of two images. Involved Dimensions must agree.
+            
+            % TODO: handle different types of obj and obj2
+            if ((obj.nr + 2*obj.br) == (obj2.nc + 2*obj2.bc))
+                obj.p = obj.p * obj2.p;
+            else
+                MExc = ExceptionMessage('BadDim', ...
+                    'message', 'Image Dimensions do not match');
+                error(MExc.id, MExc.message);
             end
         end
 
