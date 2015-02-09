@@ -352,9 +352,10 @@ classdef (Abstract = true) nDGridData
                     obj = builtin('subsasgn', obj, s, val);
                 case '()'
                     if length(s)<2
-                        if strcmp(class(val),'MYDataClass')
-                            error('MYDataClass:subsasgn',...
-                                'Object must be scalar')
+                        if isa(val, 'nDGridData')
+                            MExc = ExceptionMessage('BadArg', ...
+                                'message', 'Assignment not supported.');
+                            error(MExc.id, MExc.message);
                         else
                             % Redefine s to make the call to obj.Data(i)
                             snew = substruct('.', 'p', '()', s(1).subs(:));
