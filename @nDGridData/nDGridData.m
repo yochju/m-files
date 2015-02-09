@@ -320,6 +320,28 @@ classdef (Abstract = true) nDGridData
             end
         end
 
+        function sref = subsref(obj, s)
+            %% obj(i) is equivalent to obj.p(i)
+            switch s(1).type
+                case '.'
+                    %% Use the built-in subsref for dot notation
+                    sref = builtin('subsref', obj, s);
+                case '()'
+                    if length(s)<2
+                        %% Note that obj.p is passed to subsref
+                        sref = builtin('subsref', obj.p, s);
+                        return
+                   else
+                        sref = builtin('subsref',obj, s);
+                    end
+                case '{}'
+                    %% No support for indexing using '{}'
+                    MExc = ExceptionMessage('BadArg', ...
+                        'message', 'Subscripted reference not supported.');
+                error(MExc.id, MExc.message);
+            end
+        end
+        
     end % end methods
 end % end classdef
 
