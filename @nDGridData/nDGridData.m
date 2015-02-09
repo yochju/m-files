@@ -332,13 +332,40 @@ classdef (Abstract = true) nDGridData
                         sref = builtin('subsref', obj.p, s);
                         return
                    else
-                        sref = builtin('subsref',obj, s);
+                        sref = builtin('subsref', obj, s);
                     end
                 case '{}'
                     %% No support for indexing using '{}'
                     MExc = ExceptionMessage('BadArg', ...
                         'message', 'Subscripted reference not supported.');
                 error(MExc.id, MExc.message);
+            end
+        end
+        
+        function obj = subsasgn(obj, s, val)
+            if isempty(s) && strcmp(class(val),'MYDataClass')
+                obj = MyDataClass(val.Data,val.Description);
+            end
+            switch s(1).type
+                case '.'
+                    %% Use the built-in subsasagn for dot notation
+                    obj = builtin('subsasgn', obj, s, val);
+                case '()'
+                    if length(s)<2
+                        if strcmp(class(val),'MYDataClass')
+                            error('MYDataClass:subsasgn',...
+                                'Object must be scalar')
+                        else
+                            % Redefine s to make the call to obj.Data(i)
+                            snew = substruct('.', 'p', '()', s(1).subs(:));
+                            obj = subsasgn(obj, snew, val);
+                        end
+                    end
+                case '{}'
+                    %% No support for indexing using '{}'
+                    MExc = ExceptionMessage('BadArg', ...
+                        'message', 'Subscripted assignment not supported.');
+                    error(MExc.id, MExc.message);
             end
         end
         
