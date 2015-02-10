@@ -343,8 +343,8 @@ classdef (Abstract = true) nDGridData
         end
         
         function obj = subsasgn(obj, s, val)
-            if isempty(s) && strcmp(class(val),'MYDataClass')
-                obj = MyDataClass(val.Data,val.Description);
+            if isempty(s) && isa(obj, 'nDGridData')
+                % ?
             end
             switch s(1).type
                 case '.'
