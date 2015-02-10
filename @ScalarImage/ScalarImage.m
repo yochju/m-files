@@ -38,14 +38,14 @@ classdef (Abstract = true) ScalarImage < nDGridData
     end
           
     methods
-        function obj = ScalarImage(nr, nc, varargin)
+        function obj = ScalarImage(nr, nc)
             
-            narginchk(2, 4);
+            narginchk(2, 2);
             nargoutchk(0, 1);
             
-            obj = obj@nDGridData(nr, nc, varargin{:});
+            obj = obj@nDGridData(nr, nc);
             
-            obj.p = nan(obj.nr + 2*obj.br, obj.nc + 2*obj.bc);
+            obj.p = nan(obj.nr, obj.nc);
         end
         
         function obj = pad(obj, siz, varargin)

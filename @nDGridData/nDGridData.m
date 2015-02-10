@@ -19,10 +19,26 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 01.02.2015 20:00
+    % Last revision on: 10.02.2015 13:00
+    
+    %% Properties
     
     properties
         % Elementary properties for image structures.
+        
+        hr = 1.0; % Distance between two points along a row (positive scalar)
+        hc = 1.0; % Distance between two points along a column (positive scalar)
+        
+        comment = cell(0); % Used to save textual information on the image. Note
+                           % that not every image format supports comments when
+                           % writing to disk.
+    end
+    
+    properties (SetAccess = protected, GetAccess = public)
+        % Elementary properties for image structures.
+        
+        % There is no write access to these properties to prevent its values
+        % from differing of the the actual image dimensions.
         
         nr = 1; % Number of rows (positive integer)
         nc = 1; % Number of columns (positive integer)
@@ -31,13 +47,6 @@ classdef (Abstract = true) nDGridData
         % integer)
         bc = 0; % Number of additional boundary columns on each side
         % (nonnegative integer)
-        
-        hr = 1.0; % Distance between two points along a row (positive scalar)
-        hc = 1.0; % Distance between two points along a column (positive scalar)
-        
-        comment = cell(0); % Used to save textual information on the image. Note
-                           % that not every image format supports comments when
-                           % writing to disk.
     end
     
     properties (Abstract = true)
@@ -72,6 +81,8 @@ classdef (Abstract = true) nDGridData
         isSequence % Wether the image is actually a movie (logical)
     end
     
+    %% Methods
+    
     methods (Abstract = true)
         load(obj, fname) % Reads image from disk.
         save(obj, fname) % Writes image to disk.
@@ -88,15 +99,6 @@ classdef (Abstract = true) nDGridData
             %
             % nr : Number of rows. (positive integer)
             % nc : Number of coloumns. (positive integer)
-            %
-            % Input parameters (optional):
-            %
-            % br : Number of boundary rows on each side (nonnegative integer)
-            % bc : Number of boundary coloumns on each side (nonnegative
-            %      integer)
-            % hr : Distance between two pixels along a row. (positive scalar)
-            % hc : Distance between two pixels along a coloumn. (positive
-            %      scalar)
             %
             % Output parameters:
             %
@@ -121,7 +123,7 @@ classdef (Abstract = true) nDGridData
             
             %% Parse the inputs passed to the constructor.
             
-            narginchk(2, 6);
+            narginchk(2, 2);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -133,34 +135,12 @@ classdef (Abstract = true) nDGridData
             parser.addRequired('nc', @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
                 'nDGridData', 'nc'));
-            
-            parser.addOptional('br', 0, @(x) validateattributes( x, ...
-                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
-                'nDGridData', 'br'));
-            
-            parser.addOptional('bc', 0, @(x) validateattributes( x, ...
-                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
-                'nDGridData', 'bc'));
-            
-            parser.addOptional('hr', 1.0, @(x) validateattributes( x, ...
-                {'numeric'}, {'scalar', 'positive'}, ...
-                'nDGridData', 'hr'));
-            
-            parser.addOptional('hc', 1.0, @(x) validateattributes( x, ...
-                {'numeric'}, {'scalar', 'positive'}, ...
-                'nDGridData', 'hc'));
-            
-            
-            parser.parse(nr, nc, varargin{:});
+                        
+            parser.parse(nr, nc);
             
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
             
-            obj.br = parser.Results.br;
-            obj.bc = parser.Results.bc;
-            
-            obj.hr = parser.Results.hr;
-            obj.hc = parser.Results.hc;
         end % end nDGridData
         
         function obj = set.nr(obj, val)
@@ -178,7 +158,7 @@ classdef (Abstract = true) nDGridData
             
             obj.nc = max(1, round(abs(val)));
         end
-        
+                
         function obj = set.br(obj, val)
             % Sets the number of boundary rows. If the input is negative, its
             % absolute value is taken. If the number is non-integer, it is
@@ -261,7 +241,6 @@ classdef (Abstract = true) nDGridData
             obj.p = uplus(obj.p);
         end
         
-        
         function obj = minus(obj, obj2)
             %% Substraction of two images. All dimensions must agree.
             
@@ -320,56 +299,62 @@ classdef (Abstract = true) nDGridData
             end
         end
 
-        function sref = subsref(obj, s)
-            %% obj(i) is equivalent to obj.p(i)
-            switch s(1).type
-                case '.'
-                    %% Use the built-in subsref for dot notation
-                    sref = builtin('subsref', obj, s);
-                case '()'
-                    if length(s)<2
-                        %% Note that obj.p is passed to subsref
-                        sref = builtin('subsref', obj.p, s);
-                        return
-                   else
-                        sref = builtin('subsref', obj, s);
-                    end
-                case '{}'
-                    %% No support for indexing using '{}'
-                    MExc = ExceptionMessage('BadArg', ...
-                        'message', 'Subscripted reference not supported.');
-                error(MExc.id, MExc.message);
-            end
-        end
+        % Redefining subsagn and subsref makes properties visible that are
+        % actually private. According to the matlab documentation there's no way
+        % around this at the moment. Each case must be handled individually. For
+        % the sake of clarity, subsref and subsasgn are commented out until I
+        % find a good solution.
+%         function sref = subsref(obj, s)
+%             %% obj(i) is equivalent to obj.p(i)
+%             switch s(1).type
+%                 case '.'
+%                     %% Use the built-in subsref for dot notation
+%                     sref = builtin('subsref', obj, s);
+%                 case '()'
+%                     if length(s)<2
+%                         %% Note that obj.p is passed to subsref
+%                         sref = builtin('subsref', obj.p, s);
+%                         return
+%                    else
+%                         sref = builtin('subsref', obj, s);
+%                     end
+%                 case '{}'
+%                     %% No support for indexing using '{}'
+%                     MExc = ExceptionMessage('BadArg', ...
+%                         'message', 'Subscripted reference not supported.');
+%                 error(MExc.id, MExc.message);
+%             end
+%         end
         
-        function obj = subsasgn(obj, s, val)
-            if isempty(s) && isa(obj, 'nDGridData')
-                % ?
-            end
-            switch s(1).type
-                case '.'
-                    %% Use the built-in subsasagn for dot notation
-                    obj = builtin('subsasgn', obj, s, val);
-                case '()'
-                    if length(s)<2
-                        if isa(val, 'nDGridData')
-                            MExc = ExceptionMessage('BadArg', ...
-                                'message', 'Assignment not supported.');
-                            error(MExc.id, MExc.message);
-                        else
-                            % Redefine s to make the call to obj.Data(i)
-                            snew = substruct('.', 'p', '()', s(1).subs(:));
-                            obj = subsasgn(obj, snew, val);
-                        end
-                    end
-                case '{}'
-                    %% No support for indexing using '{}'
-                    MExc = ExceptionMessage('BadArg', ...
-                        'message', 'Subscripted assignment not supported.');
-                    error(MExc.id, MExc.message);
-            end
-        end
+%         function obj = subsasgn(obj, s, val)
+%             if isempty(s) && isa(obj, 'nDGridData')
+%                 % ?
+%             end
+%             switch s(1).type
+%                 case '.'
+%                     %% Use the built-in subsasagn for dot notation
+%                     obj = builtin('subsasgn', obj, s, val);
+%                 case '()'
+%                     if length(s)<2
+%                         if isa(val, 'nDGridData')
+%                             MExc = ExceptionMessage('BadArg', ...
+%                                 'message', 'Assignment not supported.');
+%                             error(MExc.id, MExc.message);
+%                         else
+%                             % Redefine s to make the call to obj.Data(i)
+%                             snew = substruct('.', 'p', '()', s(1).subs(:));
+%                             obj = subsasgn(obj, snew, val);
+%                         end
+%                     end
+%                 case '{}'
+%                     %% No support for indexing using '{}'
+%                     MExc = ExceptionMessage('BadArg', ...
+%                         'message', 'Subscripted assignment not supported.');
+%                     error(MExc.id, MExc.message);
+%             end
+%         end
         
     end % end methods
+    
 end % end classdef
 

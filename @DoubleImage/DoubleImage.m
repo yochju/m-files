@@ -34,9 +34,9 @@ classdef DoubleImage < ScalarImage
     end
               
     methods
-        function obj = DoubleImage(nr, nc, varargin)
+        function obj = DoubleImage(nr, nc)
             
-            narginchk(2, 4);
+            narginchk(2, 2);
             nargoutchk(0, 1);
             
             obj = obj@ScalarImage(nr, nc);
