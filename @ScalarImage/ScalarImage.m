@@ -48,7 +48,32 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p = nan(obj.nr, obj.nc);
         end
         
-        function obj = pad(obj, siz, varargin)
+        function obj = pad(obj, varargin)
+            %% Provide dummy boundary for the image.
+            % Acts as a wrapper function around padarray from the image
+            % processing toolbox. Arguments are only checked for their existence
+            % and given sane default values if missing. Otherwise everything is
+            % left to padarray.
+            
+            narginchk(1, 7);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'pad', 'obj'));
+            
+            parser.addParameter('padsize', [1, 1]);
+            parser.addParameter('padval', 0);
+            parser.addParameter('direction', 'both');
+                        
+            parser.parse(obj, varargin{:});
+            
+            obj.p = padarray(obj.p, parser.Results.padsize, ...
+                parser.Results.padval, parser.Results.direction);
+            
+            obj.br = obj.br + parser.Results.padsize(1);
+            obj.bc = obj.bc + parser.Results.padsize(2);
         end
         
         function obj = save(obj, fname)

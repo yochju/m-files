@@ -298,7 +298,7 @@ classdef (Abstract = true) nDGridData
                 error(MExc.id, MExc.message);
             end
         end
-
+        
         % Redefining subsagn and subsref makes properties visible that are
         % actually private. According to the matlab documentation there's no way
         % around this at the moment. Each case must be handled individually. For
