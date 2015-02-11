@@ -107,15 +107,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.bc = 0;
             obj.p = tmp;
         end
-        
-        function obj = plus(obj, obj2)
-            obj = plus@nDGridData(obj, obj2);
-        end
-        
-        function val = eq(obj1, obj2)
-            val = eq@nDGridData(obj1, obj2);
-        end
-        
+                
     end
     
 end
