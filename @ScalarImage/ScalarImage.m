@@ -75,11 +75,37 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.br = obj.br + parser.Results.padsize(1);
             obj.bc = obj.bc + parser.Results.padsize(2);
         end
-        
-        function obj = save(obj, fname)
+                
+        function save(obj, fname, varargin)
+            %% Write Image to disk.
+            % Acts as a wrapper function around imwrite.
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'load', 'obj'));
+            parser.addRequired('fname', @(x) validateattributes( x, ...
+                {'char'}, {'nonempty'}, 'load', 'fname'));
+            
+            parser.parse(obj, fname);
+            
+            imwrite(obj.p, parser.Results.fname, varargin{:});
         end
         
-        function obj = load(obj, fname)
+        function obj = load(obj, fname, varargin)
+            %% Load image from disk.
+            % Acts as a wrapper function around imread.
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'load', 'obj'));
+            parser.addRequired('fname', @(x) validateattributes( x, ...
+                {'char'}, {'nonempty'}, 'load', 'fname'));
+            
+            parser.parse(obj, fname);
+            
+            tmp = imread(parser.Results.fname, varargin{:});
+            obj.nr = size(tmp, 1);
+            obj.nc = size(tmp, 2);
+            obj.br = 0;
+            obj.bc = 0;
+            obj.p = tmp;
         end
         
         function obj = plus(obj, obj2)
