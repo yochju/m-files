@@ -19,7 +19,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 10.02.2015 13:00
+    % Last revision on: 11.02.2015 17:00
     
     %% Properties
     
@@ -208,7 +208,7 @@ classdef (Abstract = true) nDGridData
                 val = false;
             end
         end
-        
+                        
         %% Implementation of arithmetic operations for images.
         % All arithmetic operations require that the involved dimensions nr, nc,
         % br and bc match. No check on hr and hc is done. Should such a check be
@@ -286,17 +286,24 @@ classdef (Abstract = true) nDGridData
             end
         end
                         
-        function obj = mtimes(obj, obj2)
-            %% Matrix product of two images. Involved Dimensions must agree.
-            
-            % TODO: handle different types of obj and obj2
-            if ((obj.nr + 2*obj.br) == (obj2.nc + 2*obj2.bc))
-                obj.p = obj.p * obj2.p;
-            else
-                MExc = ExceptionMessage('BadDim', ...
-                    'message', 'Image Dimensions do not match');
-                error(MExc.id, MExc.message);
-            end
+        function out = mtimes(obj, obj2)
+            MExc = ExceptionMessage('Unsupported');
+            error(MExc.id, MExc.message);
+        end
+        
+        function out = rdivide(obj, obj2)
+            MExc = ExceptionMessage('Unsupported');
+            error(MExc.id, MExc.message);
+        end
+        
+        function out = ldivide(obj, obj2)
+            MExc = ExceptionMessage('Unsupported');
+            error(MExc.id, MExc.message);
+        end
+                
+        function out = transpose(obj)
+            MExc = ExceptionMessage('Unsupported');
+            error(MExc.id, MExc.message);
         end
         
         % Redefining subsagn and subsref makes properties visible that are
