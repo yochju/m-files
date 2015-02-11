@@ -304,6 +304,11 @@ classdef (Abstract = true) nDGridData
         % around this at the moment. Each case must be handled individually. For
         % the sake of clarity, subsref and subsasgn are commented out until I
         % find a good solution.
+        % one possible solution would be to query the status of the properties
+        % via
+        % mco = ?nDGridData; mp = findobj(mco.PropertyList, 'Name', 'nr');
+        % strcmp(mp.SetAccess,'private');
+        %
 %         function sref = subsref(obj, s)
 %             %% obj(i) is equivalent to obj.p(i)
 %             switch s(1).type
