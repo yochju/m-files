@@ -18,7 +18,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 02.02.2015 16:00
+    % Last revision on: 11.02.2015 17:00
     
     properties
         p = nan(1);
@@ -107,7 +107,18 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.bc = 0;
             obj.p = tmp;
         end
-                
+        
+        function out = vec(obj)
+            out = obj.p(:);
+        end
+        
+        function obj = reshape(obj, nr, nc, br, bc)
+            obj.p = reshape(obj.p, [nr + 2*br, nc + 2*bc]);
+            obj.nr = nr;
+            obj.nc = nc;
+            obj.br = br;
+            obj.bc = bc;
+        end
     end
     
 end
