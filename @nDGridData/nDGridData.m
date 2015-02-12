@@ -89,6 +89,18 @@ classdef (Abstract = true) nDGridData
         pad(obj, siz, varargin) % Changes the dummy boundary of an image.
     end
     
+    methods (Access = protected)
+        function val = eqDims(obj1, obj2)
+            %% Check that nr, nc, br, bc are equal.
+            val = true;
+            
+            if ((obj1.nr ~= obj2.nr) || (obj1.nc ~= obj2.nc) || ...
+                    (obj1.br ~= obj2.br) || (obj1.bc ~= obj2.bc))
+                val = false;
+            end
+        end 
+    end
+    
     methods
         function obj = nDGridData(nr, nc, varargin)
             %% Constructor for nDGridData.
@@ -190,8 +202,16 @@ classdef (Abstract = true) nDGridData
             
             obj.hc = abs(val);
         end
+                                
+        %% Implementation of arithmetic operations for images.
+        % All arithmetic operations require that the involved dimensions nr, nc,
+        % br and bc match. No check on hr and hc is done. Should such a check be
+        % necessary, then it can always be done in a subclass. Also operations
+        % on arrays and images do not have any size check since it is not
+        % possible to know what is image and what is boundary.
         
         function val = eq(obj1, obj2)
+            %% Check that all nDGridData properties are equal.
             val = true;
             
             if ( ~eqDims(obj1, obj2) || ...
@@ -199,22 +219,7 @@ classdef (Abstract = true) nDGridData
                 val = false;
             end
         end
-        
-        function val = eqDims(obj1, obj2)
-            val = true;
-            
-            if ((obj1.nr ~= obj2.nr) || (obj1.nc ~= obj2.nc) || ...
-                    (obj1.br ~= obj2.br) || (obj1.bc ~= obj2.bc))
-                val = false;
-            end
-        end
-                        
-        %% Implementation of arithmetic operations for images.
-        % All arithmetic operations require that the involved dimensions nr, nc,
-        % br and bc match. No check on hr and hc is done. Should such a check be
-        % necessary, then it can always be done in a subclass. Also operations
-        % on arrays and images do not have any size check since it is not
-        % possible to know what is image and what is boundary.
+
         
         function obj = plus(obj, obj2)
             %% Addition of two images. All dimensions must agree.
@@ -308,35 +313,39 @@ classdef (Abstract = true) nDGridData
         
         % Redefining subsagn and subsref makes properties visible that are
         % actually private. According to the matlab documentation there's no way
-        % around this at the moment. Each case must be handled individually. For
-        % the sake of clarity, subsref and subsasgn are commented out until I
-        % find a good solution.
-        % one possible solution would be to query the status of the properties
-        % via
-        % mco = ?nDGridData; mp = findobj(mco.PropertyList, 'Name', 'nr');
-        % strcmp(mp.SetAccess,'private');
-        %
-%         function sref = subsref(obj, s)
-%             %% obj(i) is equivalent to obj.p(i)
-%             switch s(1).type
-%                 case '.'
-%                     %% Use the built-in subsref for dot notation
-%                     sref = builtin('subsref', obj, s);
-%                 case '()'
-%                     if length(s)<2
-%                         %% Note that obj.p is passed to subsref
-%                         sref = builtin('subsref', obj.p, s);
-%                         return
-%                    else
-%                         sref = builtin('subsref', obj, s);
-%                     end
-%                 case '{}'
-%                     %% No support for indexing using '{}'
-%                     MExc = ExceptionMessage('BadArg', ...
-%                         'message', 'Subscripted reference not supported.');
-%                 error(MExc.id, MExc.message);
-%             end
-%         end
+        % around this at the moment. Each case must be handled individually. 
+        function sref = subsref(obj, s)
+            %% obj(i) is equivalent to obj.p(i)
+            switch s(1).type
+                case '.'
+                    %% Use the built-in subsref for dot notation
+                    % TODO: protected access still fails.
+                    % Maybe this will be too complex and too much computational
+                    % overhead to handle.
+                    mc = metaclass(obj);
+                    mcp = findobj(mc.PropertyList, 'Name', s(1).subs);
+                    if strcmpi(mcp.GetAccess, 'public')
+                        sref = builtin('subsref', obj, s);
+                    else
+                        MExc = ExceptionMessage('Input', ...
+                            'message', 'Property is not public.');
+                        error(MExc.id, MExc.message);
+                    end
+                case '()'
+                    if length(s)<2
+                        %% Note that obj.p is passed to subsref
+                        sref = builtin('subsref', obj.p, s);
+                        return
+                   else
+                        sref = builtin('subsref', obj, s);
+                    end
+                case '{}'
+                    %% No support for indexing using '{}'
+                    MExc = ExceptionMessage('BadArg', ...
+                        'message', 'Subscripted reference not supported.');
+                error(MExc.id, MExc.message);
+            end
+        end
         
 %         function obj = subsasgn(obj, s, val)
 %             if isempty(s) && isa(obj, 'nDGridData')

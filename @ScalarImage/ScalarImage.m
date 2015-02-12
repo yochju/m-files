@@ -48,6 +48,25 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p = nan(obj.nr, obj.nc);
         end
         
+        function obj = set.p(obj, vals)
+            if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
+                MExc = ExceptionMessage('BadArg', ...
+                    'message', 'Data leaves admissible range.');
+                warning(MExc.id, MExc.message);
+            end
+            
+            obj.p = vals;
+        end
+        
+        function obj = get.p(obj)
+            if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
+                MExc = ExceptionMessage('BadArg', ...
+                    'message', 'Data leaves admissible range.');
+                warning(MExc.id, MExc.message);
+            end
+        end
+        
+                
         function obj = pad(obj, varargin)
             %% Provide dummy boundary for the image.
             % Acts as a wrapper function around padarray from the image
