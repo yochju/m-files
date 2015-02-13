@@ -18,9 +18,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 13.02.2015 12:00
+    % Last revision on: 13.02.2015 20:00
     
     properties
+        % For scalar valued images, out data is stored in a simple 2D
+        % array. p(i,j) containts the pixel value at position (i,j).
         p = nan(1);
     end
     
@@ -39,9 +41,12 @@ classdef (Abstract = true) ScalarImage < nDGridData
     properties (Hidden = true, SetAccess = protected)
         nd = 1;
     end
+    
+    %% Methods
           
     methods
         function obj = ScalarImage(nr, nc)
+            %% Constructor for nDGridData.
             
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -53,6 +58,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = set.p(obj, vals)
             if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
+                %% Emit a warning if assigned value is not within range
                 MExc = ExceptionMessage('BadArg', ...
                     'message', 'Data leaves admissible range.');
                 warning(MExc.id, MExc.message);
@@ -60,16 +66,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             obj.p = vals;
         end
-        
-        function obj = get.p(obj)
-            if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
-                MExc = ExceptionMessage('BadArg', ...
-                    'message', 'Data leaves admissible range.');
-                warning(MExc.id, MExc.message);
-            end
-        end
-        
-                
+           
         function obj = pad(obj, varargin)
             %% Provide dummy boundary for the image.
             % Acts as a wrapper function around padarray from the image
@@ -131,16 +128,46 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function out = vec(obj)
+            %% Return 1D array containing the image pixels.
             out = obj.p(:);
         end
         
         function obj = reshape(obj, nr, nc, br, bc)
+            %% Change image shape.
+            
+            narginchk(5, 5);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.addRequired('nr', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'reshape', 'nr'));
+            
+            parser.addRequired('nc', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'reshape', 'nc'));
+            
+            parser.addRequired('br', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'reshape', 'br'));
+            
+            parser.addRequired('bc', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'reshape', 'bc'));
+            
+            parser.parse(nr, nc);
+            
             obj.p = reshape(obj.p, [nr + 2*br, nc + 2*bc]);
             obj.nr = nr;
             obj.nc = nc;
             obj.br = br;
             obj.bc = bc;
         end
+
     end
     
 end

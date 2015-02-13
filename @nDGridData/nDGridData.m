@@ -19,7 +19,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 13.02.2015 12:00
+    % Last revision on: 13.02.2015 20:00
     
     %% Properties
     
@@ -44,9 +44,9 @@ classdef (Abstract = true) nDGridData
         nc = 1; % Number of columns (positive integer)
         
         br = 0; % Number of additional boundary rows on each side (nonnegative
-        % integer)
+                % integer)
         bc = 0; % Number of additional boundary columns on each side
-        % (nonnegative integer)
+                % (nonnegative integer)
     end
     
     properties (Abstract = true)
