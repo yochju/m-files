@@ -19,7 +19,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 11.02.2015 17:00
+    % Last revision on: 13.02.2015 12:00
     
     %% Properties
     
@@ -54,11 +54,12 @@ classdef (Abstract = true) nDGridData
           % image model. Thus [nr, nc] for a gray scale image, [nr, nc, pDim]
           % for a multi channel image and [nr, nc, nd, pDim] for an image
           % sequence. (array)
-        
-        nd % Number of frames. (positive integer)
+          
         hd % Difference between two frames. (positive scalar)
+    end
         
-        colsp % The underlying colour space (ColourSpace object)
+    properties (Abstract = true, SetAccess = protected)
+        nd % Number of frames. (positive integer)
     end
     
     properties (Abstract = true, Constant = true)
@@ -69,6 +70,7 @@ classdef (Abstract = true) nDGridData
         
         rangeMin % minimal possible value in each channel (array of size pDim)
         rangeMax % maximal possible value in each channel (array of size pDim)
+        colsp    % The underlying colour space (ColourSpace object)
     end
     
     properties (Abstract = true, Hidden = true, Access = protected, ...
@@ -314,38 +316,38 @@ classdef (Abstract = true) nDGridData
         % Redefining subsagn and subsref makes properties visible that are
         % actually private. According to the matlab documentation there's no way
         % around this at the moment. Each case must be handled individually. 
-        function sref = subsref(obj, s)
-            %% obj(i) is equivalent to obj.p(i)
-            switch s(1).type
-                case '.'
-                    %% Use the built-in subsref for dot notation
-                    % TODO: protected access still fails.
-                    % Maybe this will be too complex and too much computational
-                    % overhead to handle.
-                    mc = metaclass(obj);
-                    mcp = findobj(mc.PropertyList, 'Name', s(1).subs);
-                    if strcmpi(mcp.GetAccess, 'public')
-                        sref = builtin('subsref', obj, s);
-                    else
-                        MExc = ExceptionMessage('Input', ...
-                            'message', 'Property is not public.');
-                        error(MExc.id, MExc.message);
-                    end
-                case '()'
-                    if length(s)<2
-                        %% Note that obj.p is passed to subsref
-                        sref = builtin('subsref', obj.p, s);
-                        return
-                   else
-                        sref = builtin('subsref', obj, s);
-                    end
-                case '{}'
-                    %% No support for indexing using '{}'
-                    MExc = ExceptionMessage('BadArg', ...
-                        'message', 'Subscripted reference not supported.');
-                error(MExc.id, MExc.message);
-            end
-        end
+%         function sref = subsref(obj, s)
+%             %% obj(i) is equivalent to obj.p(i)
+%             switch s(1).type
+%                 case '.'
+%                     %% Use the built-in subsref for dot notation
+%                     % TODO: protected access still fails.
+%                     % Maybe this will be too complex and too much computational
+%                     % overhead to handle.
+%                     mc = metaclass(obj);
+%                     mcp = findobj(mc.PropertyList, 'Name', s(1).subs);
+%                     if strcmpi(mcp.GetAccess, 'public')
+%                         sref = builtin('subsref', obj, s);
+%                     else
+%                         MExc = ExceptionMessage('Input', ...
+%                             'message', 'Property is not public.');
+%                         error(MExc.id, MExc.message);
+%                     end
+%                 case '()'
+%                     if length(s)<2
+%                         %% Note that obj.p is passed to subsref
+%                         sref = builtin('subsref', obj.p, s);
+%                         return
+%                    else
+%                         sref = builtin('subsref', obj, s);
+%                     end
+%                 case '{}'
+%                     %% No support for indexing using '{}'
+%                     MExc = ExceptionMessage('BadArg', ...
+%                         'message', 'Subscripted reference not supported.');
+%                 error(MExc.id, MExc.message);
+%             end
+%         end
         
 %         function obj = subsasgn(obj, s, val)
 %             if isempty(s) && isa(obj, 'nDGridData')

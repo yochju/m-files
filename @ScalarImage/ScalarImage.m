@@ -18,7 +18,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 11.02.2015 17:00
+    % Last revision on: 13.02.2015 12:00
     
     properties
         p = nan(1);
@@ -33,8 +33,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
     end
     
     properties (Hidden = true)
-        nd = 1;
         hd = 0.0;
+    end
+    
+    properties (Hidden = true, SetAccess = protected)
+        nd = 1;
     end
           
     methods

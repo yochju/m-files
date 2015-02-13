@@ -1,5 +1,5 @@
 classdef DoubleImage < ScalarImage
-    %RasterImage Class for representing single channel images.
+    %DoubleImage Class for representing single channel images.
     %   Detailed explanation goes here
         
     % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
@@ -18,19 +18,19 @@ classdef DoubleImage < ScalarImage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 02.02.2015 16:00
+    % Last revision on: 13.02.2015 12:00
     
     properties (Constant = true)
+        % Note that the SetAccess attribute is ingnored for constant properties.
         rangeMin = 0;
         rangeMax = 1;
-    end
-    
-    properties (Hidden = true, Access = protected, Constant = true)        
-        isIndexed = false; % Wether the colours are indexed via a colourmap (logical)
-    end
-    
-    properties
         colsp = ColourSpace.None;
+    end
+    
+    properties (Hidden = true, Access = protected, Constant = true)
+        % Note that the SetAccess attribute is ingnored for constant properties.
+        isIndexed = false; % Wether the colours are indexed via a colourmap
+                           % (logical)
     end
               
     methods
