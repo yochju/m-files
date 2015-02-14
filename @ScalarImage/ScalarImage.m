@@ -164,8 +164,6 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p = reshape(obj.p, [nr + 2*br, nc + 2*bc]);
             obj.nr = nr;
             obj.nc = nc;
-            obj.br = br;
-            obj.bc = bc;
         end
 
     end

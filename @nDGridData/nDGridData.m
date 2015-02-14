@@ -42,7 +42,10 @@ classdef (Abstract = true) nDGridData
         
         nr = 1; % Number of rows (positive integer)
         nc = 1; % Number of columns (positive integer)
-        
+
+    end
+    
+    properties (Dependent = true, SetAccess = private)
         br = 0; % Number of additional boundary rows on each side (nonnegative
                 % integer)
         bc = 0; % Number of additional boundary columns on each side
@@ -104,7 +107,7 @@ classdef (Abstract = true) nDGridData
     end
     
     methods
-        function obj = nDGridData(nr, nc, varargin)
+        function obj = nDGridData(nr, nc)
             %% Constructor for nDGridData.
             %
             % obj = nDGridData(nr, nc, varargin)
@@ -173,20 +176,20 @@ classdef (Abstract = true) nDGridData
             obj.nc = max(1, round(abs(val)));
         end
                 
-        function obj = set.br(obj, val)
+        function br = get.br(obj)
             % Sets the number of boundary rows. If the input is negative, its
             % absolute value is taken. If the number is non-integer, it is
             % rounded.
             
-            obj.br = round(abs(val));
+            br = (size(obj.p, 1) - obj.nr)/2;
         end
         
-        function obj = set.bc(obj, val)
+        function bc = get.bc(obj)
             % Sets the number of boundary coloumns. If the input is negative,
             % its absolute value is taken. If the number is non-integer, it is
             % rounded.
             
-            obj.bc = round(abs(val));
+            bc = (size(obj.p, 2) - obj.nc)/2;
         end
         
         function obj = set.hr(obj, val)
