@@ -156,10 +156,10 @@ classdef (Abstract = true) ScalarImage < nDGridData
             out = obj.p(:);
         end
         
-        function obj = reshape(obj, nr, nc, br, bc)
+        function obj = reshape(obj, nr, nc, varargin)
             %% Change image shape.
             
-            narginchk(5, 5);
+            narginchk(3, 7);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -175,25 +175,27 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
                 'reshape', 'nc'));
             
-            parser.addRequired('br', @(x) validateattributes( x, ...
+            parser.addOptional('br', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
                 'reshape', 'br'));
             
-            parser.addRequired('bc', @(x) validateattributes( x, ...
+            parser.addOptional('bc', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
                 'reshape', 'bc'));
             
-            parser.parse(nr, nc);
+            parser.parse(obj, nr, nc, varargin{:});
             
-            obj.p = reshape(obj.p, [nr + 2*br, nc + 2*bc]);
-            obj.nr = nr;
-            obj.nc = nc;
+            obj.p = reshape(obj.p, ...
+                [parser.Results.nr + 2*parser.Results.br, ...
+                parser.Results.nc + 2*parser.Results.bc]);
+            obj.nr = parser.Results.nr;
+            obj.nc = parser.Results.nc;
         end
-
-        function obj = resize(obj, nr, nc, br, bc)
+        
+        function obj = resize(obj, nr, nc, varargin)
             %% Change image shape.
             
-            narginchk(5, 5);
+            narginchk(3, 7);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -209,19 +211,21 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
                 'reshape', 'nc'));
             
-            parser.addRequired('br', @(x) validateattributes( x, ...
+            parser.addOptional('br', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
                 'reshape', 'br'));
             
-            parser.addRequired('bc', @(x) validateattributes( x, ...
+            parser.addOptional('bc', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
                 'reshape', 'bc'));
             
-            parser.parse(nr, nc);
+            parser.parse(obj, nr, nc, varargin{:});
             
-            obj.p = imresize(obj.p, [nr + 2*br, nc + 2*bc]);
-            obj.nr = nr;
-            obj.nc = nc;
+            obj.p = imresize(obj.p, ...
+                [parser.Results.nr + 2*parser.Results.br, ...
+                parser.Results.nc + 2*parser.Results.bc]);
+            obj.nr = parser.Results.nr;
+            obj.nc = parser.Results.nc;
         end
         
     end
