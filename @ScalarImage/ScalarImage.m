@@ -48,15 +48,36 @@ classdef (Abstract = true) ScalarImage < nDGridData
     %% Methods
           
     methods
-        function obj = ScalarImage(nr, nc)
+        function obj = ScalarImage(nr, nc, varargin)
             %% Constructor for nDGridData.
             
-            narginchk(2, 2);
+            narginchk(2, 6);
             nargoutchk(0, 1);
             
+            parser = inputParser;
+            
+            parser.addRequired('nr', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'nDGridData', 'nr'));
+            
+            parser.addRequired('nc', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'nDGridData', 'nc'));
+            
+            parser.addOptional('br', 0, @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'nDGridData', 'br'));
+            
+            parser.addOptional('bc', 0, @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'nDGridData', 'bc'));
+            
+            parser.parse(nr, nc, varargin{:});
+
             obj = obj@nDGridData(nr, nc);
             
-            obj.p = nan(obj.nr, obj.nc);
+            obj.p = nan(obj.nr + 2*parser.Results.br, ...
+                obj.nc + 2*parser.Results.bc);
         end
         
         function obj = set.p(obj, vals)

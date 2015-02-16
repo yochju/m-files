@@ -107,7 +107,7 @@ classdef (Abstract = true) nDGridData
     end
     
     methods
-        function obj = nDGridData(nr, nc)
+        function obj = nDGridData(nr, nc, varargin)
             %% Constructor for nDGridData.
             %
             % obj = nDGridData(nr, nc, varargin)
@@ -116,6 +116,8 @@ classdef (Abstract = true) nDGridData
             %
             % nr : Number of rows. (positive integer)
             % nc : Number of coloumns. (positive integer)
+            % br : Number of dummy rows. (nonnegative integer)
+            % bc : Number of dummy coloumns. (nonnegative integer)
             %
             % Output parameters:
             %
@@ -140,7 +142,7 @@ classdef (Abstract = true) nDGridData
             
             %% Parse the inputs passed to the constructor.
             
-            narginchk(2, 2);
+            narginchk(2, 6);
             nargoutchk(0, 1);
             
             parser = inputParser;
@@ -152,8 +154,16 @@ classdef (Abstract = true) nDGridData
             parser.addRequired('nc', @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
                 'nDGridData', 'nc'));
+            
+            parser.addOptional('br', 0, @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'nDGridData', 'br'));
+            
+            parser.addOptional('bc', 0, @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'nDGridData', 'bc'));
                         
-            parser.parse(nr, nc);
+            parser.parse(nr, nc, varargin{:});
             
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;

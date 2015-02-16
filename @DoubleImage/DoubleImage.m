@@ -35,12 +35,12 @@ classdef DoubleImage < ScalarImage
     end
               
     methods
-        function obj = DoubleImage(nr, nc)
+        function obj = DoubleImage(nr, nc, varargin)
             
-            narginchk(2, 2);
+            narginchk(2, 6);
             nargoutchk(0, 1);
             
-            obj = obj@ScalarImage(nr, nc);
+            obj = obj@ScalarImage(nr, nc, varargin{:});
         end
                 
         function val = eq(obj1, obj2)
