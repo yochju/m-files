@@ -151,9 +151,30 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p = tmp;
         end
         
-        function out = vec(obj)
+        function out = vec(obj, varargin)
             %% Return 1D array containing the image pixels.
-            out = obj.p(:);
+            
+            narginchk(1, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+ 
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'load', 'obj'));
+            
+            parser.addOptional('ordering', 'column-wise', @(x) strcmpi(x, ...
+                validatestring( x, {'row-wise', 'column-wise'}, ...
+                'vec', 'ordering') ) );
+
+            parser.parse(in, varargin{:});
+            
+            if strcmpi(parser.Results.ordering, 'row-wise')
+                tmp = (obj.p)';
+                out = tmp(:);
+            else
+                out = obj.p(:);
+            end
+            
         end
         
         function obj = reshape(obj, nr, nc, varargin)
