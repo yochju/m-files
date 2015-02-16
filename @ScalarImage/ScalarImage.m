@@ -169,6 +169,40 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.nc = nc;
         end
 
+        function obj = resize(obj, nr, nc, br, bc)
+            %% Change image shape.
+            
+            narginchk(5, 5);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.addRequired('nr', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'reshape', 'nr'));
+            
+            parser.addRequired('nc', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'positive'}, ...
+                'reshape', 'nc'));
+            
+            parser.addRequired('br', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'reshape', 'br'));
+            
+            parser.addRequired('bc', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
+                'reshape', 'bc'));
+            
+            parser.parse(nr, nc);
+            
+            obj.p = imresize(obj.p, [nr + 2*br, nc + 2*bc]);
+            obj.nr = nr;
+            obj.nc = nc;
+        end
+        
     end
     
 end
