@@ -1,6 +1,9 @@
 classdef (Abstract = true) ScalarImage < nDGridData
     %ScalarImage Class for representing single channel images.
-    %   Detailed explanation goes here
+    % Intermediate class for images with scalar valued pixels. It serves as a
+    % basis for setting up grey scale images (indexed and non-indexed images).
+    % The image is an array of size [nr + 2*br, nc + 2*bc]. bc and br are dummy
+    % boundaries used countless applications such as convolution filters.
     
     % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -18,7 +21,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 13.02.2015 20:00
+    % Last revision on: 16.02.2015 10:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
