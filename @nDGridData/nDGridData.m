@@ -116,6 +116,9 @@ classdef (Abstract = true) nDGridData
             %
             % nr : Number of rows. (positive integer)
             % nc : Number of coloumns. (positive integer)
+            %
+            % Input parameters (optional):
+            %
             % br : Number of dummy rows. (nonnegative integer)
             % bc : Number of dummy coloumns. (nonnegative integer)
             %

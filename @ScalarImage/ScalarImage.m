@@ -155,6 +155,29 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function out = vec(obj, varargin)
             %% Return 1D array containing the image pixels.
+            %
+            % out = vec(obj)
+            % out = vec(obj, ordering)
+            %
+            % Input parameters (required):
+            %
+            % obj : A ScalarImage object
+            %
+            % Optional parameters:
+            %
+            % ordering : either 'row-wise' or 'column-wise' to indicate in which
+            %            order the pixels should be traversed. Default is
+            %            column-wise, which corresponds with the default matlab
+            %            ordering.
+            %
+            % Output parameters:
+            %
+            % out : a 1D array containing all pixel values.
+            %
+            % Description:
+            %
+            % Runs linearly over all pixel and returns them in a simple 1D
+            % array.
             
             narginchk(1, 2);
             nargoutchk(0, 1);
@@ -181,6 +204,31 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = reshape(obj, nr, nc, varargin)
             %% Change image shape.
+            %
+            % obj = reshape(obj, nr, nc)
+            % obj = reshape(obj, nr, nc, br)
+            % obj = reshape(obj, nr, nc, br, bc)
+            %
+            % Input parameters (required):
+            %
+            % obj : A ScalarImage object
+            % nr  : Number of rows. (positive integer)
+            % nc  : Number of coloumns. (positive integer)
+            %
+            % Input parameters (optional):
+            %
+            % br : Number of dummy rows. (nonnegative integer)
+            % bc : Number of dummy coloumns. (nonnegative integer)
+            %
+            % Output parameters:
+            %
+            % obj : a ScalarImage with reshaped pixel data array.
+            %
+            % Description:
+            %
+            % This is a wrapper function around the builtin function reshape.
+            % Note that not all options from the original reshape function are
+            % supported.
             
             narginchk(3, 7);
             nargoutchk(0, 1);
@@ -216,7 +264,32 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = resize(obj, nr, nc, varargin)
-            %% Change image shape.
+            %% Change image size
+            %
+            % obj = resize(obj, nr, nc)
+            % obj = resize(obj, nr, nc, br)
+            % obj = resize(obj, nr, nc, br, bc)
+            %
+            % Input parameters (required):
+            %
+            % obj : A ScalarImage object
+            % nr  : Number of rows. (positive integer)
+            % nc  : Number of coloumns. (positive integer)
+            %
+            % Input parameters (optional):
+            %
+            % br : Number of dummy rows, 0 by default. (nonnegative integer)
+            % bc : Number of dummy coloumns, 0 by default. (nonnegative integer)
+            %
+            % Output parameters:
+            %
+            % obj : a ScalarImage with reshaped pixel data array.
+            %
+            % Description:
+            %
+            % This is a wrapper function around the imresize function from the
+            % image processing toolbox. Note that not all options from the
+            % original imresize function are supported.
             
             narginchk(3, 7);
             nargoutchk(0, 1);
