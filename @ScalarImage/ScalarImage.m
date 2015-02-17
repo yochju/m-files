@@ -95,10 +95,36 @@ classdef (Abstract = true) ScalarImage < nDGridData
            
         function obj = pad(obj, varargin)
             %% Provide dummy boundary for the image.
+            %
+            % out = pad(obj)
+            % out = pad(obj, padsize)
+            % out = pad(obj, padsize, padval)
+            % out = pad(obj, padsize, padval, direction)
+            %
+            % Input parameters (required):
+            %
+            % obj : A ScalarImage object
+            %
+            % Optional parameters:
+            %
+            % padsize   : How many pixels along each dimension should be padded.
+            %             Default is [1, 1].
+            % padval    : Value to be used for the padding. Default is 0.
+            % direction : Direction used for the padding. Either 'left',
+            %             'right' or 'both' to indicate the side on which the
+            %             padding will be applied. Default is 'both'.
+            %
+            % Output parameters:
+            %
+            % A ScalarImage object with padded boundaries.
+            %
+            % Description
+            %
             % Acts as a wrapper function around padarray from the image
             % processing toolbox. Arguments are only checked for their existence
             % and given sane default values if missing. Otherwise everything is
-            % left to padarray.
+            % left to padarray. Images can be padded several times. Each time
+            % the padding is added to br and bc.
             
             narginchk(1, 7);
             nargoutchk(0, 1);
@@ -108,17 +134,14 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser.addRequired('obj', @(x) validateattributes( x, ...
                 {'ScalarImage'}, {}, 'pad', 'obj'));
             
-            parser.addParameter('padsize', [1, 1]);
-            parser.addParameter('padval', 0);
-            parser.addParameter('direction', 'both');
+            parser.addOptional('padsize', [1, 1]);
+            parser.addOptional('padval', 0);
+            parser.addOptional('direction', 'both');
                         
             parser.parse(obj, varargin{:});
             
             obj.p = padarray(obj.p, parser.Results.padsize, ...
                 parser.Results.padval, parser.Results.direction);
-            
-            obj.br = obj.br + parser.Results.padsize(1);
-            obj.bc = obj.bc + parser.Results.padsize(2);
         end
                 
         function save(obj, fname, varargin)
