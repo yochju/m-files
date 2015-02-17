@@ -238,6 +238,9 @@ classdef (Abstract = true) nDGridData
         
         function obj = plus(obj, obj2)
             %% Addition of two images. All dimensions must agree.
+            % It is possible to operate on an image object and an array if the
+            % size of the array coincides with the size of the pixel data array
+            % in our image object.
             
             % Check argument types so that we can handle any imaginable case of
             % combinations like 3 + q, q + 3 and q + p, where q and p are
@@ -263,6 +266,9 @@ classdef (Abstract = true) nDGridData
         
         function obj = minus(obj, obj2)
             %% Substraction of two images. All dimensions must agree.
+            % It is possible to operate on an image object and an array if the
+            % size of the array coincides with the size of the pixel data array
+            % in our image object.
             
             % Check argument types so that we can handle any imaginable case of
             % combinations like 3 - q, q - 3 and q - p, where q and p are
@@ -288,6 +294,9 @@ classdef (Abstract = true) nDGridData
         
         function obj = times(obj, obj2)
             %% Pointwise product of two images. All dimensions must agree.
+            % It is possible to operate on an image object and an array if the
+            % size of the array coincides with the size of the pixel data array
+            % in our image object.
             
             % Check argument types so that we can handle any imaginable case of
             % combinations like 3 .* q, q .* 3 and q .* p, where q and p are
