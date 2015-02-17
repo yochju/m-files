@@ -49,7 +49,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
           
     methods
         function obj = ScalarImage(nr, nc, varargin)
-            %% Constructor for nDGridData.
+            %% Constructor for ScalarImage.
+            %
+            % Usage is the same as for nDGridData.
             
             narginchk(2, 6);
             nargoutchk(0, 1);

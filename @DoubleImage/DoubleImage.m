@@ -36,6 +36,9 @@ classdef DoubleImage < ScalarImage
               
     methods
         function obj = DoubleImage(nr, nc, varargin)
+            %% Constructor for DoubleImage
+            %
+            % Usage is the same as for nDGridData and Scalarimage.
             
             narginchk(2, 6);
             nargoutchk(0, 1);
@@ -44,6 +47,12 @@ classdef DoubleImage < ScalarImage
         end
                 
         function val = eq(obj1, obj2)
+            %% Check that two DoubleImages are equal.
+            %
+            % Two images are considered equal if all dimensions coincide and if
+            % the maximal difference between two corresponding pixel values is
+            % smaller in magnituded than 1e-10.
+            
             val = eq@ScalarImage(obj1, obj2);
             if (val)
                 if (max(abs(obj1.p(:)-obj2.p(:))) >= 1e-10)
