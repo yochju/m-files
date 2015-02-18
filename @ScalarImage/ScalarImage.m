@@ -21,7 +21,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 16.02.2015 10:00
+    % Last revision on: 18.02.2015 20:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
@@ -345,6 +345,42 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 parser.Results.nc + 2*parser.Results.bc]);
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
+        end
+        
+        function val = maxval(obj)
+            %% Returns the maximal pixel value.
+            %
+            % This method should be faster than the version in nDGridData.
+            
+            narginchk(1, 1);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.parse(obj);
+
+            val = max(obj.p(:));
+        end
+        
+        function val = minval(obj)
+            %% Returns the maximal pixel value.
+            %
+            % This method should be faster than the version in nDGridData.
+            
+            narginchk(1, 1);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.parse(obj);
+
+            val = min(obj.p(:));
         end
         
     end

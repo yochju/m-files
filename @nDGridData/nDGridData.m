@@ -19,7 +19,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 13.02.2015 20:00
+    % Last revision on: 18.02.2015 20:00
     
     %% Properties
     
@@ -336,6 +336,41 @@ classdef (Abstract = true) nDGridData
         function out = transpose(obj)
             MExc = ExceptionMessage('Unsupported');
             error(MExc.id, MExc.message);
+        end
+        
+        function val = maxval(obj)
+            %% Return channel wise maximal value
+            
+            narginchk(1, 1);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.parse(obj);
+            
+            % Note: Some old code did
+            % squeeze(max(max(in,[],1)));
+            % which works for vector valued images, too.
+            val = max(reshape(obj.p, obj.nr, obj.nc, []), [], 3);
+        end
+        
+        function val = minval(obj)
+            %% Return channel wise minimal value
+            
+            narginchk(1, 1);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'reshape', 'obj'));
+            
+            parser.parse(obj);
+            
+            val = min(reshape(obj.p, obj.nr, obj.nc, []), [], 3);
         end
         
         % Redefining subsagn and subsref makes properties visible that are
