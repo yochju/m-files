@@ -87,6 +87,13 @@ parser.parse(in, mask);
 
 %% Run code.
 
+% Note: with logical(mask) == mask one can check if mask contains only 1s and
+% 0s. In that case the Minfilter can be reduced to
+% colfilt(padarray(x,[1, 1], nan, 'both'),[3, 3], 'sliding', f)
+% with f being defined as
+% f = @(x) min(x)
+% This should be significantly faster.
+
 SigSize = size(in);
 WinSize = size(mask);
 M = Im2ColSignalMask(SigSize,WinSize);
