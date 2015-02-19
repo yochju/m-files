@@ -46,6 +46,65 @@ classdef (Abstract = true) ScalarImage < nDGridData
     end
     
     %% Methods
+    
+    methods (Access = private)
+        function obj = Scalarfilter(obj, mask, f)
+            %% Apply a (weighted) local nonlinear filter function
+            %
+            % out = Scalarfilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            % f    : handle to a function that can take arbitrary sized vectors
+            %        and returns a scalar.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+
+            narginchk(3, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'Scalarfilter', 'obj'));
+            parser.addRequired('mask', @(x) validateattributes( x, ...
+                {'numeric'}, {'2d'}, 'Scalarfilter', 'mask'));
+            parser.addRequired('f', @(x) validateattributes( x, ...
+                {'function_handle'}, {}, 'Scalarfilter', 'f'));
+            
+            parser.parse(obj, mask, f);
+
+            SigSize = size(obj.p);
+            WinSize = size(mask);
+            
+            if any(mask(:) ~= 1)
+                %% Slow approach with weighting
+                M = im2col(padarray(ones(SigSize), floor(WinSize/2), nan), ...
+                    WinSize, 'sliding');
+                S = im2col(padarray(obj.p, floor(WinSize/2), nan), ...
+                    WinSize, 'sliding');
+                S = S .* M .* repmat(mask(:), [1 size(M, 2)]);
+                obj.p = col2im(f(S), [1 1], SigSize);
+            else
+                %% Fast approach with full mask of ones.
+                tmp = colfilt(padarray(obj.p, floor(WinSize/2), nan), ...
+                    WinSize, 'sliding', f);
+                bdsiz = floor(WinSize/2);
+                obj.p = tmp(bdsiz(1)+(1:SigSize(1)), bdsiz(2)+(1:SigSize(2)));
+            end
+        end
+    end
           
     methods
         function obj = ScalarImage(nr, nc, varargin)
@@ -136,7 +195,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             parser.addOptional('padsize', [1, 1]);
             parser.addOptional('padval', 0);
-            parser.addOptional('direction', 'both');
+            parser.addOptional('direction', 'both'); % TODO: fails, it cannot be
+            % set properly without the direction keyword.
                         
             parser.parse(obj, varargin{:});
             
@@ -383,6 +443,113 @@ classdef (Abstract = true) ScalarImage < nDGridData
             val = min(obj.p(:));
         end
         
+        function obj = minfilter(obj, mask)
+            %% Apply a (weighted) minimum filter.
+            %
+            % out = minfilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            obj = obj.Scalarfilter(mask, @min);
+        end
+        
+        function obj = maxfilter(obj, mask)
+            %% Apply a (weighted) maximum filter.
+            %
+            % out = maxilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            obj = obj.Scalarfilter(mask, @max);
+        end
+        
+        function obj = meanfilter(obj, mask)
+            %% Apply a (weighted) mean filter.
+            %
+            % out = meanfilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            obj = obj.Scalarfilter(mask, @mean);
+        end
+        
+        function obj = medianfilter(obj, mask)
+            %% Apply a (weighted) median filter.
+            %
+            % out = meanfilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            obj = obj.Scalarfilter(mask, @mean);
+        end
     end
     
 end
