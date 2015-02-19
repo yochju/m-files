@@ -208,9 +208,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %% Write Image to disk.
             % Acts as a wrapper function around imwrite.
             parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'load', 'obj'));
+                {'ScalarImage'}, {}, 'save', 'obj'));
             parser.addRequired('fname', @(x) validateattributes( x, ...
-                {'char'}, {'nonempty'}, 'load', 'fname'));
+                {'char'}, {'nonempty'}, 'save', 'fname'));
             
             parser.parse(obj, fname);
             
@@ -268,7 +268,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser = inputParser;
  
             parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'load', 'obj'));
+                {'ScalarImage'}, {}, 'vec', 'obj'));
             
             parser.addOptional('ordering', 'column-wise', @(x) strcmpi(x, ...
                 validatestring( x, {'row-wise', 'column-wise'}, ...
@@ -384,19 +384,19 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             parser.addRequired('nr', @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
-                'reshape', 'nr'));
+                'resize', 'nr'));
             
             parser.addRequired('nc', @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'positive'}, ...
-                'reshape', 'nc'));
+                'resize', 'nc'));
             
             parser.addOptional('br', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
-                'reshape', 'br'));
+                'resize', 'br'));
             
             parser.addOptional('bc', 0, @(x) validateattributes( x, ...
                 {'numeric'}, {'scalar', 'integer', 'nonnegative'}, ...
-                'reshape', 'bc'));
+                'resize', 'bc'));
             
             parser.parse(obj, nr, nc, varargin{:});
             
@@ -418,7 +418,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser = inputParser;
             
             parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'reshape', 'obj'));
+                {'ScalarImage'}, {}, 'maxval', 'obj'));
             
             parser.parse(obj);
 
@@ -436,7 +436,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser = inputParser;
             
             parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'reshape', 'obj'));
+                {'ScalarImage'}, {}, 'minval', 'obj'));
             
             parser.parse(obj);
 
