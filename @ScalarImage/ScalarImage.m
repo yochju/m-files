@@ -21,7 +21,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 18.02.2015 20:00
+    % Last revision on: 19.02.2015 20:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
@@ -549,6 +549,32 @@ classdef (Abstract = true) ScalarImage < nDGridData
             nargoutchk(0, 1);
             % builtin median function cannot handle nans.
             obj = obj.Scalarfilter(mask, @nanmedian);
+        end
+        
+        function val = mse(obj, obj2)
+            %% Compute Mean Square Error
+            %
+            % Returns squared euclidean distance divided by number of pixels.
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'mse', 'obj'));
+            parser.addRequired('obj2', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'mse', 'obj2'));
+            
+            parser.parse(obj, obj2);
+            
+            if eqDims(obj, obj2)
+                val = sum((obj.p(:)-obj2.p(:)).^2)/numel(obj.p);
+            else
+                MExc = ExceptionMessage('BadArg', 'message', ...
+                    'Images have different shapes.');
+                error(MExc.id, MExc.message);
+            end
         end
     end
     
