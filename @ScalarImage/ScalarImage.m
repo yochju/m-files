@@ -520,8 +520,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
 
             narginchk(2, 2);
             nargoutchk(0, 1);
-            
-            obj = obj.Scalarfilter(mask, @mean);
+            % builtin mean function cannot handle nans.
+            obj = obj.Scalarfilter(mask, @nanmean);
         end
         
         function obj = medianfilter(obj, mask)
@@ -547,8 +547,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
 
             narginchk(2, 2);
             nargoutchk(0, 1);
-            
-            obj = obj.Scalarfilter(mask, @mean);
+            % builtin median function cannot handle nans.
+            obj = obj.Scalarfilter(mask, @nanmedian);
         end
     end
     
