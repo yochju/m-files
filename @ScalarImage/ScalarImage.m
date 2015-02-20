@@ -497,6 +497,52 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = obj.Scalarfilter(mask, @max);
         end
         
+        function obj = opening(obj, mask1, varargin)
+            %% Perform morphological opening (with different masks).
+            
+            narginchk(2, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'opening', 'obj'));
+            
+            parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+                {'2d', 'nonsparse', 'nonempty'}, 'opening', 'mask1', 2) );
+            
+            parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'opening', ...
+                'mask2', 3) );
+            
+            parser.parse(obj, mask1, varargin{:});
+
+            obj = maxfilter(minfilter(obj, mask1), parser.Results.mask2);
+        end
+        
+        function obj = closing(obj, mask1, varargin)
+            %% Perform morphological closing (with different masks).
+            
+            narginchk(2, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'closing', 'obj'));
+            
+            parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+                {'2d', 'nonsparse', 'nonempty'}, 'closing', 'mask1', 2) );
+            
+            parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'closing', ...
+                'mask2', 3) );
+            
+            parser.parse(obj, mask1, varargin{:});
+
+            obj = minfilter(maxfilter(obj, mask1), parser.Results.mask2);
+        end
+        
         function obj = meanfilter(obj, mask)
             %% Apply a (weighted) mean filter.
             %
