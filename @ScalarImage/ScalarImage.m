@@ -444,7 +444,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = minfilter(obj, mask)
-            %% Apply a (weighted) minimum filter.
+            %% Apply a (weighted) minimum filter. (Morpholgical erosion)
             %
             % out = minfilter(in, mask)
             %
@@ -471,7 +471,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = maxfilter(obj, mask)
-            %% Apply a (weighted) maximum filter.
+            %% Apply a (weighted) maximum filter. (Morpholgical dilation)
             %
             % out = maxilter(in, mask)
             %
