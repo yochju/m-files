@@ -51,7 +51,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         function obj = Scalarfilter(obj, mask, f)
             %% Apply a (weighted) local nonlinear filter function
             %
-            % out = Scalarfilter(in, mask)
+            % out = Scalarfilter(in, mask, f)
             %
             % Input parameters (required):
             %
@@ -142,6 +142,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = set.p(obj, vals)
+            %% Setter for pixel values
             if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
                 %% Emit a warning if assigned value is not within range
                 MExc = ExceptionMessage('BadArg', ...
@@ -156,6 +157,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 
         function save(obj, fname, varargin)
             %% Write Image to disk.
+            %
+            % obj.save(fname)
+            %
             % Acts as a wrapper function around imwrite.
             parser.addRequired('obj', @(x) validateattributes( x, ...
                 {'ScalarImage'}, {}, 'save', 'obj'));
@@ -169,6 +173,9 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = load(obj, fname, varargin)
             %% Load image from disk.
+            %
+            % obj.load(fname)
+            %
             % Acts as a wrapper function around imread.
             
             parser.addRequired('obj', @(x) validateattributes( x, ...
@@ -414,6 +421,17 @@ classdef (Abstract = true) ScalarImage < nDGridData
         function val = maxval(obj)
             %% Returns the maximal pixel value.
             %
+            % val = obj.maxval
+            %
+            % Input parameters (required):
+            %
+            % obj : ScalarImage object.
+            %
+            %
+            % Output parameters:
+            %
+            % val : maximal pixel value inside obj.p
+            %
             % This method should be faster than the version in nDGridData.
             
             narginchk(1, 1);
@@ -430,7 +448,17 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function val = minval(obj)
-            %% Returns the maximal pixel value.
+            %% Returns the minimal pixel value.
+            %
+            % val = obj.minval
+            %
+            % Input parameters (required):
+            %
+            % obj : ScalarImage object.
+            %
+            % Output parameters:
+            %
+            % val : minimal pixel value inside obj.p
             %
             % This method should be faster than the version in nDGridData.
             
@@ -505,6 +533,16 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = opening(obj, mask1, varargin)
             %% Perform morphological opening (with different masks).
+            %
+            % obj = obj.opening(ones(3,3))
+            % obj = obj.opening(ones(3,3), ones(5,5))
+            %
+            % Input parameters:
+            %
+            % Output parameters:
+            %
+            % Description:
+            %
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -528,6 +566,16 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = closing(obj, mask1, varargin)
             %% Perform morphological closing (with different masks).
+            %
+            % obj = obj.closing(ones(3,3))
+            % obj = obj.closing(ones(3,3), ones(5,5))
+            %
+            % Input parameters:
+            %
+            % Output parameters:
+            %
+            % Description:
+            %
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -551,6 +599,19 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = blacktophat(obj, mask1, varargin)
             %% Perform morphological black tophat
+            %
+            % obj = obj.blacktophat(ones(3,3))
+            % obj = obj.blacktophat(ones(3,3), ones(5,5))
+            % obj = obj.blacktophat(ones(3,3), ones(5,5), ones(1,1))
+            % obj = obj.blacktophat(ones(3,3), ones(5,5), ones(1,1), ones(7,7))
+            %
+            % Input parameters:
+            %
+            % Output parameters:
+            %
+            % Description:
+            %
+            
             narginchk(2, 3);
             nargoutchk(0, 1);
             
@@ -572,7 +633,20 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
         
         function obj = whitetophat(obj, mask1, varargin)
-            %% Perform morphological black tophat
+            %% Perform morphological white tophat
+            %
+            % obj = obj.whitetophat(ones(3,3))
+            % obj = obj.whitetophat(ones(3,3), ones(5,5))
+            % obj = obj.whitetophat(ones(3,3), ones(5,5), ones(1,1))
+            % obj = obj.whitetophat(ones(3,3), ones(5,5), ones(1,1), ones(7,7))
+            %
+            % Input parameters:
+            %
+            % Output parameters:
+            %
+            % Description:
+            %
+            
             narginchk(2, 3);
             nargoutchk(0, 1);
             
@@ -595,6 +669,20 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function obj = selfdualtophat(obj, mask1, varargin)
             %% Perform morphological self dual tophat
+            %
+            % obj = obj.selfdualtophat(ones(3,3))
+            % obj = obj.selfdualtophat(ones(3,3), ones(5,5))
+            % obj = obj.selfdualtophat(ones(3,3), ones(5,5), ones(1,1))
+            % obj = obj.selfdualtophat(ones(3,3), ones(5,5), ...
+            %                          ones(1,1), ones(7,7))
+            %
+            % Input parameters:
+            %
+            % Output parameters:
+            %
+            % Description:
+            %
+            
             narginchk(2, 5);
             nargoutchk(0, 1);
             
