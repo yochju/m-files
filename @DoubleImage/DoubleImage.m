@@ -66,7 +66,25 @@ classdef DoubleImage < ScalarImage
                 end
             end
         end
-                
+        
+        function obj = gammaCorrection(obj, gam)
+            %% Perform gamma correction
+            
+            narginchk(2,2);
+            nargoutchk(0,1);
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'DoubleImage'}, {}, 'gammaCorrection', 'obj', 1));
+            
+            parser.addRequired('gam', @(x) validateattributes( x, ...
+                {'numeric'}, {'scalar', 'finite', 'nonempty', 'nonnan', ...
+                'nonzero'}, 'gammaCorrection', 'gam', 2) );
+            
+            parser.parse(obj, gam);
+            
+            obj.p = obj.p.^(1/gam);
+        end
+        
     end
     
 end
