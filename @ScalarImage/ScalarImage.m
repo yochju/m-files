@@ -4,6 +4,12 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % basis for setting up grey scale images (indexed and non-indexed images).
     % The image is an array of size [nr + 2*br, nc + 2*bc]. bc and br are dummy
     % boundaries used countless applications such as convolution filters.
+    %
+    % Note:
+    % nDGridData and its derived classes heavily depend on functions contained
+    % in the stats and image processing toolboxes.
+    %
+    % See also nDGridData, DoubleImage
     
     % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -21,7 +27,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 19.02.2015 20:00
+    % Last revision on: 20.02.2015 21:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
@@ -111,6 +117,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %% Constructor for ScalarImage.
             %
             % Usage is the same as for nDGridData.
+            %
+            % See also nDGridData, DoubleImage
             
             narginchk(2, 6);
             nargoutchk(0, 1);
@@ -161,6 +169,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             % obj.save(fname)
             %
             % Acts as a wrapper function around imwrite.
+            %
+            % See also load
             parser.addRequired('obj', @(x) validateattributes( x, ...
                 {'ScalarImage'}, {}, 'save', 'obj'));
             parser.addRequired('fname', @(x) validateattributes( x, ...

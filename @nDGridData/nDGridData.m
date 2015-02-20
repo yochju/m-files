@@ -2,6 +2,12 @@ classdef (Abstract = true) nDGridData
     %nDGridData: Abstract base class defining common properties to all images.
     % Abstract class containing properties common to all image structures to are
     % derived from this class.
+    %
+    % Note:
+    % nDGridData and its derived classes heavily depend on functions contained
+    % in the stats and image processing toolboxes.
+    %
+    % See also ScalarImage, DoubleImage
     
     % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -19,7 +25,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 18.02.2015 20:00
+    % Last revision on: 20.02.2015 21:00
     
     %% Properties
     

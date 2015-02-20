@@ -2,6 +2,12 @@ classdef DoubleImage < ScalarImage
     %DoubleImage Class for representing single channel images.
     % Single channel image class. Pixel values are real numbers in the range
     % [0,1].
+    %
+    % Note:
+    % nDGridData and its derived classes heavily depend on functions contained
+    % in the stats and image processing toolboxes.
+    %
+    % See also nDGridData, ScalarImage
         
     % Copyright 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
     %
@@ -19,7 +25,7 @@ classdef DoubleImage < ScalarImage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 16.02.2015 10:00
+    % Last revision on: 20.02.2015 21:00
     
     properties (Constant = true)
         % Note that the SetAccess attribute is ingnored for constant properties.
