@@ -543,6 +543,51 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = minfilter(maxfilter(obj, mask1), parser.Results.mask2);
         end
         
+        function obj = blacktophat(obj, mask1, varargin)
+            %% Perform morphological black tophat
+            narginchk(2, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'blacktophat', 'obj'));
+            
+            parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+                {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', 'mask1', 2) );
+            
+            parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', ...
+                'mask2', 3) );
+            
+            parser.parse(obj, mask1, varargin{:});
+
+            obj = closing(obj, mask1, parser.Results.mask2) - obj;
+        end
+        
+        function obj = whitetophat(obj, mask1, varargin)
+            %% Perform morphological black tophat
+            narginchk(2, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'blacktophat', 'obj'));
+            
+            parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+                {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', 'mask1', 2) );
+            
+            parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', ...
+                'mask2', 3) );
+            
+            parser.parse(obj, mask1, varargin{:});
+
+            obj = obj - opening(obj, mask1, parser.Results.mask2);
+        end
+            
+        
         function obj = meanfilter(obj, mask)
             %% Apply a (weighted) mean filter.
             %
