@@ -685,7 +685,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         %% Error measures
         
         function val = mse(obj, obj2)
-            %% Compute Mean Square Error
+            %% Compute mean squared error
             %
             % Returns squared euclidean distance divided by number of pixels.
             
@@ -706,6 +706,30 @@ classdef (Abstract = true) ScalarImage < nDGridData
             else
                 MExc = ExceptionMessage('BadArg', 'message', ...
                     'Images have different shapes.');
+                error(MExc.id, MExc.message);
+            end
+        end
+        
+        function val = psnr(obj, obj2)
+            %% Compute peak signal to noise ratio
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'mse', 'obj'));
+            parser.addRequired('obj2', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'mse', 'obj2'));
+            
+            parser.parse(obj, obj2);
+            if ((obj.rangeMax == obj2.rangeMax) && ...
+                    (obj.rangeMax == obj2.rangeMax))
+                val = 10.0 * log10(obj.rangeMax/mse(obj, obj2));
+            else
+                MExc = ExceptionMessage('BadArg', 'message', ...
+                    'Images have different ranges.');
                 error(MExc.id, MExc.message);
             end
         end
