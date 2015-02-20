@@ -151,7 +151,43 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             obj.p = vals;
         end
-           
+                   
+        %% I/O methods
+                
+        function save(obj, fname, varargin)
+            %% Write Image to disk.
+            % Acts as a wrapper function around imwrite.
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'save', 'obj'));
+            parser.addRequired('fname', @(x) validateattributes( x, ...
+                {'char'}, {'nonempty'}, 'save', 'fname'));
+            
+            parser.parse(obj, fname);
+            
+            imwrite(obj.p, parser.Results.fname, varargin{:});
+        end
+        
+        function obj = load(obj, fname, varargin)
+            %% Load image from disk.
+            % Acts as a wrapper function around imread.
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'load', 'obj'));
+            parser.addRequired('fname', @(x) validateattributes( x, ...
+                {'char'}, {'nonempty'}, 'load', 'fname'));
+            
+            parser.parse(obj, fname);
+            
+            tmp = imread(parser.Results.fname, varargin{:});
+            obj.nr = size(tmp, 1);
+            obj.nc = size(tmp, 2);
+            obj.br = 0;
+            obj.bc = 0;
+            obj.p = tmp;
+        end
+        
+        %% Structural manipulations of the image
+        
         function obj = pad(obj, varargin)
             %% Provide dummy boundary for the image.
             %
@@ -197,43 +233,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser.addOptional('padval', 0);
             parser.addOptional('direction', 'both'); % TODO: fails, it cannot be
             % set properly without the direction keyword.
-                        
+            
             parser.parse(obj, varargin{:});
             
             obj.p = padarray(obj.p, parser.Results.padsize, ...
                 parser.Results.padval, parser.Results.direction);
-        end
-                
-        function save(obj, fname, varargin)
-            %% Write Image to disk.
-            % Acts as a wrapper function around imwrite.
-            parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'save', 'obj'));
-            parser.addRequired('fname', @(x) validateattributes( x, ...
-                {'char'}, {'nonempty'}, 'save', 'fname'));
-            
-            parser.parse(obj, fname);
-            
-            imwrite(obj.p, parser.Results.fname, varargin{:});
-        end
-        
-        function obj = load(obj, fname, varargin)
-            %% Load image from disk.
-            % Acts as a wrapper function around imread.
-            
-            parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'load', 'obj'));
-            parser.addRequired('fname', @(x) validateattributes( x, ...
-                {'char'}, {'nonempty'}, 'load', 'fname'));
-            
-            parser.parse(obj, fname);
-            
-            tmp = imread(parser.Results.fname, varargin{:});
-            obj.nr = size(tmp, 1);
-            obj.nc = size(tmp, 2);
-            obj.br = 0;
-            obj.bc = 0;
-            obj.p = tmp;
         end
         
         function out = vec(obj, varargin)
@@ -443,6 +447,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             val = min(obj.p(:));
         end
         
+        %% Morphological filters
+        
         function obj = minfilter(obj, mask)
             %% Apply a (weighted) minimum filter. (Morpholgical erosion)
             %
@@ -573,20 +579,81 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser = inputParser;
             
             parser.addRequired('obj', @(x) validateattributes( x, ...
-                {'ScalarImage'}, {}, 'blacktophat', 'obj'));
+                {'ScalarImage'}, {}, 'whitetophat', 'obj'));
             
             parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
-                {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', 'mask1', 2) );
+                {'2d', 'nonsparse', 'nonempty'}, 'whitetophat', 'mask1', 2) );
             
             parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
-                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'blacktophat', ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, 'whitetophat', ...
                 'mask2', 3) );
             
             parser.parse(obj, mask1, varargin{:});
 
             obj = obj - opening(obj, mask1, parser.Results.mask2);
         end
+        
+        function obj = selfdualtophat(obj, mask1, varargin)
+            %% Perform morphological self dual tophat
+            narginchk(2, 5);
+            nargoutchk(0, 1);
             
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'selfdualtophat', 'obj'));
+            
+            parser.addRequired('mask1', @(x) validateattributes( x, {'numeric'}, ...
+                {'2d', 'nonsparse', 'nonempty'}, ...
+                'selfdualtophat', 'mask1', 2) );
+            
+            parser.addOptional('mask2', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, ...
+                'selfdualtophat', 'mask2', 3) );
+            
+            parser.addOptional('mask3', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, ...
+                'selfdualtophat', 'mask3', 3) );
+            
+            parser.addOptional('mask4', mask1, @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'nonempty'}, ...
+                'selfdualtophat', 'mask4', 3) );
+            
+            parser.parse(obj, mask1, varargin{:});
+
+            % TODO: really +?
+            obj = whitetophat(obj, mask1, parser.Results.mask2) + ...
+                blacktophat(obj, parser.Results.mask3, parser.Results.mask4);
+        end
+
+        function obj = medianfilter(obj, mask)
+            %% Apply a (weighted) median filter.
+            %
+            % out = meanfilter(in, mask)
+            %
+            % Input parameters (required):
+            %
+            % obj  : ScalarImage object.
+            % mask : 2D array with odd number of rows and columns. Center will
+            %        be the mid pixel along every direction. Entries serve as
+            %        weights. NaNs mark pixels to be ignored.
+            %
+            % Output parameters:
+            %
+            % obj : Filtered image.
+            %
+            % Description:
+            %
+            % If all mask values are 1, then a much faster code is applied than
+            % if the mask values are not all the 1.
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            % builtin median function cannot handle nans.
+            obj = obj.Scalarfilter(mask, @nanmedian);
+        end
+        
+        %% Other filters
         
         function obj = meanfilter(obj, mask)
             %% Apply a (weighted) mean filter.
@@ -615,32 +682,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = obj.Scalarfilter(mask, @nanmean);
         end
         
-        function obj = medianfilter(obj, mask)
-            %% Apply a (weighted) median filter.
-            %
-            % out = meanfilter(in, mask)
-            %
-            % Input parameters (required):
-            %
-            % obj  : ScalarImage object.
-            % mask : 2D array with odd number of rows and columns. Center will
-            %        be the mid pixel along every direction. Entries serve as
-            %        weights. NaNs mark pixels to be ignored.
-            %
-            % Output parameters:
-            %
-            % obj : Filtered image.
-            %
-            % Description:
-            %
-            % If all mask values are 1, then a much faster code is applied than
-            % if the mask values are not all the 1.
-
-            narginchk(2, 2);
-            nargoutchk(0, 1);
-            % builtin median function cannot handle nans.
-            obj = obj.Scalarfilter(mask, @nanmedian);
-        end
+        %% Error measures
         
         function val = mse(obj, obj2)
             %% Compute Mean Square Error
