@@ -110,6 +110,30 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 obj.p = tmp(bdsiz(1)+(1:SigSize(1)), bdsiz(2)+(1:SigSize(2)));
             end
         end
+        
+        function obj = applyPixelArray(obj, val)
+            %% Set obj.p to val and adapts dimensions.
+            %
+            % obj = obj.applyPixelArray(val)
+            %
+            % Resets nr and nc to size(val).
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'applyPixelArray', 'obj'));
+            
+            parser.addRequired('val', @(x) validateattributes( x, ...
+                {'numeric'}, {'2d', 'nonsparse', 'real', 'nonnan'}, ...
+                'applyPixelArray', 'val'));
+ 
+            obj.p = val;
+            obj.nr = size(val, 1);
+            obj.nc = size(val, 2);
+        end
     end
           
     methods
@@ -158,6 +182,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 warning(MExc.id, MExc.message);
             end
             
+            % TODO: Is it possible to adapt nr and nc and still using set.p?
             obj.p = vals;
         end
                    
