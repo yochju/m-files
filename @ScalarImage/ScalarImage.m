@@ -516,6 +516,23 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p(obj.p < ran(2)) = ran(2);
         end
         
+        function obj = binarise(obj, varargin)
+            %% Binarise image
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'binarise', 'obj'));
+  
+            parser.addOptional('T', 0.5)
+            
+            parser.parse(obj, varargin{:});
+            opts = parser.Results;
+            
+            % TODO: Add more methods like double thresholding and otsu.
+            obj.p(obj.p >= opts.T) = obj.RangeMax;
+            obj.p(obj.p < opts.T) = obj.RangeMin;
+        end
+        
         %% Statistical measures
         
         function val = maxval(obj)
