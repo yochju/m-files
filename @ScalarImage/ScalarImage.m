@@ -27,7 +27,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 20.02.2015 21:00
+    % Last revision on: 21.02.2015 14:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
@@ -431,6 +431,44 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
         end
+        
+        function blcks = partition(obj, blcksiz)
+            %% Partition image into blocks of size blcksiz
+            %
+            % blcks = obj.partition(blcksiz)
+            %
+            % See also mat2cell, cell2mat, num2cell
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'maxval', 'obj'));
+            
+            parser.addRequired('blockSize', @(x) validateattributes( x, ...
+                {'numeric'}, {'vector', 'integer', 'positive', 'numel', 2}, ...
+                'partition', 'blockSize') );
+            
+            parser.parse(obj, blcksiz);
+            opts = parser.Results;
+            
+            br = opts.blockSize(1);
+            bc = opts.blockSize(2);
+            
+            [nr, nc] = size(in);
+            
+            MExc = ExceptionMessage('BadArg', 'message', 'Dimension mismatch');
+            
+            if ((mod(nr,br) ~= 0)||(mod(nc,bc) ~= 0))
+                error(MExc.id, MExc.message);
+            end
+            
+            blcks = mat2cell( obj.p , br*ones(1,nr/br) , bc*ones(1,nc/bc) );
+        end
+        
+        %% Statistical measures
         
         function val = maxval(obj)
             %% Returns the maximal pixel value.
