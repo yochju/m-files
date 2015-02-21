@@ -237,6 +237,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             % and given sane default values if missing. Otherwise everything is
             % left to padarray. Images can be padded several times. Each time
             % the padding is added to br and bc.
+            %
+            % See also padarray
             
             narginchk(1, 7);
             nargoutchk(0, 1);
@@ -394,6 +396,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             % This is a wrapper function around the imresize function from the
             % image processing toolbox. Note that not all options from the
             % original imresize function are supported.
+            %
+            % See also imresize
             
             narginchk(3, 7);
             nargoutchk(0, 1);
@@ -443,6 +447,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             % val : maximal pixel value inside obj.p
             %
             % This method should be faster than the version in nDGridData.
+            %
+            % See also max
             
             narginchk(1, 1);
             nargoutchk(0, 1);
@@ -471,6 +477,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             % val : minimal pixel value inside obj.p
             %
             % This method should be faster than the version in nDGridData.
+            %
+            % See also min
             
             narginchk(1, 1);
             nargoutchk(0, 1);
@@ -507,6 +515,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % If all mask values are 1, then a much faster code is applied than
             % if the mask values are not all the 1.
+            %
+            % See also maxfilter
 
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -534,6 +544,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % If all mask values are 1, then a much faster code is applied than
             % if the mask values are not all the 1.
+            %
+            % See also minfilter
 
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -553,6 +565,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % Description:
             %
+            % See also closing
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -586,6 +599,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % Description:
             %
+            % See also opening
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -621,6 +635,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % Description:
             %
+            % See also whitetophat
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -656,6 +671,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % Description:
             %
+            % See also blacktophat
             
             narginchk(2, 3);
             nargoutchk(0, 1);
@@ -692,6 +708,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % Description:
             %
+            % See also whitetophat, blacktophat
             
             narginchk(2, 5);
             nargoutchk(0, 1);
@@ -744,6 +761,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % If all mask values are 1, then a much faster code is applied than
             % if the mask values are not all the 1.
+            %
+            % See also maxfilter, minfilter, meanfilter
             
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -773,6 +792,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             %
             % If all mask values are 1, then a much faster code is applied than
             % if the mask values are not all the 1.
+            %
+            % See also medianfilter, maxfilter, minfilter
 
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -785,7 +806,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
         function val = mse(obj, obj2)
             %% Compute mean squared error
             %
+            % val = obj.mse(obj2)
+            %
             % Returns squared euclidean distance divided by number of pixels.
+            %
+            % See also psnr
             
             narginchk(2, 2);
             nargoutchk(0, 1);
@@ -810,6 +835,10 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         function val = psnr(obj, obj2)
             %% Compute peak signal to noise ratio
+            %
+            % val = obj.psnr(obj2)
+            %
+            % See also mse
             
             narginchk(2, 2);
             nargoutchk(0, 1);
