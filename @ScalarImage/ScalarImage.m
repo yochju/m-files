@@ -468,6 +468,29 @@ classdef (Abstract = true) ScalarImage < nDGridData
             blcks = mat2cell( obj.p , br*ones(1,nr/br) , bc*ones(1,nc/bc) );
         end
         
+        %% Simple operations
+        
+        function obj = clip(obj, ran)
+            %% Cutoff pixel values at specified bounds.
+            
+            narginchk(2, 2);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'clip', 'obj'));
+            
+            parser.addRequired('ran', @(x) validateattributes( x, ...
+                {'numeric'}, {'vector', 'real', 'numel', 2}, ...
+                'clip', 'ran') );
+            
+            parser.parse(obj, blcksiz);
+            
+            obj.p(obj.p > ran(1)) = ran(1);
+            obj.p(obj.p < ran(2)) = ran(2);
+        end
+        
         %% Statistical measures
         
         function val = maxval(obj)
