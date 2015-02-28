@@ -25,7 +25,7 @@ classdef DoubleImage < ScalarImage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 21.02.2015 14:00
+    % Last revision on: 28.02.2015 20:00
     
     properties (Constant = true)
         % Note that the SetAccess attribute is ingnored for constant properties.
@@ -34,12 +34,14 @@ classdef DoubleImage < ScalarImage
         colsp = ColourSpace.None;
     end
     
+    
     properties (Hidden = true, Access = protected, Constant = true)
         % Note that the SetAccess attribute is ingnored for constant properties.
         isIndexed = false; % Wether the colours are indexed via a colourmap
                            % (logical)
     end
               
+    
     methods
         function obj = DoubleImage(nr, nc, varargin)
             %% Constructor for DoubleImage
@@ -51,6 +53,7 @@ classdef DoubleImage < ScalarImage
             
             obj = obj@ScalarImage(nr, nc, varargin{:});
         end
+        
         
         function val = eq(obj1, obj2)
             %% Check that two DoubleImages are equal.
@@ -66,6 +69,7 @@ classdef DoubleImage < ScalarImage
                 end
             end
         end
+        
         
         function obj = gammaCorrection(obj, gam)
             %% Perform gamma correction

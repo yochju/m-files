@@ -27,13 +27,14 @@ classdef (Abstract = true) ScalarImage < nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 21.02.2015 14:00
+    % Last revision on: 28.02.2015 20:00
     
     properties
         % For scalar valued images, out data is stored in a simple 2D
         % array. p(i,j) containts the pixel value at position (i,j).
         p = nan(1);
     end
+    
     
     properties (Hidden = true, Access = protected, Constant = true)
         pDim = 1; % Dimension of a pixel (number of channels), e.g. 1 for a
@@ -43,9 +44,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
         isSequence = false; % Wether the image is actually a movie (logical)
     end
     
+    
     properties (Hidden = true)
         hd = 0.0;
     end
+    
     
     properties (Hidden = true, SetAccess = protected)
         nd = 1;
@@ -111,6 +114,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             end
         end
         
+        
         function obj = applyPixelArray(obj, val)
             %% Set obj.p to val and adapts dimensions.
             %
@@ -136,6 +140,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
         end
     end
           
+    
     methods
         function obj = ScalarImage(nr, nc, varargin)
             %% Constructor for ScalarImage.
@@ -173,6 +178,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 obj.nc + 2*parser.Results.bc);
         end
         
+        
         function obj = set.p(obj, vals)
             %% Setter for pixel values
             if (any(vals(:) < obj.rangeMin)||any(vals(:) > obj.rangeMax))
@@ -205,6 +211,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             imwrite(obj.p, parser.Results.fname, varargin{:});
         end
+        
         
         function obj = load(obj, fname, varargin)
             %% Load image from disk.
@@ -284,6 +291,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 parser.Results.padval, parser.Results.direction);
         end
         
+        
         function out = vec(obj, varargin)
             %% Return 1D array containing the image pixels.
             %
@@ -332,6 +340,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             end
             
         end
+        
         
         function obj = reshape(obj, nr, nc, varargin)
             %% Change image shape.
@@ -393,6 +402,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
         end
+        
         
         function obj = resize(obj, nr, nc, varargin)
             %% Change image size
@@ -457,6 +467,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.nc = parser.Results.nc;
         end
         
+        
         function blcks = partition(obj, blcksiz)
             %% Partition image into blocks of size blcksiz
             %
@@ -516,6 +527,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj.p(obj.p < ran(2)) = ran(2);
         end
         
+        
         function obj = binarise(obj, varargin)
             %% Binarise image
             parser = inputParser;
@@ -565,6 +577,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
 
             val = max(obj.p(:));
         end
+        
         
         function val = minval(obj)
             %% Returns the minimal pixel value.
@@ -627,6 +640,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = obj.Scalarfilter(mask, @min);
         end
         
+        
         function obj = maxfilter(obj, mask)
             %% Apply a (weighted) maximum filter. (Morpholgical dilation)
             %
@@ -655,6 +669,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             obj = obj.Scalarfilter(mask, @max);
         end
+        
         
         function obj = opening(obj, mask1, varargin)
             %% Perform morphological opening (with different masks).
@@ -690,6 +705,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = maxfilter(minfilter(obj, mask1), parser.Results.mask2);
         end
         
+        
         function obj = closing(obj, mask1, varargin)
             %% Perform morphological closing (with different masks).
             %
@@ -723,6 +739,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
 
             obj = minfilter(maxfilter(obj, mask1), parser.Results.mask2);
         end
+        
         
         function obj = blacktophat(obj, mask1, varargin)
             %% Perform morphological black tophat
@@ -760,6 +777,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             obj = closing(obj, mask1, parser.Results.mask2) - obj;
         end
         
+        
         function obj = whitetophat(obj, mask1, varargin)
             %% Perform morphological white tophat
             %
@@ -795,6 +813,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
 
             obj = obj - opening(obj, mask1, parser.Results.mask2);
         end
+        
         
         function obj = selfdualtophat(obj, mask1, varargin)
             %% Perform morphological self dual tophat
@@ -844,6 +863,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 blacktophat(obj, parser.Results.mask3, parser.Results.mask4);
         end
 
+        
         function obj = medianfilter(obj, mask)
             %% Apply a (weighted) median filter.
             %
@@ -935,6 +955,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 error(MExc.id, MExc.message);
             end
         end
+        
         
         function val = psnr(obj, obj2)
             %% Compute peak signal to noise ratio

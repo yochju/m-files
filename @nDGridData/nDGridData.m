@@ -25,7 +25,7 @@ classdef (Abstract = true) nDGridData
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 20.02.2015 21:00
+    % Last revision on: 28.02.2015 20:00
     
     %% Properties
     
@@ -40,23 +40,24 @@ classdef (Abstract = true) nDGridData
                            % writing to disk.
     end
     
+    
     properties (SetAccess = protected, GetAccess = public)
         % Elementary properties for image structures.
         
         % There is no write access to these properties to prevent its values
-        % from differing of the the actual image dimensions.
+        % from differing of the the actual image dimensions. Setters and getters
+        % don't allow to alter several properties. Methods like reshape and
+        % resize should be used to alter these properties.
         
         nr = 1; % Number of rows (positive integer)
         nc = 1; % Number of columns (positive integer)
-
-    end
-    
-    properties (Dependent = true, SetAccess = private)
-        br = 0; % Number of additional boundary rows on each side (nonnegative
-                % integer)
+        
+        br = 0; % Number of additional boundary rows on each side
+                % (nonnegative integer)
         bc = 0; % Number of additional boundary columns on each side
                 % (nonnegative integer)
     end
+        
     
     properties (Abstract = true)
         p % Array containing the pixel values. Its size is adapted to target
@@ -67,9 +68,11 @@ classdef (Abstract = true) nDGridData
         hd % Difference between two frames. (positive scalar)
     end
         
+    
     properties (Abstract = true, SetAccess = protected)
         nd % Number of frames. (positive integer)
     end
+    
     
     properties (Abstract = true, Constant = true)
         % The range of possible data values is fixed and shall not differ
@@ -81,6 +84,7 @@ classdef (Abstract = true) nDGridData
         rangeMax % maximal possible value in each channel (array of size pDim)
         colsp    % The underlying colour space (ColourSpace object)
     end
+    
     
     properties (Abstract = true, Hidden = true, Access = protected, ...
             Constant = true)
@@ -100,6 +104,7 @@ classdef (Abstract = true) nDGridData
         pad(obj, siz, varargin) % Changes the dummy boundary of an image.
     end
     
+    
     methods (Access = protected)
         function val = eqDims(obj1, obj2)
             %% Check that nr, nc, br, bc are equal.
@@ -111,6 +116,7 @@ classdef (Abstract = true) nDGridData
             end
         end 
     end
+    
     
     methods
         function obj = nDGridData(nr, nc, varargin)
@@ -179,37 +185,6 @@ classdef (Abstract = true) nDGridData
             
         end % end nDGridData
         
-        function obj = set.nr(obj, val)
-            % Sets the number of rows. If the input is negative, its absolute
-            % value is taken. If the number is non-integer, it is rounded. If it
-            % is 0, 1 is returned.
-            
-            obj.nr = max(1, round(abs(val)));
-        end
-        
-        function obj = set.nc(obj, val)
-            % Sets the number of coloumns. If the input is negative, its
-            % absolute value is taken. If the number is non-integer, it is
-            % rounded. If it is 0, 1 is returned.
-            
-            obj.nc = max(1, round(abs(val)));
-        end
-                
-        function br = get.br(obj)
-            % Sets the number of boundary rows. If the input is negative, its
-            % absolute value is taken. If the number is non-integer, it is
-            % rounded.
-            
-            br = (size(obj.p, 1) - obj.nr)/2;
-        end
-        
-        function bc = get.bc(obj)
-            % Sets the number of boundary coloumns. If the input is negative,
-            % its absolute value is taken. If the number is non-integer, it is
-            % rounded.
-            
-            bc = (size(obj.p, 2) - obj.nc)/2;
-        end
         
         function obj = set.hr(obj, val)
             % Sets the distance between points along a row. If the input is
@@ -219,6 +194,7 @@ classdef (Abstract = true) nDGridData
             obj.hr = abs(val);
         end
         
+        
         function obj = set.hc(obj, val)
             % Sets the distance between points along a coloumn. If the input is
             % negative, its absolute value is taken. If the number is
@@ -226,7 +202,8 @@ classdef (Abstract = true) nDGridData
             
             obj.hc = abs(val);
         end
-                                
+        
+        
         %% Implementation of arithmetic operations for images.
         % All arithmetic operations require that the involved dimensions nr, nc,
         % br and bc match. No check on hr and hc is done. Should such a check be
@@ -268,10 +245,12 @@ classdef (Abstract = true) nDGridData
             end
         end
         
+        
         function obj = uplus(obj)
             %% Unary plus
             obj.p = uplus(obj.p);
         end
+        
         
         function obj = minus(obj, obj2)
             %% Substraction of two images. All dimensions must agree.
@@ -295,11 +274,13 @@ classdef (Abstract = true) nDGridData
                 error(MExc.id, MExc.message);
             end
         end
-                
+        
+        
         function obj = uminus(obj)
             %% Unary minus
             obj.p = uminus(obj.p);
         end
+        
         
         function obj = times(obj, obj2)
             %% Pointwise product of two images. All dimensions must agree.
@@ -323,26 +304,31 @@ classdef (Abstract = true) nDGridData
                 error(MExc.id, MExc.message);
             end
         end
-                        
+        
+        
         function out = mtimes(obj, obj2)
             MExc = ExceptionMessage('Unsupported');
             error(MExc.id, MExc.message);
         end
+        
         
         function out = rdivide(obj, obj2)
             MExc = ExceptionMessage('Unsupported');
             error(MExc.id, MExc.message);
         end
         
+        
         function out = ldivide(obj, obj2)
             MExc = ExceptionMessage('Unsupported');
             error(MExc.id, MExc.message);
         end
-                
+        
+        
         function out = transpose(obj)
             MExc = ExceptionMessage('Unsupported');
             error(MExc.id, MExc.message);
         end
+        
         
         function val = maxval(obj)
             %% Return channel wise maximal value
@@ -362,6 +348,7 @@ classdef (Abstract = true) nDGridData
             % which works for vector valued images, too.
             val = max(reshape(obj.p, obj.nr, obj.nc, []), [], 3);
         end
+        
         
         function val = minval(obj)
             %% Return channel wise minimal value
