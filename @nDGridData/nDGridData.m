@@ -202,8 +202,7 @@ classdef (Abstract = true) nDGridData
             
             obj.hc = abs(val);
         end
-        
-        
+                
         %% Implementation of arithmetic operations for images.
         % All arithmetic operations require that the involved dimensions nr, nc,
         % br and bc match. No check on hr and hc is done. Should such a check be

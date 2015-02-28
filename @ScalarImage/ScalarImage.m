@@ -237,6 +237,48 @@ classdef (Abstract = true) ScalarImage < nDGridData
         
         %% Structural manipulations of the image
         
+        function sub = subimage(obj, rows, cols)
+            %% Returns an part of the image
+            %
+            % sub = subimage(obj, rows, cols)
+            %
+            % Input parameters (required):
+            %
+            % obj  : A ScalarImage object
+            % rows : Array containing the row indices to be extracted.
+            % cols : Array containing the coloumn indices to extracted.
+            %
+            % Output parameters:
+            %
+            % A ScalarImage object containing the extracted data.
+            %
+            % Description
+            %
+            % Extracts data from an image object and creates a new object from
+            % it.
+            %
+            % See also
+            
+            narginchk(3, 3);
+            nargoutchk(0, 1);
+            
+            parser = inputParser;
+            
+            parser.addRequired('obj', @(x) validateattributes( x, ...
+                {'ScalarImage'}, {}, 'pad', 'obj'));
+            parser.addRequired('rows', @(x) validateattributes( x, ...
+                {'numeric'}, {'vector', 'integer', 'positive'}));
+            parser.addRequired('cols', @(x) validateattributes( x, ...
+                {'numeric'}, {'vector', 'integer', 'numel', numel(rows),...
+                'positive'}));
+            
+            parser.parse(obj, rows, cols);
+            
+            sub = ScalarImage(numel(rows), numel(cols));
+            sub.p = obj.p(rows, cols);
+        end
+        
+        
         function obj = pad(obj, varargin)
             %% Provide dummy boundary for the image.
             %
