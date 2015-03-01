@@ -35,6 +35,23 @@ classdef DoubleImageTest < matlab.unittest.TestCase
             TestCase.verifyEqual(img.rangeMin, 0.0);
             TestCase.verifyEqual(img.rangeMax, 1.0);
             TestCase.verifyEqual(img.colsp, ColourSpace.None);
+            
+            img2 = DoubleImage(3, 4, 6);
+            
+            % Check that default properties are correctly set.
+            TestCase.verifyEqual(img2.nr, 3);
+            TestCase.verifyEqual(img2.nc, 4);
+            TestCase.verifyEqual(img2.br, 6);
+            TestCase.verifyEqual(img2.bc, 0);
+            
+            img3 = DoubleImage(3, 4, 6, 9);
+            
+            % Check that default properties are correctly set.
+            TestCase.verifyEqual(img3.nr, 3);
+            TestCase.verifyEqual(img3.nc, 4);
+            TestCase.verifyEqual(img3.br, 6);
+            TestCase.verifyEqual(img3.bc, 9);
+
         end
         
         
