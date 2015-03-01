@@ -130,6 +130,33 @@ classdef DoubleImageTest < matlab.unittest.TestCase
             TestCase.verifyEqual(im2.p, [3, 5; 5, 7; 7, 9]/max(tmp(:)), ...
                 'AbsTol', 1e-15);
         end
+        
+        
+        function PadTest(TestCase)
+            %% Test minval method
+            
+            img = DoubleImage(1, 2);
+            img.p = [1, 2]/2;
+            img = img.pad([1, 2], 1);
+            
+            res = [1, 1, 1, 1, 1, 1; 1, 1, 0.5, 1, 1, 1; 1, 1, 1, 1, 1, 1];
+            
+            TestCase.verifyEqual(img.p, res, 'AbsTol', 1e-15);
+        end
+        
+        
+        function VecTest(TestCase)
+            %% Test minval method
+            
+            img = DoubleImage(3, 4);
+            tmp = rand(3, 4);
+            img.p = tmp;
+            
+            TestCase.verifyEqual(img.vec, tmp(:), 'AbsTol', 1e-15);
+            
+            tmp = tmp';
+            TestCase.verifyEqual(img.vec('row-wise'), tmp(:), 'AbsTol', 1e-15);
+        end
     end
     
 end
