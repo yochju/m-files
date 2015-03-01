@@ -182,6 +182,8 @@ classdef (Abstract = true) nDGridData
             
             obj.nr = parser.Results.nr;
             obj.nc = parser.Results.nc;
+            obj.br = parser.Results.br;
+            obj.bc = parser.Results.bc;
             
         end % end nDGridData
         
