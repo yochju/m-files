@@ -172,7 +172,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
             
             parser.parse(nr, nc, varargin{:});
 
-            obj = obj@nDGridData(nr, nc);
+            obj = obj@nDGridData(nr, nc, varargin{:});
             
             obj.p = nan(obj.nr + 2*parser.Results.br, ...
                 obj.nc + 2*parser.Results.bc);
