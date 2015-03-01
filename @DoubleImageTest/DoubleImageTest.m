@@ -83,6 +83,53 @@ classdef DoubleImageTest < matlab.unittest.TestCase
             TestCase.verifyEqual(res.p, 0.3*ones(3, 4), 'AbsTol', 1e-15);
             
         end
+        
+        
+        function MaxValTest(TestCase)
+            %% Test maxval method
+            
+            img = DoubleImage(3, 4);
+            tmp = rand(3, 4);
+            img.p = tmp;
+            
+            TestCase.verifyEqual(img.maxval, max(tmp(:)), 'AbsTol', 1e-15);
+        end
+        
+        
+        function MinValTest(TestCase)
+            %% Test minval method
+            
+            img = DoubleImage(3, 4);
+            tmp = rand(3, 4);
+            img.p = tmp;
+            
+            TestCase.verifyEqual(img.minval, min(tmp(:)), 'AbsTol', 1e-15);
+        end
+        
+        
+        function SubImageTest(TestCase)
+            %% Test subimage method
+           
+            img = DoubleImage(3, 4, 2, 2);
+            tmp = bsxfun(@plus, (1:7)', 1:6);
+            img.p = tmp/max(tmp(:));
+
+            im2 = img.subimage([1, 3, 5], [2, 4]);
+            
+            TestCase.verifyEqual(class(im2), class(img));
+            TestCase.verifyEqual(im2.nr, 3);
+            TestCase.verifyEqual(im2.nc, 2);
+            TestCase.verifyEqual(im2.br, 0);
+            TestCase.verifyEqual(im2.bc, 0);
+            TestCase.verifyEqual(im2.hr, 1.0);
+            TestCase.verifyEqual(im2.hc, 1.0);
+            TestCase.verifyEqual(im2.rangeMin, 0.0);
+            TestCase.verifyEqual(im2.rangeMax, 1.0);
+            TestCase.verifyEqual(im2.colsp, ColourSpace.None);
+            
+            TestCase.verifyEqual(im2.p, [3, 5; 5, 7; 7, 9]/max(tmp(:)), ...
+                'AbsTol', 1e-15);
+        end
     end
     
 end
