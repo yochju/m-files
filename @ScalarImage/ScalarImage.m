@@ -269,12 +269,15 @@ classdef (Abstract = true) ScalarImage < nDGridData
             parser.addRequired('rows', @(x) validateattributes( x, ...
                 {'numeric'}, {'vector', 'integer', 'positive'}));
             parser.addRequired('cols', @(x) validateattributes( x, ...
-                {'numeric'}, {'vector', 'integer', 'numel', numel(rows),...
-                'positive'}));
+                {'numeric'}, {'vector', 'integer', 'positive'}));
             
             parser.parse(obj, rows, cols);
             
-            sub = ScalarImage(numel(rows), numel(cols));
+            % sub should be of the same class as obj. Since obj can be any
+            % derived class, we need to find out its name and call the
+            % corresponding constructor.
+            constr = str2func(class(obj));
+            sub = constr(numel(rows), numel(cols));
             sub.p = obj.p(rows, cols);
         end
         
