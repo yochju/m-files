@@ -375,7 +375,7 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 validatestring( x, {'row-wise', 'column-wise'}, ...
                 'vec', 'ordering') ) );
 
-            parser.parse(in, varargin{:});
+            parser.parse(obj, varargin{:});
             
             if strcmpi(parser.Results.ordering, 'row-wise')
                 tmp = (obj.p)';
