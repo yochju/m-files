@@ -17,7 +17,7 @@ classdef DoubleImageTest < matlab.unittest.TestCase
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 12.02.2015 14:00
+    % Last revision on: 01.03.2015 09:00
     
     methods (Test)
         function CreateImageTest(TestCase)
@@ -36,6 +36,7 @@ classdef DoubleImageTest < matlab.unittest.TestCase
             TestCase.verifyEqual(img.rangeMax, 1.0);
             TestCase.verifyEqual(img.colsp, ColourSpace.None);
         end
+        
         
         function AdditionTest(TestCase)
             %% Check addition of images and other objects.
