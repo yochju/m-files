@@ -157,6 +157,75 @@ classdef DoubleImageTest < matlab.unittest.TestCase
             tmp = tmp';
             TestCase.verifyEqual(img.vec('row-wise'), tmp(:), 'AbsTol', 1e-15);
         end
+        
+        
+        function ReshapeTest(TestCase)
+            %% Test reshape method
+            
+            img = DoubleImage(3, 4);
+            img.p = reshape(1:12, [3, 4])/12;
+            
+            res = img.reshape(4, 3);
+            TestCase.verifyEqual(res.p, reshape(1:12, [4, 3])/12, ...
+                'AbsTol', 1e-15);
+        end
+        
+        function ResizeTest(TestCase)
+            %% Test resize method
+            
+            img = DoubleImage(3, 4);
+            img.p = reshape(1:12, [3, 4])/15;
+            
+            res = img.resize(5, 6);
+            TestCase.verifyEqual(res.p, ...
+                imresize(reshape(1:12, [3,4])/15, [5,6]), ...
+                'AbsTol', 1e-15);
+        end
+        
+        
+        function PartitionTest(TestCase)
+            %% Test partition method
+            
+            img = DoubleImage(6, 8);
+            tmp = rand(6,8);
+            img.p = tmp;
+            
+            res = img.partition([3,4]);
+            TestCase.verifyEqual(res, ...
+                mat2cell( tmp , 3*ones(1,2) , 4*ones(1,2) ), ...
+                'AbsTol', 1e-15);
+        end
+        
+        
+        function ClipTest(TestCase)
+            %% Test clip method
+            
+            img = DoubleImage(3, 4);
+            tmp = rand(3, 4);
+            img.p = tmp;
+            res = img.clip([0.25, 0.75]);
+            
+            tmp(tmp < 0.25) = 0.25;
+            tmp(tmp > 0.75) = 0.75;
+            
+            TestCase.verifyEqual(tmp, res.p, 'AbsTol', 1e-15);
+        end
+        
+        
+        function BinariseTest(TestCase)
+            %% Test binarise method
+            
+            img = DoubleImage(3, 4);
+            tmp = rand(3, 4);
+            img.p = tmp;
+            res = img.binarise(0.6);
+            
+            tmp(tmp < 0.6) = 0.0;
+            tmp(tmp > 0.6) = 1.0;
+            
+            TestCase.verifyEqual(tmp, res.p, 'AbsTol', 1e-15);
+        end
+            
     end
     
 end
