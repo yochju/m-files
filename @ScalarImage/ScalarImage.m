@@ -538,11 +538,11 @@ classdef (Abstract = true) ScalarImage < nDGridData
             br = opts.blockSize(1);
             bc = opts.blockSize(2);
             
-            [nr, nc] = size(in);
+            [nr, nc] = size(obj.p);
             
             MExc = ExceptionMessage('BadArg', 'message', 'Dimension mismatch');
             
-            if ((mod(nr,br) ~= 0)||(mod(nc,bc) ~= 0))
+            if ((mod(nr, br) ~= 0)||(mod(nc, bc) ~= 0))
                 error(MExc.id, MExc.message);
             end
             
@@ -566,10 +566,10 @@ classdef (Abstract = true) ScalarImage < nDGridData
                 {'numeric'}, {'vector', 'real', 'numel', 2}, ...
                 'clip', 'ran') );
             
-            parser.parse(obj, blcksiz);
+            parser.parse(obj, ran);
             
-            obj.p(obj.p > ran(1)) = ran(1);
-            obj.p(obj.p < ran(2)) = ran(2);
+            obj.p(obj.p < ran(1)) = ran(1);
+            obj.p(obj.p > ran(2)) = ran(2);
         end
         
         
@@ -586,8 +586,8 @@ classdef (Abstract = true) ScalarImage < nDGridData
             opts = parser.Results;
             
             % TODO: Add more methods like double thresholding and otsu.
-            obj.p(obj.p >= opts.T) = obj.RangeMax;
-            obj.p(obj.p < opts.T) = obj.RangeMin;
+            obj.p(obj.p >= opts.T) = obj.rangeMax;
+            obj.p(obj.p < opts.T) = obj.rangeMin;
         end
         
         %% Statistical measures
