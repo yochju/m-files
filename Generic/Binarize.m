@@ -1,5 +1,5 @@
 function out = Binarize(in, thresh, varargin)
-%% Binarizes a given input vector.
+%% Binarizes given input data.
 %
 % out = Binarize(in, thresh, ...)
 %
@@ -39,7 +39,7 @@ function out = Binarize(in, thresh, varargin)
 %
 % See also Threshold, max, min
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -55,7 +55,7 @@ function out = Binarize(in, thresh, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 21.09.2012 16:54
+% Last revision on: 15.06.2015 16:26
 
 narginchk(2, 6);
 nargoutchk(0, 1);
@@ -67,11 +67,11 @@ parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
 % Note: isscalar(nan) as well as isDouble(nan) evaluate to true.
-parser.addRequired('in', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('thresh', @(x) isscalar(x)&&IsDouble(x));
+parser.addRequired('in', @(x) ismatrix(x));
+parser.addRequired('thresh', @(x) isscalar(x));
 
-parser.addParamValue('min', 0, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('max', 1, @(x) isscalar(x)&&IsDouble(x));
+parser.addParameter('min', 0, @(x) isscalar(x));
+parser.addParameter('max', 1, @(x) isscalar(x));
 
 parser.parse(in, thresh, varargin{:})
 opts = parser.Results;
