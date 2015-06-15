@@ -1,4 +1,4 @@
-function  [y varargout]  = Threshold( x , t )
+function  [y, varargout]  = Threshold( x , t )
 %% Thresholds input x with respect to t.
 %
 % [y, p, v]  = Threshold( x , t )
@@ -28,7 +28,7 @@ function  [y varargout]  = Threshold( x , t )
 %
 % See also max.
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
