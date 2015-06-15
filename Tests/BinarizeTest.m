@@ -21,7 +21,6 @@ w = Binarize(v, 3, 'min', nan, 'max', 0);
 verifyEqual(testcase, [0, 1, 2, 3, 0, 0, 0], w);
 end
 
-
 function Bin4Test (testcase)
 v = reshape(1:6, [2, 3]);
 w = Binarize(v, 3, 'min', -1, 'max', 10);
