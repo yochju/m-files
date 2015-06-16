@@ -1,4 +1,4 @@
-function [x varargout] = FreeKnotInterp(f, varargin)
+function [x, varargout] = FreeKnotInterp(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
 % [x ErG ErL] = FreeKnotInterp(f, ...)
@@ -57,7 +57,7 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 %
 % See also FreeKnotApprox
 
-% Copyright 2011, 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2011, 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -73,7 +73,7 @@ function [x varargout] = FreeKnotInterp(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 11:10
+% Last revision on: 16.06.2015 10:50
 
 %% Notes
 
@@ -93,25 +93,25 @@ parser.StructExpand = true;
 parser.addRequired('f', @(x) validateattributes(x, ...
     {'function_handle', 'numeric'}, {'vector'}, mfilename, 'f'));
 
-parser.addParamValue('fpi', [], @(x) validateattributes(x, ...
+parser.addParameter('fpi', [], @(x) validateattributes(x, ...
     {'function_handle', 'numeric'}, {'vector'}, mfilename, 'fpi'));
 
-parser.addParamValue('min', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('min', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'min'));
 
-parser.addParamValue('max', 1, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('max', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'max'));
 
-parser.addParamValue('num', 3, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('num', 3, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'finite', 'positive', '>=', 3}, mfilename, 'num'));
 
-parser.addParamValue('its', 1, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('its', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'finite', 'positive'}, mfilename, 'its'));
 
-parser.addParamValue('ini', 'uniform', @(x) strcmpi(x, validatestring(x, ...
+parser.addParameter('ini', 'uniform', @(x) strcmpi(x, validatestring(x, ...
     {'uniform', 'random'})));
 
-parser.addParamValue('pts', 1024, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('pts', 1024, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'integer', 'finite', 'positive'}, mfilename, 'its'));
 
 parser.parse( f, varargin{:});
@@ -181,11 +181,11 @@ if discrete
     
     % Compute additional output.
     if nargout == 2
-        [eG ~] = FreeKnot.ErrorInterp(f, s(x));
+        [eG, ~] = FreeKnot.ErrorInterp(f, s(x));
         varargout{1} = eG;
     end
     if nargout == 3
-        [eG eL] = FreeKnot.ErrorInterp(f, s(x));
+        [eG, eL] = FreeKnot.ErrorInterp(f, s(x));
         varargout{1} = eG;
         varargout{2} = eL;
     end
@@ -211,11 +211,11 @@ else
     
     % Compute additional output.
     if nargout == 2
-        [eG ~] = FreeKnot.ErrorInterp(f, x);
+        [eG, ~] = FreeKnot.ErrorInterp(f, x);
         varargout{1} = eG;
     end
     if nargout == 3
-        [eG eL] = FreeKnot.ErrorInterp(f, x);
+        [eG, eL] = FreeKnot.ErrorInterp(f, x);
         varargout{1} = eG;
         varargout{2} = eL;
     end

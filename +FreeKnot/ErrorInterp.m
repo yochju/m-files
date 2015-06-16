@@ -1,4 +1,4 @@
-function [eG eL] = ErrorInterp( f, x, varargin )
+function [eG, eL] = ErrorInterp( f, x, varargin )
 %% Computes error commited by piecewise linear interpolation.
 %
 % [eG eL] = ErrorInterp( f, x, ... )
@@ -49,7 +49,7 @@ function [eG eL] = ErrorInterp( f, x, varargin )
 %
 % See also quad
 
-% Copyright 2011, 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2011, 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -65,7 +65,7 @@ function [eG eL] = ErrorInterp( f, x, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 30.12.2012 11:00
+% Last revision: 16.06.2015 10:50
 
 %% Notes
 
@@ -86,10 +86,10 @@ parser.addRequired('f', @(x) validateattributes(x, ...
 parser.addRequired('x', @(x) validateattributes(x, {'numeric'} , {'vector'}, ...
     mfilename, 'x'));
 
-parser.addParamValue('min', x(1), @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('min', x(1), @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'min'));
 
-parser.addParamValue('max', x(end), @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('max', x(end), @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'real', 'finite'}, mfilename, 'max'));
 
 parser.parse( f, x, varargin{:});
