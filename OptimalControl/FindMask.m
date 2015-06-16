@@ -1,6 +1,6 @@
 function [u, c] = FindMask(f, lambda, varargin)
 
-% Copyright 2013 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2013, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -30,24 +30,24 @@ parser.StructExpand = true;
 parser.addRequired('f',      @(x) validateattributes(x, {'numeric'}, {'nonempty','finite'},                        mfilename, 'f',      1));
 parser.addRequired('lambda', @(x) validateattributes(x, {'numeric'}, {'scalar','nonempty','finite','nonnegative'}, mfilename, 'lambda', 2));
 
-parser.addParamValue('mu',       1.25,          @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'mu'));
-parser.addParamValue('e',        1e-4,          @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'e'));
-parser.addParamValue('maxit',    1,             @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative', 'integer'}, mfilename, 'maxit'));
-parser.addParamValue('cInit',    ones(size(f)), @(x) validateattributes(x, {'numeric'}, {'nonempty','finite'},                                      mfilename, 'cInit'));
-parser.addParamValue('logging',  true,          @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'logging'));
-parser.addParamValue('plot',     false,         @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'plot'));
-parser.addParamValue('verbose',  true,          @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'verbose'));
-parser.addParamValue('kkt',      false,         @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'kkt'));
-parser.addParamValue('operator', 'laplace',     @(x) strcmpi(x, validatestring( x, {'laplace', 'biharmonic'},                                       mfilename, 'operator')));
-parser.addParamValue('PockIt',   25000,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'PockIt'));
-parser.addParamValue('PockTol',  1e-12,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'PockTol'));
+parser.addParameter('mu',       1.25,          @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'mu'));
+parser.addParameter('e',        1e-4,          @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'e'));
+parser.addParameter('maxit',    1,             @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative', 'integer'}, mfilename, 'maxit'));
+parser.addParameter('cInit',    ones(size(f)), @(x) validateattributes(x, {'numeric'}, {'nonempty','finite'},                                      mfilename, 'cInit'));
+parser.addParameter('logging',  true,          @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'logging'));
+parser.addParameter('plot',     false,         @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'plot'));
+parser.addParameter('verbose',  true,          @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'verbose'));
+parser.addParameter('kkt',      false,         @(x) validateattributes(x, {'logical'}, {'scalar'},                                                 mfilename, 'kkt'));
+parser.addParameter('operator', 'laplace',     @(x) strcmpi(x, validatestring( x, {'laplace', 'biharmonic'},                                       mfilename, 'operator')));
+parser.addParameter('PockIt',   25000,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'PockIt'));
+parser.addParameter('PockTol',  1e-12,         @(x) validateattributes(x, {'numeric'}, {'scalar', 'nonempty', 'finite', 'nonnegative'},            mfilename, 'PockTol'));
 
 parser.parse( f, lambda, varargin{:});
 opts = parser.Results;
 
 %% Initialisation
 
-[ro co] = size(f);
+[ro, co] = size(f);
 if isvector(f)
     is1d = true;
 else
@@ -126,7 +126,7 @@ while i <= opts.maxit
     % - Solve optimisation problem to get new mask ----------------------- %
     
     tic();
-    [utemp c j du dc] = PockChambolleMex( ToVec(f), ToVec(cbar), A, A', bb, g, opts.e, opts.mu, opts.lambda, opts.PockIt, opts.PockTol);
+    [utemp c, j, du, dc] = PockChambolleMex( ToVec(f), ToVec(cbar), A, A', bb, g, opts.e, opts.mu, opts.lambda, opts.PockIt, opts.PockTol);
     
     if opts.kkt
         %% - Check KKT conditions for linearized problem. ---------------- %
