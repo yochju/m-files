@@ -65,7 +65,7 @@ function [eG, eL] = ErrorApprox( f, x, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 16.06.2015 10:50
+% Last revision: 23.06.2015 14:00
 
 %% Notes
 
@@ -128,10 +128,10 @@ else
     g = @(xi) interp1(linspace(opts.min, opts.max, numel(f)), f, xi, 'cubic');
 end
 
-eL = zeros(1,length(x)-1);
+eL = zeros(1, length(x)-1);
 for i = 1:(length(x)-1)
-    eL(i) = quad(g,x(i),x(i+1)) - ...
-        2*quad(g, 0.75*x(i) + 0.25*x(i+1), 0.25*x(i) + 0.75*x(i+1));
+    eL(i) = integral(g, x(i), x(i+1)) - ...
+        2*integral(g, 0.75*x(i) + 0.25*x(i+1), 0.25*x(i) + 0.75*x(i+1));
 end
 eG = sum(eL(:));
 

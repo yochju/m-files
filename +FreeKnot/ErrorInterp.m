@@ -65,7 +65,7 @@ function [eG, eL] = ErrorInterp( f, x, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 16.06.2015 10:50
+% Last revision: 23.06.2015 14:00
 
 %% Notes
 
@@ -123,10 +123,10 @@ else
     g = @(xi) interp1(linspace(opts.min, opts.max, numel(f)), f, xi, 'cubic');
 end
 
-eL = zeros(1,length(x)-1);
+eL = zeros(1, length(x)-1);
 for i = 1:(length(x)-1)
     eL(i) = 0.5*( x(i+1)-x(i) )*( f(x(i+1)) + f(x(i)) ) ...
-        - quad(g, x(i), x(i+1));
+        - integral(g, x(i), x(i+1));
 end
 eG = sum(eL(:));
 
