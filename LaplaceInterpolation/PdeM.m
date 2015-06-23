@@ -74,7 +74,7 @@ function out = PdeM(c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 17:08
+% Last revision on: 23.06.2015 10:30
 
 %% Notes
 
@@ -93,13 +93,13 @@ parser.addRequired('c', @(x) validateattributes(x, ...
     {'numeric'}, {'2d', 'finite', 'nonnan'}, ...
     mfilename, 'c'));
 
-parser.addParamValue('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'ml'));
 
-parser.addParamValue('mu', 1, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('mu', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'mu'));
 
-parser.addParamValue('optsLapl', struct(), @(x) validateattributes(x, ...
+parser.addParameter('optsLapl', struct(), @(x) validateattributes(x, ...
     {'struct'}, {}));
 
 parser.parse(c, varargin{:})
@@ -112,8 +112,9 @@ opts = parser.Results;
 % column-wise, therefore, we switch the order of the dimensions to get the
 % (hopefully) correct behavior.
 
-[row col] = size(opts.c);
+[row, col] = size(opts.c);
 D = LaplaceM(col, row, opts.optsLapl);
-out = DiagM(c-opts.ml) - DiagM(opts.mu-c)*D;
+out = spdiags( c(:)-opts.ml, 0, numel(c), numel(c)) - ...
+    spdiags( opts.mu - c(:), 0, numel(c), numel(c))*D;
 
 end
