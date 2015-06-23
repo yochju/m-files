@@ -1,4 +1,4 @@
-function [Du Dc] = LinearisePDE(f, u, c, varargin)
+function [Du, Dc] = LinearisePDE(f, u, c, varargin)
 %% Compute first order approximation to Laplace Equation
 %
 % out = LinearisePDE(f, u, c, ...)
@@ -40,7 +40,7 @@ function [Du Dc] = LinearisePDE(f, u, c, varargin)
 %
 % See also Mask, PdeM, Residual, Rhs, SolvePde
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -56,7 +56,7 @@ function [Du Dc] = LinearisePDE(f, u, c, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 02.10.2012 12:19
+% Last revision on: 23.06.2015 10:45
 
 narginchk(3, 7);
 nargoutchk(0, 1);
@@ -79,7 +79,7 @@ assert( ...
     isequal(size(opts.f),size(opts.u),size(opts.c)), ...
     ExcM.id, ExcM.message );
 
-[row col] = size(opts.u);
+[row, col] = size(opts.u);
 
 % TODO: make passing of options more flexible.
 % NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes

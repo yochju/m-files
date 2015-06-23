@@ -47,7 +47,7 @@ function out = Residual(u, c, f, varargin)
 %
 % See also EvalPde
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the Free
@@ -63,7 +63,7 @@ function out = Residual(u, c, f, varargin)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 16.08.2012 17:30
+% Last revision on: 23.06.2015 10:45
 
 narginchk(3, 7);
 nargoutchk(0, 1);
@@ -74,17 +74,17 @@ parser.CaseSensitive = false;
 parser.KeepUnmatched = true;
 parser.StructExpand = true;
 
-parser.addRequired('u', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('c', @(x) ismatrix(x)&&IsDouble(x));
-parser.addRequired('f', @(x) ismatrix(x)&&IsDouble(x));
+parser.addRequired('u', @(x) ismatrix(x));
+parser.addRequired('c', @(x) ismatrix(x));
+parser.addRequired('f', @(x) ismatrix(x));
 
-parser.addParamValue('threshData', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMin', 0, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDataMax', 1, @(x) isscalar(x)&&IsDouble(x));
+parser.addParameter('threshData', nan, @(x) isscalar(x));
+parser.addParameter('thrDataMin', 0, @(x) isscalar(x));
+parser.addParameter('thrDataMax', 1, @(x) isscalar(x));
 
-parser.addParamValue('threshDiff', nan, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMin', 0, @(x) isscalar(x)&&IsDouble(x));
-parser.addParamValue('thrDiffMax', 1, @(x) isscalar(x)&&IsDouble(x));
+parser.addParameter('threshDiff', nan, @(x) isscalar(x));
+parser.addParameter('thrDiffMin', 0, @(x) isscalar(x));
+parser.addParameter('thrDiffMax', 1, @(x) isscalar(x));
 
 parser.parse(u, c, f, varargin{:})
 opts = parser.Results;
