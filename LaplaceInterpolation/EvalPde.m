@@ -59,7 +59,7 @@ function out = EvalPde(f, u, varargin)
 %
 % See also Mask, PdeM, Residual, Rhs, SolvePde
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -75,7 +75,7 @@ function out = EvalPde(f, u, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 17:25
+% Last revision on: 23.06.2015 10:45
 
 narginchk(2, 8);
 nargoutchk(0, 1);
@@ -92,14 +92,14 @@ parser.addRequired('f', @(x) validateattributes(x, {'numeric'}, ...
 parser.addRequired('u', @(x) validateattributes(x, {'numeric'}, ...
     {'2d', 'finite', 'nonnan'}, mfilename, 'u'));
 
-parser.addParamValue('mask', zeros(size(f)), @(x) validateattributes(x, ...
+parser.addParameter('mask', zeros(size(f)), @(x) validateattributes(x, ...
     {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
     mfilename, 'mask'));
 
-parser.addParamValue('m', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('m', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'm'));
 
-parser.addParamValue('M', 1, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('M', 1, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'M'));
 
 parser.parse(f, u, varargin{:})
@@ -112,7 +112,7 @@ assert( isequal( size(opts.f), size(opts.u), size(opts.mask)), ...
 
 %% Run code.
 
-[row col] = size(opts.u);
+[row, col] = size(opts.u);
 
 % TODO: make passing of options more flexible.
 % NOTE: the correct call would be LaplaceM(row, col, ...), however this assumes

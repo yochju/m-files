@@ -41,7 +41,7 @@ function out = Rhs(in, varargin)
 %
 % See also
 
-% Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
 % This program is free software; you can redistribute it and/or modify it
 % under the terms of the GNU General Public License as published by the Free
@@ -57,7 +57,7 @@ function out = Rhs(in, varargin)
 % with this program; if not, write to the Free Software Foundation, Inc., 51
 % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 30.12.2012 16:56
+% Last revision on: 23.06.2015 10:40
 
 %% Notes
 
@@ -75,11 +75,11 @@ parser.StructExpand = true;
 parser.addRequired('in', @(x) validateattributes(x, {'numeric'}, ...
     {'2d', 'finite', 'nonnan'}, mfilename, 'in'));
 
-parser.addParamValue('mask', zeros(size(in)), @(x) validateattributes(x, ...
+parser.addParameter('mask', zeros(size(in)), @(x) validateattributes(x, ...
     {'numeric'}, {'2d', 'finite', 'nonnan', 'size', size(in)}, ...
     mfilename, 'mask'));
 
-parser.addParamValue('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
+parser.addParameter('ml', 0, @(x) validateattributes(x, {'numeric'}, ...
     {'scalar', 'finite', 'nonnan'}, mfilename, 'ml'));
 
 parser.parse(in, varargin{:})
