@@ -18,8 +18,8 @@ function [u, c] = FindMask(f, lambda, varargin)
 
 %% Check Input and Output
 
-narginchk(2,22);
-nargoutchk(0,8);
+narginchk(2, 22);
+nargoutchk(0, 8);
 
 parser = inputParser;
 parser.FunctionName = mfilename;
@@ -126,7 +126,7 @@ while i <= opts.maxit
     % - Solve optimisation problem to get new mask ----------------------- %
     
     tic();
-    [utemp c, j, du, dc] = PockChambolleMex( ToVec(f), ToVec(cbar), A, A', bb, g, opts.e, opts.mu, opts.lambda, opts.PockIt, opts.PockTol);
+    [utemp, c, j, du, dc] = PockChambolleMex( ToVec(f), ToVec(cbar), A, A', bb, g, opts.e, opts.mu, opts.lambda, opts.PockIt, opts.PockTol);
     
     if opts.kkt
         %% - Check KKT conditions for linearized problem. ---------------- %
