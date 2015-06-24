@@ -1,7 +1,7 @@
 function [x, varargout] = OptInterp(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
-% [x ErG ErL] = FreeKnotInterp(f, ...)
+% [x ErG ErL] = OptInterp(f, ...)
 %
 % Input parameters (required):
 %
@@ -53,9 +53,9 @@ function [x, varargout] = OptInterp(f, varargin)
 %
 % f = @(x) x.^2;
 % fpi = @(x) x/2;
-% x = FreeKnot.FreeKnotInterp(f, 'fpi', fpi, 'min', -1, 'max', 1, 'num', 5);
+% x = FreeKnot.OptInterp(f, 'fpi', fpi, 'min', -1, 'max', 1, 'num', 5);
 %
-% See also FreeKnotApprox
+% See also OptApprox
 
 % Copyright 2011, 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
 %
@@ -73,7 +73,7 @@ function [x, varargout] = OptInterp(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 16.06.2015 10:50
+% Last revision on: 24.06.2015 10:10
 
 %% Notes
 
