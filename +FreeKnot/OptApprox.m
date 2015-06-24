@@ -1,4 +1,4 @@
-function [x, varargout] = FreeKnotApprox(f, varargin)
+function [x, varargout] = OptApprox(f, varargin)
 %% Optimal knot distribution for piecewise linear splines interpolation.
 %
 % [x ErG ErL] = FreeKnotApprox(f, ...)
