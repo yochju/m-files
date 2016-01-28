@@ -53,7 +53,7 @@ function [x, varargout] = OptApprox(f, varargin)
 %
 % See also OptInterp
 
-% Copyright 2011, 2012, 2015 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+% Copyright 2011 - 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 %
 % This program is free software; you can redistribute it and/or modify it under
 % the terms of the GNU General Public License as published by the Free Software
@@ -69,7 +69,7 @@ function [x, varargout] = OptApprox(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 24.06.2015 10:10
+% Last revision on: 28.01.2016 11:45
 
 %% Notes
 
