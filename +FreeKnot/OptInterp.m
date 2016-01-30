@@ -55,7 +55,7 @@ function [x, varargout] = OptInterp(f, varargin)
 % fpi = @(x) x/2;
 % x = FreeKnot.OptInterp(f, 'fpi', fpi, 'min', -1, 'max', 1, 'num', 5);
 %
-% See also OptApprox
+% See also FreeKnot.OptApprox
 
 % Copyright 2011 - 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 %
@@ -73,7 +73,7 @@ function [x, varargout] = OptInterp(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 28.01.2016 11:45
+% Last revision on: 31.01.2016 20:15
 
 %% Notes
 
@@ -196,7 +196,7 @@ else
     if strcmp(opts.ini, 'uniform')
         x = linspace(opts.min, opts.max, opts.num);
     elseif strcmp(opts.ini, 'random')
-        x = union([a b],a+(b-a)*rand(opts.num-2,1));
+        x = union([a b],a+(b-a)*rand(1, opts.num-2));
     end
     
     % Iterate.

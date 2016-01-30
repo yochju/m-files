@@ -51,7 +51,7 @@ function [x, varargout] = OptApprox(f, varargin)
 % f = @(x) x.^2;
 % x = FreeKnot.OptApprox(f, 'min', -1, 'max', 1, 'num', 5);
 %
-% See also OptInterp
+% See also Freeknot.OptInterp
 
 % Copyright 2011 - 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 %
@@ -69,13 +69,13 @@ function [x, varargout] = OptApprox(f, varargin)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 28.01.2016 11:45
+% Last revision on: 31.01.2016 20:00
 
 %% Notes
 
 % Reference:
 % H. Hamideh, On the optimal knots of first degree splines.
-% Kuwait Journal of Science and Engineering 29(1) (2002), pp. 1–13,
+% Kuwait Journal of Science and Engineering 29(1) (2002), pp. 1--13,
 % http://pubcouncil.kuniv.edu.kw/kjse/english/wordfile/Vol_29_2002/v29-n1-2002/optimal.pdf
 
 %TODO: Make the iteration stop if a fix point is reached.
@@ -203,7 +203,7 @@ else
     if strcmp(opts.ini, 'uniform')
         x = linspace(opts.min, opts.max, opts.num);
     elseif strcmp(opts.ini, 'random')
-        x = union([a b],a+(b-a)*rand(opts.num-2,1));
+        x = union([a b],a+(b-a)*rand(1, opts.num-2));
     end
     
     % Apply the iterative scheme.
