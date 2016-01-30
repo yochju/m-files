@@ -65,13 +65,13 @@ function [eG, eL] = ErrorApprox( f, x, varargin )
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision on: 28.01.2016 11:45
+% Last revision on: 31.01.2016 20:00
 
 %% Notes
 
 % Reference:
 % H. Hamideh, On the optimal knots of first degree splines.
-% Kuwait Journal of Science and Engineering 29(1) (2002), pp. 1–13,
+% Kuwait Journal of Science and Engineering 29(1) (2002), pp. 1--13,
 % http://pubcouncil.kuniv.edu.kw/kjse/english/wordfile/Vol_29_2002/v29-n1-2002/optimal.pdf
 
 %% Parse input and output.
