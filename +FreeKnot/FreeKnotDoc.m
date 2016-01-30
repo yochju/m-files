@@ -1,4 +1,4 @@
-%% Optimal Free Knots
+%% Optimal Free Knots Documentation
 %
 %% Licensing
 % The complete source code from the files listed above is licensed under GPLv3
