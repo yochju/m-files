@@ -13,7 +13,7 @@ classdef ExceptionMessage
     %
     %    See also: warning, assert, error
     
-    % Copyright 2012 Laurent Hoeltgen <laurent.hoeltgen@gmail.com>
+    % Copyright 2012-2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
     %
     % This program is free software; you can redistribute it and/or modify it
     % under the terms of the GNU General Public License as published by the Free
@@ -29,7 +29,7 @@ classdef ExceptionMessage
     % with this program; if not, write to the Free Software Foundation, Inc., 51
     % Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     
-    % Last revision on: 07.10.2012 11:30
+    % Last revision on: 2016-01-31 16:00
     
     properties
         id      = ''; % Identifier for the message.
@@ -41,7 +41,7 @@ classdef ExceptionMessage
     end
     
     methods
-        function obj = ExceptionMessage(type,varargin)
+        function obj = ExceptionMessage(type, varargin)
             %% Creates a new instance of the class ExceptionMessage.
             %
             % obj = ExceptionMessage(type,varargin)
@@ -121,7 +121,7 @@ classdef ExceptionMessage
                 {'vector'}, ...
                 'ExceptionMessage', 'type'));
             
-            parser.addParamValue('message', '', ...
+            parser.addParameter('message', '', ...
                 @(x) validateattributes( x, ...
                 {'char'}, ...
                 {'nonsparse'}, ...
