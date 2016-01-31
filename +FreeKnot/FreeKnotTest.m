@@ -1,6 +1,6 @@
 classdef FreeKnotTest < matlab.unittest.TestCase
     % Unit Tests for the functions provided in +FreeKnot
-    % Performs the unit tests for the function euclid. Enter
+    % Enter
     %
     % import matlab.unittest.TestSuite;
     % suite = TestSuite.fromPackage('FreeKnot');
