@@ -118,10 +118,10 @@ while i <= opts.maxit
     A = spdiags(ToVec(cbar), 0, N, N) - (I - spdiags(ToVec(cbar), 0, N, N))*D;
     
     % B = u - f + D*u;
-    bb = ToVec(ubar-f) + smvp(D,ToVec(ubar));
+    bb = ToVec(ubar-f) + D*ToVec(ubar);
     
     % g = c*(I+D)*u
-    g = ToVec(cbar) .* smvp(( I + D ),ToVec(ubar));
+    g = ToVec(cbar) .* (( I + D )*ToVec(ubar));
     
     % - Solve optimisation problem to get new mask ----------------------- %
     
@@ -274,7 +274,7 @@ while i <= opts.maxit
         if is1d
             plot(abs(u(:)-f(:)));
         else
-            subimage(ImageNormalise(abs(u-f)));
+            subimage(abs(u-f));
             set(gca(),'XTick',[],'YTick',[]);
         end
         title({'Absolute difference solution',['Min: ' num2str(min(abs(u(:)-f(:))))],['Max: ' num2str(max(abs(u(:)-f(:))))]});
@@ -284,7 +284,7 @@ while i <= opts.maxit
             if is1d
                 plot(deltao(:));
             else
-                subimage(ImageNormalise(ToIm(deltao,ro,co)));
+                subimage(ToIm(deltao,ro,co));
                 set(gca(),'XTick',[],'YTick',[]);
             end
             title({'Adjoint variable',['Min: ' num2str(min(deltao(:)))],['Max: ' num2str(max(deltao(:)))]});
@@ -321,7 +321,7 @@ while i <= opts.maxit
         if is1d
             plot(abs(uT(:)-f(:)));
         else
-            subimage(ImageNormalise(abs(uT-f)));
+            subimage(abs(uT-f));
             set(gca(),'XTick',[],'YTick',[]);
         end
         title({'Absolute difference solution (thresh.)',['Min: ' num2str(min(abs(uT(:)-f(:))))],['Max: ' num2str(max(abs(uT(:)-f(:))))]});
@@ -341,7 +341,7 @@ while i <= opts.maxit
         if is1d
             plot(abs(c(:)-cT(:)))
         else
-            subimage(ImageNormalise(abs(c-ToIm(cT,ro,co))));
+            subimage(abs(c-ToIm(cT,ro,co)));
             set(gca(),'XTick',[],'YTick',[]);
         end
         title({'Absolute difference masks',['Min: ' num2str(min(abs(c(:)-cT(:))))],['Max: ' num2str(max(abs(c(:)-cT(:))))]});
@@ -360,7 +360,7 @@ while i <= opts.maxit
         if is1d
             plot(c(:)-cbar(:))
         else
-            subimage(ImageNormalise(c-cbar));
+            subimage(c-cbar);
             set(gca(),'XTick',[],'YTick',[]);
         end
         title({'Difference between previous and actual mask', ['Min: ' num2str(min(abs(c(:)-cbar(:))))],['Max: ' num2str(max(abs(c(:)-cbar(:))))]});
@@ -378,7 +378,9 @@ while i <= opts.maxit
         mu = opts.mu;
         epsi = opts.e;
         its = i-1;
-        save(['~/LOGS/' num2str(FIG) '-' CreateTimeStamp('LOG') '__' num2str(lambda) '__' num2str(opts.mu) '__' num2str(its) '.mat'], 'u', 'c', 'ENERGY', 'ERROR', 'ENERGYT', 'ERRORT', 'lambda', 'TIME', 'ERROR', 'DENSITY', 'its', 'mu', 'epsi', '-v7.3');
+        imwrite(u, ['F:\', 'u - ', num2str(i), '.png']);
+        imwrite(c, ['F:\', 'c - ', num2str(i), '.png']);
+        save(['F:\', num2str(lambda), '__', num2str(opts.mu), '__', num2str(its), '.mat'], 'u', 'c', 'ENERGY', 'ERROR', 'ENERGYT', 'ERRORT', 'lambda', 'TIME', 'ERROR', 'DENSITY', 'its', 'mu', 'epsi', '-v7.3');
     end
     
 end
