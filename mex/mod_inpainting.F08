@@ -1,0 +1,289 @@
+! Copyright (C) 2015 Laurent Hoeltgen <hoeltgen@b-tu.de>
+!
+! This program is free software: you can redistribute it and/or modify it under
+! the terms of the GNU General Public License as published by the Free Software
+! Foundation, either version 3 of the License, or (at your option) any later
+! version.
+!
+! This program is distributed in the hope that it will be useful, but WITHOUT
+! ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License along with
+! this program. If not, see <http://www.gnu.org/licenses/>.
+!
+
+module inpainting
+        use :: iso_fortran_env
+        implicit none
+        save
+
+        REAL(REAL64), parameter :: TOL = 1.0D-10
+
+        private :: TOL
+
+contains
+
+        pure function apply_inpainting_5p (dims, arr, c, neumann) result(res)
+                use :: laplace, only: apply_laplace_5p
+                implicit none
+
+                integer(INT32), dimension(:),                       intent(in) :: dims
+                real(REAL64),   dimension(product(dims)),           intent(in) :: arr
+                real(REAL64),   dimension(product(dims)),           intent(in) :: c
+                logical,                                  optional, intent(in) :: neumann
+
+                real(REAL64), dimension(product(dims)) :: res
+
+                if (present(neumann)) then
+                        res = c*arr - (1.0D0 - c) * apply_laplace_5p (dims, arr, neumann)
+                else
+                        res = c*arr - (1.0D0 - c) * apply_laplace_5p (dims, arr)
+                end if
+
+                !                logical,        dimension(3**size(dims))    :: mask
+                !                integer(INT32), dimension(size(dims))       :: siz
+                !                integer(INT32)                              :: ii
+                !                real(REAL64),   dimension(3**size(dims))    :: lapl, impulse
+                !                real(REAL64),   dimension(:,:), allocatable :: ker
+
+                !! This code is correct (and probably useful for non-constant convolutions, but too complex for the task at hand
+                !! here.
+
+                !                res = 0.0D0
+                !                siz = [(3, ii=1, size(dims))]
+                !                mask = create_5p_stencil (size(dims))
+                !                lapl = stencil_laplace_5p(size(dims))
+                !
+                !                impulse = 0.0D0
+                !                where (abs(lapl) > 1.0D0) impulse = 1.0D0
+
+                !                allocate(ker(product(dims), 3**size(dims)))
+                !
+                !                forall (ii = lbound(arr,1):ubound(arr,1))
+                !                        ker(ii, lbound(ker,2):ubound(ker,2) ) = c(ii)*impulse - (1-0D0 - c(ii))*lapl
+                !                end forall
+                !
+                !! If I switch the stencillocs call inside ker, I can use this for application of the transpose.
+                !                forall (ii = lbound(arr,1):ubound(arr,1))
+                !                        res(ii) = sum(arr(ii + stencillocs (siz, dims))*ker(ii, ubound(ker,2):lbound(ker,2):-1), 1, &
+                        !                                mask .and. stencilmask (siz, dims, ii))
+                !                end forall
+                !
+                !                deallocate(ker)
+        end function apply_inpainting_5p
+
+        pure function apply_inpainting_T_5p (dims, arr, c, neumann) result(res)
+                use :: laplace, only: apply_laplace_5p
+                implicit none
+
+                integer(INT32), dimension(:),                       intent(in) :: dims
+                real(REAL64),   dimension(product(dims)),           intent(in) :: arr
+                real(REAL64),   dimension(product(dims)),           intent(in) :: c
+                logical,                                  optional, intent(in) :: neumann
+
+                real(REAL64), dimension(product(dims)) :: res
+
+                if (present(neumann)) then
+                        res = c*arr - apply_laplace_5p (dims, (1.0D0 - c)* arr, neumann)
+                else
+                        res = c*arr - apply_laplace_5p (dims, (1.0D0 - c)* arr)
+                end if
+
+        end function apply_inpainting_T_5p
+
+        pure function eval_inpainting_pde (dims, u, c, f) result(pde)
+                use :: laplace, only: apply_laplace_5p
+                implicit none
+
+                integer(INT32), dimension(:),             intent(in) :: dims
+                real(REAL64),   dimension(product(dims)), intent(in) :: u
+                real(REAL64),   dimension(product(dims)), intent(in) :: c
+                real(REAL64),   dimension(product(dims)), intent(in) :: f
+
+                real(REAL64), dimension(product(dims)) :: pde
+
+                pde = apply_inpainting_5p(dims, u, c, .true.) - c*f
+        end function eval_inpainting_pde
+
+        pure subroutine linearise_inpainting_pde (dims, cbar, ubar, f, B, g)
+                use :: laplace, only: apply_laplace_5p
+                implicit none
+
+                integer(INT32), dimension(:),             intent(in) :: dims
+                real(REAL64),   dimension(product(dims)), intent(in) :: cbar
+                real(REAL64),   dimension(product(dims)), intent(in) :: ubar
+                real(REAL64),   dimension(product(dims)), intent(in) :: f
+
+                real(REAL64), dimension(product(dims)), intent(out) :: B
+                real(REAL64), dimension(product(dims)), intent(out) :: g
+
+                real(REAL64), dimension(product(dims)) :: tmp
+
+                tmp = apply_laplace_5p(dims, ubar, .true.)
+
+                B = ubar - f + tmp
+                g = cbar*(ubar+tmp)
+        end subroutine linearise_inpainting_pde
+
+        pure function power_iteration_inpainting (dims, c, maxit, init) result(lambda)
+                implicit none
+
+                integer(INT32), dimension(:),             intent(in) :: dims
+                real(REAL64),   dimension(product(dims)), intent(in) :: c
+                integer(INT32),                           intent(in) :: maxit
+                real(REAL64),   dimension(product(dims)), intent(in) :: init
+
+                real(REAL64) :: lambda
+
+                integer(INT32)                           :: ii, k
+                real(REAL64),  dimension(:), allocatable :: tmp, tmp2
+                real(REAL64)                             :: nrm
+
+                !! Interface to BLAS functions
+                interface
+                        pure function dnrm2(n, x, incx) result (nrm)
+                                use :: iso_fortran_env
+                                implicit none
+
+                                integer(INT32),               intent(in) :: n
+                                real(REAL64),   dimension(n), intent(in) :: x
+                                integer(INT32),               intent(in) :: incx
+
+                                real(REAL64) :: nrm
+                        end
+
+                        pure function ddot(n, x, incx, y, incy) result (dot)
+                                use :: iso_fortran_env
+                                implicit none
+
+                                integer(INT32),               intent(in) :: n
+                                real(REAL64),   dimension(n), intent(in) :: x
+                                integer(INT32),               intent(in) :: incx
+                                real(REAL64),   dimension(n), intent(in) :: y
+                                integer(INT32),               intent(in) :: incy
+
+                                real(REAL64) :: dot
+                        end
+                end interface
+
+                allocate(tmp(size(c)), tmp2(size(c)))
+
+                nrm = dnrm2(size(c), init, 1)
+
+                ! Initialise with a vector of norm 1.
+                if (nrm .le. TOL) then
+                        tmp = 1.0D0
+                        nrm = sqrt(real(size(c), REAL64))
+                else
+                        tmp = init/nrm
+                end if
+
+                do ii = 1, maxit
+                        tmp2 = apply_inpainting_5p(dims, tmp, c, .true.)
+                        nrm = dnrm2(size(c), tmp2, 1)
+
+                        !! TODO: These steps will fail if nrm is 0.
+                        k = maxloc(abs(tmp2), 1)
+                        tmp = sign(1.0D0, tmp(k)/tmp2(k)) * (tmp2/nrm)
+                        lambda = sign(1.0D0, tmp(k)/tmp2(k)) * nrm
+                end do
+
+                deallocate(tmp, tmp2)
+        end function power_iteration_inpainting
+
+        pure subroutine inpainting_5p_sparse_coo (dims, c, ir, jc, a, neumann)
+                use :: laplace, only: laplace_5p_sparse_coo
+                implicit none
+
+                integer(INT32), dimension(:),                       intent(in) :: dims ! grid dimensions
+                real(REAL64),   dimension(product(dims)),           intent(in) :: c
+                logical,                                  optional, intent(in) :: neumann
+
+                integer(INT32), dimension(:), intent(out) :: ir
+                integer(INT32), dimension(:), intent(out) :: jc
+                real(REAL64),   dimension(:), intent(out) :: a
+
+                logical :: tmp
+                integer :: ii
+
+                if (present(neumann)) then
+                        tmp = neumann
+                else
+                        tmp = .true.
+                end if
+
+                call laplace_5p_sparse_coo (dims, ir, jc, a, tmp)
+
+                do ii = 1, size(ir)
+                        if (ir(ii) /= jc(ii)) then
+                                a(ii) = c(ir(ii)) - 1.0D0
+                        else
+                                a(ii) = c(ir(ii)) - (1.0D0 - c(ir(ii))) * a(ii)
+                        end if
+                end do
+        end subroutine inpainting_5p_sparse_coo
+
+        pure subroutine solve_inpainting (dims, c, f, transp, u, umf_symbolic)
+                use :: iso_c_binding
+                use :: stencil, only: stencil2sparse_size, create_5p_stencil
+                implicit none
+
+                integer(INT32), dimension(:),             intent(in)  :: dims
+                real(REAL64),   dimension(product(dims)), intent(in)  :: c
+                real(REAL64),   dimension(product(dims)), intent(in)  :: f
+                logical,                                  intent(in)  :: transp
+                real(REAL64),   dimension(product(dims)), intent(out) :: u
+                integer(INT32),                           intent(in)  :: umf_symbolic
+
+                integer(INT32), dimension(:), allocatable :: ir
+                integer(INT32), dimension(:), allocatable :: jc
+                real(REAL64),   dimension(:), allocatable :: a
+                real(c_double), dimension(:), allocatable :: x
+                integer(c_long)                           :: n
+
+                integer(INT32)                            :: ii
+
+                interface
+                        pure subroutine solve_inpainting_coo(n, nz, ir, jc, a, rhs, x, alloc) bind(c)
+                                use :: iso_c_binding
+                                implicit none
+
+                                integer(c_long),               intent(in)  :: n
+                                integer(c_long),               intent(in)  :: nz
+                                integer(c_long), dimension(*), intent(in)  :: ir
+                                integer(c_long), dimension(*), intent(in)  :: jc
+                                real(c_double),  dimension(*), intent(in)  :: a
+                                real(c_double),  dimension(*), intent(in)  :: rhs
+                                integer(c_long),               intent(in)  :: alloc
+
+                                real(c_double),  dimension(*), intent(out) :: x
+                        end subroutine solve_inpainting_coo
+                end interface
+
+                n = int(stencil2sparse_size([(3, ii=1, size(dims))], dims, create_5p_stencil (size(dims))), c_long)
+
+                !! If c==0 or f == 0, the solution is trivial.
+                if (maxval(abs(c)) < TOL .or. maxval(abs(f)) < TOL) then
+                        u = 0.0D0
+                else
+                        allocate(ir(n), jc(n), a(n), x(product(dims)))
+                        call inpainting_5p_sparse_coo (dims, c, ir, jc, a, .true.)
+                        !! umpfack has 0-based indices for the matrix. So we have to shift our indices.
+                        ir = ir - 1
+                        jc = jc - 1
+                        if (transp) then
+                                !! Compute x = c*M^(-T)*f
+                                call solve_inpainting_coo(int(product(dims), c_long), n, int(jc, c_long), int(ir, c_long), &
+                                        real(a, c_double), real(f, c_double), x, int(umf_symbolic, c_long))
+                                u = c*x
+                        else
+                                !! Solve Mx=c*f, e.g. compute x = M^(-1)*c*f
+                                call solve_inpainting_coo(int(product(dims), c_long), n, int(ir, c_long), int(jc, c_long), &
+                                        real(a, c_double), real(c*f, c_double), x, int(umf_symbolic, c_long))
+                                u = x
+                        end if
+                        deallocate(ir, jc, a, x)
+                end if
+        end subroutine solve_inpainting
+end module
