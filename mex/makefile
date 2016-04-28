@@ -1,5 +1,7 @@
 FC=gfortran
 
+CC=gcc
+
 FSRC = $(wildcard *.F08)
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))
 
@@ -7,14 +9,21 @@ IFLAGS := -I.
 
 LDFLAGS :=-L.
 
-FCFLAGS :=-static-libgfortran -std=f2008 -static -ffree-form -Wall -Wextra -fimplicit-none -cpp $(IFLAGS) $(LDFLAGS)
+FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -fcheck=all -cpp $(IFLAGS) $(LDFLAGS)
+
+AR=ar rcs
+
+RM=rm -f
+
+LIB = libffiles.a
 
 .PHONY: clean all
 
 .SUFFIXES:
 .SUFFIXES: .o .c .F08 .mod
 
-all: $(FOBJ)
+all: $(LIB)
+	echo $(LIB)
 
 clean:
 	$(RM) *.o *.mod
@@ -39,3 +48,7 @@ mod_inpainting.o : mod_inpainting.F08 mod_laplace.o mod_stencil.o
 
 %.o : %.F08
 	$(FC) $(FCFLAGS) -c $<
+
+$(LIB): $(FOBJ)
+	$(AR) $@ $^
+	$(RM) *.o
