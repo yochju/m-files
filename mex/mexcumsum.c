@@ -1,6 +1,5 @@
 #include "mex.h"
-
-extern long mexcumsum(long, double *, double *);
+#include "f2mex.h"
 
 void mexFunction( int nlhs,       mxArray *plhs[],
                   int nrhs, const mxArray *prhs[] 
