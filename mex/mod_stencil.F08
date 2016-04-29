@@ -26,6 +26,21 @@
 module stencil
         use :: iso_fortran_env
         implicit none
+        private
+
+        public :: stencillocs
+
+        public :: stencilmask
+
+        public :: create_5p_stencil
+
+        public :: stencil2sparse_size
+
+        public :: const_stencil2sparse
+
+        public :: stencil2sparse
+
+        public :: convolve
 
 contains
 

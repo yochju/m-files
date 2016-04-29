@@ -27,12 +27,21 @@
 module array
         use iso_fortran_env
         implicit none
+        private
 
-        private :: add0padding_i
-        private :: add0padding_r
+        public :: ind2sub
+
+        public :: sub2ind
+
+        public :: add0padding
         interface add0padding
                 module procedure add0padding_i, add0padding_r
         end interface
+
+        public :: mirror
+        interface mirror
+            module procedure mirror_1, mirror_2, mirror_3
+        end interface mirror
 
 contains
 

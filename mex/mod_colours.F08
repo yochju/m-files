@@ -16,6 +16,11 @@
 module colours
       use iso_fortran_env
       implicit none
+      private
+
+      public :: rgb2ycbcr
+      
+      public :: ycbcr2rgb
 
 contains
 

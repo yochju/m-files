@@ -28,34 +28,31 @@ module miscfun
         use :: iso_fortran_env
         implicit none
         save
+        private
 
         integer(INT32), parameter, private :: NPAR = 8  ! Used for allowing parallelisation of certain routines.
 
-        private :: cumsum_i
-        private :: cumsum_r
+        public :: cumsum
         interface cumsum
                 module procedure cumsum_i, cumsum_r
         end interface cumsum
 
-        private :: cumprod_i
-        private :: cumprod_r
+        public :: cumprod
         interface cumprod
                 module procedure cumprod_i, cumprod_r
         end interface cumprod
 
-        private :: outerproduct_i
-        private :: outerproduct_r
+        public :: outerproduct
         interface outerproduct
                 module procedure outerproduct_i, outerproduct_r
         end interface outerproduct
 
-        private :: scatter_add_i
-        private :: scatter_add_r
+        public :: scatter_add
         interface scatter_add
                 module procedure scatter_add_i, scatter_add_r
         end interface scatter_add
 
-        private :: repelem_i
+        public repelem
         interface repelem
                 module procedure repelem_i
         end interface repelem

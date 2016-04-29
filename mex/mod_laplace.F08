@@ -29,6 +29,13 @@ module laplace
         use :: array
         use :: sparse
         implicit none
+        private
+
+        public :: stencil_laplace_5p
+        
+        public :: laplace_5p_sparse_coo
+
+        public :: apply_laplace_5p
 
 contains
 
