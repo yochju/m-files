@@ -39,7 +39,7 @@ module miscfun
 
         public :: cumprod
         interface cumprod
-                module procedure cumprod_i, cumprod_r
+                module procedure cumprod_i, cumprod_r, cumprod_l
         end interface cumprod
 
         public :: outerproduct
@@ -54,7 +54,7 @@ module miscfun
 
         public repelem
         interface repelem
-                module procedure repelem_i
+                module procedure repelem_i, repelem_l
         end interface repelem
 
 contains
@@ -107,6 +107,28 @@ contains
                 end if
         end function cumprod_i
 
+        pure recursive function cumprod_l (arr) result(ans)
+
+                integer(INT64), dimension(:), intent(in) :: arr
+
+                integer(INT64), dimension(size(arr)) :: ans
+
+                integer(INT64) :: n,j
+
+                n = size(arr)
+
+                ans(1) = arr(1)
+
+                if (n < NPAR) then
+                        do j = 2, n
+                                ans(j) = ans(j-1) * arr(j)
+                        end do
+                else
+                        ans(2:n:2) = cumprod_l (arr(2:n:2) * arr(1:n-1:2))
+                        ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
+                end if
+        end function cumprod_l
+
         !! Outer product
         pure function outerproduct_i (a, b) result(ans)
 
@@ -147,6 +169,19 @@ contains
                 dest = reshape(spread(src, 1, ncop), [ncop*size(src)])
 
         end function repelem_i
+
+        pure function repelem_l (src, ncop) result(dest)
+                implicit none
+
+                integer(INT64), dimension(:), intent(in) :: src
+                integer(INT64),               intent(in) :: ncop
+
+                integer(INT64), dimension(ncop*size(src)) :: dest
+
+                dest = reshape(spread(src, 1, ncop), [ncop*size(src)])
+
+        end function repelem_l
+
 
         !! REAL64 code
 

@@ -29,8 +29,14 @@ module stencil
         private
 
         public :: stencillocs
+        interface stencillocs
+            module procedure stencillocs_i, stencillocs_l
+        end interface
 
         public :: stencilmask
+        interface stencilmask
+            module procedure stencilmask_i, stencilmask_l
+        end interface
 
         public :: create_5p_stencil
 
@@ -75,7 +81,7 @@ contains
         ! case.
         !
         !****
-        pure recursive function stencillocs (siz, dims) result(y)
+        pure recursive function stencillocs_i (siz, dims) result(y)
                 use :: miscfun, only : cumprod
                 implicit none
 
@@ -97,10 +103,38 @@ contains
                         tmp = ubound(cumsiz,1)
                         forall (ii=1:siz(tmp))
                                 y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
-                                        stencillocs(siz(1:(tmp-1)), dims(1:(tmp-1)))
+                                        stencillocs_i(siz(1:(tmp-1)), dims(1:(tmp-1)))
                         end forall
                 end if
-        end function stencillocs
+        end function stencillocs_i
+
+
+        pure recursive function stencillocs_l (siz, dims) result(y)
+                use :: miscfun, only : cumprod
+                implicit none
+
+                integer(INT64), dimension(:),         intent(in) :: siz  ! size of the stencil
+                integer(INT64), dimension(size(siz)), intent(in) :: dims ! size of the grid
+
+                integer(INT64), dimension(product(siz)) :: y
+
+                integer(INT64)                       :: ii, tmp
+                integer(INT64), dimension(size(siz)) :: cumdim
+                integer(INT64), dimension(size(siz)) :: cumsiz
+
+                cumsiz = cumprod (siz)
+                cumdim = cumprod (dims)
+
+                if (size(dims) == 1) then
+                        y = [(ii, ii = -floor(siz(1)/2.0, INT64), floor(siz(1)/2.0, INT64))]
+                else
+                        tmp = ubound(cumsiz,1)
+                        forall (ii=1:siz(tmp))
+                                y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
+                                        stencillocs_l(siz(1:(tmp-1)), dims(1:(tmp-1)))
+                        end forall
+                end if
+        end function stencillocs_l
 
         !****f* modules/stencil/stencilmask
         !
@@ -113,7 +147,7 @@ contains
         ! Indicates out-of-bounds references for a given stencil on a specified position in an arbitrary grid.
         !
         !****
-        pure function stencilmask (siz, dims, x) result(y)
+        pure function stencilmask_i (siz, dims, x) result(y)
                 use :: array, only : ind2sub
                 use :: miscfun, only : cumprod, repelem
                 implicit none
@@ -145,7 +179,41 @@ contains
                         y(ii) = (.not. (any( tmp(ii, 1:size(siz)) + sub < 1 ) .or. any( tmp(ii, 1:size(siz)) + sub > dims )))
                 end forall
 
-        end function stencilmask
+        end function stencilmask_i
+
+        pure function stencilmask_l (siz, dims, x) result(y)
+                use :: array, only : ind2sub
+                use :: miscfun, only : cumprod, repelem
+                implicit none
+
+                integer(INT64), dimension(:),         intent(in) :: siz  ! size of the stencil
+                integer(INT64), dimension(size(siz)), intent(in) :: dims ! size of the grid
+                integer(INT64),                       intent(in) :: x    ! current position (linear index)
+
+                logical, dimension(product(siz)) :: y
+
+                integer(INT64), dimension(product(siz), size(siz)) :: tmp
+                integer(INT64), dimension(size(siz)+2)             :: csiz
+                integer(INT64), dimension(size(siz)+2)             :: cumsiz
+                integer(INT64), dimension(size(siz))               :: sub
+                integer(INT64)                                     :: ii, jj
+
+                csiz = [1_8, siz, 1_8]
+                cumsiz = cumprod(csiz)
+
+                forall (ii=1:size(siz))
+                        tmp(1:product(siz), ii) = reshape(spread( &
+                                repelem([(jj, jj = -floor(siz(ii)/2.0, INT64), floor(siz(ii)/2.0, INT64))], cumsiz(ii)), &
+                                2, product(csiz((ii+2):ubound(csiz, 1))) ), [product(siz)] )
+                end forall
+
+                sub = ind2sub(dims, 1_8, 1_8, x)
+
+                forall (ii=1:product(siz))
+                        y(ii) = (.not. (any( tmp(ii, 1:size(siz)) + sub < 1 ) .or. any( tmp(ii, 1:size(siz)) + sub > dims )))
+                end forall
+
+        end function stencilmask_l
 
         !****f* modules/stencil/create_5p_stencil
         !

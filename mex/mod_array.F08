@@ -30,8 +30,14 @@ module array
         private
 
         public :: ind2sub
+        interface ind2sub
+            module procedure ind2sub_i, ind2sub_l
+        end interface ind2sub
 
         public :: sub2ind
+        interface sub2ind
+            module procedure sub2ind_i, sub2ind_l
+        end interface sub2ind
 
         public :: add0padding
         interface add0padding
@@ -52,7 +58,7 @@ contains
         !! offsetOut Offset of the output subscripts
         !! ind       Index to be converted to a subscript
         !! sub       Corresponding subscript
-        pure recursive function ind2sub (dims, offsetIn, offsetOut, ind) result(sub)
+        pure recursive function ind2sub_i (dims, offsetIn, offsetOut, ind) result(sub)
                 implicit none
 
                 integer(INT32), intent(in), dimension(:) :: dims
@@ -73,11 +79,40 @@ contains
                 if (1 < rnk) then
                         siz = product (dims(1:(rnk-1)))
                         sub(rnk) = int ((ind-offsetIn)/siz) + offsetOut
-                        sub(1:(rnk-1)) =  ind2sub (dims(1:(rnk-1)), offsetIn, offsetOut, ind - siz * int ((ind-offsetIn)/siz))
+                        sub(1:(rnk-1)) =  ind2sub_i (dims(1:(rnk-1)), offsetIn, offsetOut, ind - siz * int ((ind-offsetIn)/siz))
                 else
                         sub(rnk) = ind - offsetIn + offsetOut
                 endif
-        end function ind2sub
+        end function ind2sub_i
+
+        pure recursive function ind2sub_l (dims, offsetIn, offsetOut, ind) result(sub)
+                implicit none
+
+                integer(INT64), intent(in), dimension(:) :: dims
+                integer(INT64), intent(in)               :: offsetIn
+                integer(INT64), intent(in)               :: offsetOut
+                integer(INT64), intent(in)               :: ind
+
+                integer(INT64), dimension(size(dims)) :: sub
+
+                integer(INT64) :: siz ! helper variable
+                integer(INT64) :: rnk
+
+                rnk = size(dims)
+
+                ! The algorithm works recusively. Along each dimension it places as
+                ! much as possible into the current subscript position. The remaining
+                ! indices are passed to the next subscript position.
+                if (1 < rnk) then
+                        siz = product (dims(1:(rnk-1)))
+                        sub(rnk) = int ((ind-offsetIn)/siz, INT64) + offsetOut
+                        sub(1:(rnk-1)) =  ind2sub_l (dims(1:(rnk-1)), offsetIn,&
+                                & offsetOut, ind - siz * int ((ind-offsetIn)&
+                                &/siz, INT64))
+                else
+                        sub(rnk) = ind - offsetIn + offsetOut
+                endif
+        end function ind2sub_l
 
         !! Converts subscript array into single index
         !! rnk       Size of dims array
@@ -86,7 +121,7 @@ contains
         !! offsetOut Offset of the output subscripts
         !! sub       subscript array to be convert into single index
         !! ind       Corresponding index
-        pure recursive function sub2ind (dims, offsetIn, offsetOut, sub) result(ind)
+        pure recursive function sub2ind_i (dims, offsetIn, offsetOut, sub) result(ind)
                 implicit none
 
                 integer(INT32), intent(in), dimension(:)          :: dims
@@ -104,12 +139,38 @@ contains
                 ! size of the corresponding dimension and add everything up.
                 ind = 0
                 if (1 < rnk) then
-                        ind =  sub2ind (dims(1:(rnk-1)), offsetIn, offsetOut, sub(1:(rnk-1)))
+                        ind =  sub2ind_i (dims(1:(rnk-1)), offsetIn, offsetOut, sub(1:(rnk-1)))
                         ind = ind + (sub(rnk) - offsetIn) * product (dims(1:(rnk-1)))
                 else
                         ind = sub(1) - offsetIn + offsetOut
                 endif
-        end function sub2ind
+        end function sub2ind_i
+
+        pure recursive function sub2ind_l (dims, offsetIn, offsetOut, sub) result(ind)
+                implicit none
+
+                integer(INT64), intent(in), dimension(:)          :: dims
+                integer(INT64), intent(in)                        :: offsetIn
+                integer(INT64), intent(in)                        :: offsetOut
+                integer(INT64), intent(in), dimension(size(dims)) :: sub
+
+                integer(INT64) :: ind
+
+                integer(INT64) :: rnk
+
+                rnk = size(dims)
+
+                ! The algorithm works recursively. For each subscript we compute the
+                ! size of the corresponding dimension and add everything up.
+                ind = 0
+                if (1 < rnk) then
+                        ind =  sub2ind_l (dims(1:(rnk-1)), offsetIn, offsetOut, sub(1:(rnk-1)))
+                        ind = ind + (sub(rnk) - offsetIn) * product (dims(1:(rnk-1)))
+                else
+                        ind = sub(1) - offsetIn + offsetOut
+                endif
+        end function sub2ind_l
+
 
         ! if I enable bounds checking in gfortran, then this function fails. It seems that product(siz+2*padding)
         ! cannot be determined correctly. This appears to be bug in gfortran.
