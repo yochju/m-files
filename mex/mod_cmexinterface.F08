@@ -8,9 +8,12 @@ module cmexinterface
     use :: iso_fortran_env
     use :: iso_c_binding
     use :: miscfun
+    use :: stencil
     implicit none
     
 contains
+
+    !! miscfun *****************************************************************
 
     pure subroutine mexcumsum (siz, arrIn, arrOut) bind(C, name="mexcumsum")
         integer(c_long), value,                 intent(in)  :: siz
@@ -19,4 +22,15 @@ contains
         arrOUt = cumsum(arrIn)
     end subroutine mexcumsum
 
+    !! stencil *****************************************************************
+    
+    subroutine mexstencillocs (lenIn, lenOut, siz, dims, arrOut) bind(C, name="mexstencillocs")
+        integer(c_long), value,                    intent(in)  :: lenIn
+        integer(c_long), value,                    intent(in)  :: lenOut
+        integer(c_long),        dimension(lenIn),  intent(in)  :: siz
+        integer(c_long),        dimension(lenIn),  intent(in)  :: dims
+        integer(c_long),        dimension(lenOut), intent(out) :: arrOut
+                
+        arrOut = stencillocs(siz, dims)
+    end subroutine mexstencillocs
 end module cmexinterface
