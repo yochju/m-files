@@ -15,7 +15,7 @@ void mexFunction( int nlhs,       mxArray *plhs[],
   if (nlhs > 1) {
     mexErrMsgTxt("Incorrect number of outputs");
   }
-  if (nrhs!=2) {
+  if (nrhs != 2) {
     mexErrMsgTxt("Incorrect number of inputs");
   }
   
@@ -27,7 +27,7 @@ void mexFunction( int nlhs,       mxArray *plhs[],
   dims = mxGetPr(prhs[1]);
 
   siz_out = 1;
-  for (ii=0; ii<nr*nc; ii++) {siz_out *= siz[ii];}
+  for (ii=0; ii<nr*nc; ii++) {siz_out *= (mwSize) siz[ii];}
   
   tmp_siz  = mxCalloc(nr*nc,   sizeof(long));
   tmp_dims = mxCalloc(nr*nc,   sizeof(long));
@@ -42,10 +42,10 @@ void mexFunction( int nlhs,       mxArray *plhs[],
     tmp_dims[ii] = (long) dims[ii];
   }
 
-  mexstencillocs(nr*nc, siz_out, tmp_siz, tmp_dims, tmp_out);
+  mexstencillocs((long) nr*nc, (long) siz_out, tmp_siz, tmp_dims, tmp_out);
 
   for (ii = 0; ii<siz_out; ii++) {
-    out[ii] = tmp_out[ii];
+    out[ii] = (double) tmp_out[ii];
   }
 
   mxFree(tmp_siz);
