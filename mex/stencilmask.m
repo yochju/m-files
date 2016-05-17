@@ -1,17 +1,16 @@
-function locations = stencillocs(stencil, data)
-%% Compute relative positions of a (full) stencil
+function locations = stencilmask(stencil, data, pos)
+%% Compute valid mask entries that lie inside the domain
 %
-% Computes the relative linear locations inside an array that are needed for
-% convolution. Does not take current position or boundaries into account.
-% Assumes matlab like column-wise labelling. Works for arbitrary dimensional
-% arrays.
+% Compute valid mask entries for a specified position. Position may be outside
+% of the domain
 %
-% locations = stencillocs(stencil, data)
+% locations = stencilmask(stencil, data, pos)
 %
 % Mandatory Parameters:
 %
 % stencil: array containing the size of the stencil
 % data:    array containing the size of the data array   
+% pos:     scalar integer indicating current position
 %
 % Optional Parameters:
 %
@@ -19,23 +18,16 @@ function locations = stencillocs(stencil, data)
 %
 % Output Parameters:
 %
-% locations: coloumn array of integer double values containing the relative
-%            shifts.
+% locations: coloumn array of booleans indicating valid mask positions
 %
 % Example
 %
-% stencillocs([3], [5])
+% stencilmask([3], [5], 1)
 %
-% returns [-1; 0; 1] and this means that for at position k in my data array the
-% corresponding entries for the convolution are positioned at k-1, k+0 and k+1. 
+% returns [false; true; true] and this means that for at position 1 the valid
+% entries for the convolution are positioned at 0 and 1. 
 %
-% stencillocs([3, 5], [7, 7])
-%
-% returns [-15; -14; -13; -8; -7; -6; -1; 0; 1; 6; 7; 8; 13; 14; 15], which
-% corresponds to the relative shifts from my current position to obtain the
-% respective entries.
-%
-% See also stencilmask
+% See also stencillocs
 
 % Copyright (c) 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 %
@@ -53,11 +45,11 @@ function locations = stencillocs(stencil, data)
 % this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 % Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-% Last revision: 2016-05-12 14:00
+% Last revision: 2016-05-17 15:00
 
 %% Parse input and output.
 
-narginchk(2, 2);
+narginchk(3, 3);
 nargoutchk(0, 1);
 
 parser               = inputParser;
@@ -79,8 +71,15 @@ parser.addRequired('data', ...
     {'vector', 'nonempty', 'nonsparse', 'integer', 'positive'}, ...
     mfilename, 'data', 2));
 
-parser.parse(stencil, data);
+parser.addRequired('pos', ...
+    @(x) validateattributes(x, ...
+    {'double'}, ...
+    {'scalar', 'integer'}, ...
+    mfilename, 'pos', 3));
+
+
+parser.parse(stencil, data, pos);
 
 %% Run Code
 
-locations = mexstencillocs(stencil, data);
+locations = (0 < mexstencilmask(stencil, data, pos));

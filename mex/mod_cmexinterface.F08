@@ -19,6 +19,7 @@ contains
         integer(c_long), value,                 intent(in)  :: siz
         real(c_double),         dimension(siz), intent(in)  :: arrIn
         real(c_double),         dimension(siz), intent(out) :: arrOut
+
         arrOUt = cumsum(arrIn)
     end subroutine mexcumsum
 
@@ -33,4 +34,32 @@ contains
                 
         arrOut = stencillocs(siz, dims)
     end subroutine mexstencillocs
+
+    subroutine mexstencilmask (lenIn, lenOut, siz, dims, pos, arrOut) bind(C, name="mexstencilmask")
+        integer(c_long), value,                    intent(in)  :: lenIn
+        integer(c_long), value,                    intent(in)  :: lenOut
+        integer(c_long),        dimension(lenIn),  intent(in)  :: siz
+        integer(c_long),        dimension(lenIn),  intent(in)  :: dims
+        integer(c_long), value,                    intent(in)  :: pos
+        integer(c_long),        dimension(lenOut), intent(out) :: arrOut
+
+        logical, dimension(lenOut) :: mask
+        
+        mask = stencilmask(siz, dims, pos)
+        arrOut = 0
+        where(mask) arrOut = 1
+
+    end subroutine mexstencilmask
+
+    subroutine mexcreate_5p_stencil (dims, arrOut) bind(C, name="mexcreate_5p_stencil")
+        integer(c_long), value,                     intent(in)  :: dims
+        integer(c_long),        dimension(3**dims), intent(out) :: arrOut
+
+        logical, dimension(3**dims) :: stencil
+
+        stencil = create_5p_stencil(dims)
+        arrOut = 0
+        where(stencil) arrOut = 1
+    end subroutine mexcreate_5p_stencil
+
 end module cmexinterface

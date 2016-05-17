@@ -39,6 +39,9 @@ module stencil
         end interface
 
         public :: create_5p_stencil
+        interface create_5p_stencil
+            module procedure create_5p_stencil_i, create_5p_stencil_l
+        end interface create_5p_stencil
 
         public :: stencil2sparse_size
 
@@ -226,7 +229,7 @@ contains
         ! create a "5-point" stencil for arbitrary dimensions. Does not check for bounds!
         !
         !****
-        pure function create_5p_stencil (dims) result(sten)
+        pure function create_5p_stencil_i (dims) result(sten)
                 use :: array, only : ind2sub
                 use :: miscfun, only : cumprod, repelem
                 implicit none
@@ -245,7 +248,29 @@ contains
 
                 sten = .false.
                 where (sum(abs(tmp), 2) <= 1) sten = .true.
-        end function create_5p_stencil
+        end function create_5p_stencil_i
+
+        pure function create_5p_stencil_l (dims) result(sten)
+                use :: array, only : ind2sub
+                use :: miscfun, only : cumprod, repelem
+                implicit none
+
+                integer(INT64), intent(in) :: dims ! size of the grid
+
+                logical, dimension(3**dims) :: sten
+
+                integer(INT64), dimension(3**dims, dims) :: tmp
+                integer(INT64)                           :: ii
+
+                forall (ii=1:dims)
+                        tmp(1:(3**dims), ii) = reshape (spread ( &
+                                repelem(int([-1, 0, 1], INT64), 3**(ii-1)), &
+                                & int(2, INT64), 3**(dims-ii) ), [3**dims] )
+                end forall
+
+                sten = .false.
+                where (sum(abs(tmp), 2) <= 1) sten = .true.
+        end function create_5p_stencil_l
 
         !****f* modules/stencil/stencil2sparse_size
         !
