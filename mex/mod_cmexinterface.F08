@@ -16,7 +16,7 @@ contains
     !! miscfun *****************************************************************
 
     pure subroutine mexcumsum (siz, arrIn, arrOut) bind(C, name="mexcumsum")
-        integer(c_long), value,                 intent(in)  :: siz
+        integer(C_INT64_T), value,                 intent(in)  :: siz
         real(c_double),         dimension(siz), intent(in)  :: arrIn
         real(c_double),         dimension(siz), intent(out) :: arrOut
 
@@ -26,22 +26,22 @@ contains
     !! stencil *****************************************************************
     
     subroutine mexstencillocs (lenIn, lenOut, siz, dims, arrOut) bind(C, name="mexstencillocs")
-        integer(c_long), value,                    intent(in)  :: lenIn
-        integer(c_long), value,                    intent(in)  :: lenOut
-        integer(c_long),        dimension(lenIn),  intent(in)  :: siz
-        integer(c_long),        dimension(lenIn),  intent(in)  :: dims
-        integer(c_long),        dimension(lenOut), intent(out) :: arrOut
+        integer(C_INT64_T), value,                    intent(in)  :: lenIn
+        integer(C_INT64_T), value,                    intent(in)  :: lenOut
+        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: siz
+        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: dims
+        integer(C_INT64_T),        dimension(lenOut), intent(out) :: arrOut
                 
         arrOut = stencillocs(siz, dims)
     end subroutine mexstencillocs
 
     subroutine mexstencilmask (lenIn, lenOut, siz, dims, pos, arrOut) bind(C, name="mexstencilmask")
-        integer(c_long), value,                    intent(in)  :: lenIn
-        integer(c_long), value,                    intent(in)  :: lenOut
-        integer(c_long),        dimension(lenIn),  intent(in)  :: siz
-        integer(c_long),        dimension(lenIn),  intent(in)  :: dims
-        integer(c_long), value,                    intent(in)  :: pos
-        integer(c_long),        dimension(lenOut), intent(out) :: arrOut
+        integer(C_INT64_T), value,                    intent(in)  :: lenIn
+        integer(C_INT64_T), value,                    intent(in)  :: lenOut
+        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: siz
+        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: dims
+        integer(C_INT64_T), value,                    intent(in)  :: pos
+        integer(C_INT64_T),        dimension(lenOut), intent(out) :: arrOut
 
         logical, dimension(lenOut) :: mask
         
@@ -52,8 +52,8 @@ contains
     end subroutine mexstencilmask
 
     subroutine mexcreate_5p_stencil (dims, arrOut) bind(C, name="mexcreate_5p_stencil")
-        integer(c_long), value,                     intent(in)  :: dims
-        integer(c_long),        dimension(3**dims), intent(out) :: arrOut
+        integer(C_INT64_T), value,                     intent(in)  :: dims
+        integer(C_INT64_T),        dimension(3**dims), intent(out) :: arrOut
 
         logical, dimension(3**dims) :: stencil
 

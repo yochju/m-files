@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "mex.h"
 #include "f2mex.h"
 

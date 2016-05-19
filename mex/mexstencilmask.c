@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "mex.h"
 #include "matrix.h"
 
@@ -7,7 +9,7 @@ void mexFunction( int nlhs,       mxArray *plhs[],
                   int nrhs, const mxArray *prhs[] 
 		  )
 {
-  long *tmp_siz, *tmp_dims, *tmp_out;
+  int64_t *tmp_siz, *tmp_dims, *tmp_out;
   double *siz, *dims, *out;
   double pos;
   mwSize ii, nc, nr, siz_out;
@@ -32,20 +34,20 @@ void mexFunction( int nlhs,       mxArray *plhs[],
   siz_out = 1;
   for (ii=0; ii<nr*nc; ii++) {siz_out *= (mwSize) siz[ii];}
   
-  tmp_siz  = mxCalloc(nr*nc,   sizeof(long));
-  tmp_dims = mxCalloc(nr*nc,   sizeof(long));
-  tmp_out  = mxCalloc(siz_out, sizeof(long));
+  tmp_siz  = mxCalloc(nr*nc,   sizeof(int64_t));
+  tmp_dims = mxCalloc(nr*nc,   sizeof(int64_t));
+  tmp_out  = mxCalloc(siz_out, sizeof(int64_t));
 
   plhs[0] = mxCreateDoubleMatrix(siz_out, 1, mxREAL);
 
   out  = mxGetPr(plhs[0]);
 
   for (ii = 0; ii<nr*nc; ii++) {
-    tmp_siz[ii] = (long) siz[ii];
-    tmp_dims[ii] = (long) dims[ii];
+    tmp_siz[ii] = (int64_t) siz[ii];
+    tmp_dims[ii] = (int64_t) dims[ii];
   }
 
-  mexstencilmask((long) nr*nc, (long) siz_out, tmp_siz, tmp_dims, (long) pos, tmp_out);
+  mexstencilmask((int64_t) nr*nc, (int64_t) siz_out, tmp_siz, tmp_dims, (int64_t) pos, tmp_out);
 
   for (ii = 0; ii<siz_out; ii++) {
     out[ii] = (double) tmp_out[ii];
