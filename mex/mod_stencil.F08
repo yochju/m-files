@@ -23,6 +23,8 @@
 ! You should have received a copy of the GNU General Public License along with
 ! this program. If not, see <http://www.gnu.org/licenses/>.
 
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
 module stencil
         use :: iso_fortran_env
         implicit none
@@ -30,7 +32,9 @@ module stencil
 
         public :: stencillocs
         interface stencillocs
-            module procedure stencillocs_i, stencillocs_l
+#:for itype in ikinds
+            module procedure stencillocs_${itype}$
+#:endfor
         end interface
 
         public :: stencilmask
@@ -44,12 +48,24 @@ module stencil
         end interface create_5p_stencil
 
         public :: stencil2sparse_size
+        interface stencil2sparse_size
+            module procedure stencil2sparse_size_i, stencil2sparse_size_l
+        end interface stencil2sparse_size
 
         public :: const_stencil2sparse
+        interface const_stencil2sparse
+            module procedure const_stencil2sparse_i, const_stencil2sparse_l
+        end interface const_stencil2sparse
 
         public :: stencil2sparse
+        ! interface stencil2sparse
+        !     module procedure stencil2sparse_i, stencil2sparse_l
+        ! end interface stencil2sparse
 
         public :: convolve
+        ! interface convolve
+        !     module procedure convolve_i, convolve_l
+        ! end interface convolve
 
 contains
 
@@ -84,60 +100,40 @@ contains
         ! case.
         !
         !****
-        pure recursive function stencillocs_i (siz, dims) result(y)
-                use :: miscfun, only : cumprod
-                implicit none
 
-                integer(INT32), dimension(:),         intent(in) :: siz  ! size of the stencil
-                integer(INT32), dimension(size(siz)), intent(in) :: dims ! size of the grid
+#:for itype in ikinds
+    pure recursive function stencillocs_${itype}$ (siz, dims) result(y)
+        use :: miscfun, only : cumprod
+        implicit none
 
-                integer(INT32), dimension(product(siz)) :: y
+        integer(${itype}$), dimension(:),         intent(in) :: siz  ! size of the stencil
+        integer(${itype}$), dimension(size(siz)), intent(in) :: dims ! size of the grid
 
-                integer(INT32)                       :: ii, tmp
-                integer(INT32), dimension(size(siz)) :: cumdim
-                integer(INT32), dimension(size(siz)) :: cumsiz
+        integer(${itype}$), dimension(product(siz)) :: y
 
-                cumsiz = cumprod (siz)
-                cumdim = cumprod (dims)
+        integer(${itype}$)                       :: ii, tmp
+        integer(${itype}$), dimension(size(siz)) :: cumdim
+        integer(${itype}$), dimension(size(siz)) :: cumsiz
 
-                if (size(dims) == 1) then
-                        y = [(ii, ii = -floor(siz(1)/2.0, INT32), floor(siz(1)/2.0, INT32))]
-                else
-                        tmp = ubound(cumsiz,1)
-                        forall (ii=1:siz(tmp))
-                                y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
-                                        stencillocs_i(siz(1:(tmp-1)), dims(1:(tmp-1)))
-                        end forall
-                end if
-        end function stencillocs_i
+        integer(${itype}$)                       :: bound
 
+        cumsiz = cumprod (siz)
+        cumdim = cumprod (dims)
+        bound  = floor(siz(1)/2.0, ${itype}$)
 
-        pure recursive function stencillocs_l (siz, dims) result(y)
-                use :: miscfun, only : cumprod
-                implicit none
+        if (size(dims) == 1) then
+            y = [(ii, ii = -bound, bound)]
+        else
+            tmp = ubound(cumsiz,1)
+            forall (ii=1:siz(tmp))
+                y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
+                        stencillocs_${itype}$(siz(1:(tmp-1)), dims(1:(tmp-1)))
+            end forall
+        end if
 
-                integer(INT64), dimension(:),         intent(in) :: siz  ! size of the stencil
-                integer(INT64), dimension(size(siz)), intent(in) :: dims ! size of the grid
+    end function stencillocs_${itype}$
 
-                integer(INT64), dimension(product(siz)) :: y
-
-                integer(INT64)                       :: ii, tmp
-                integer(INT64), dimension(size(siz)) :: cumdim
-                integer(INT64), dimension(size(siz)) :: cumsiz
-
-                cumsiz = cumprod (siz)
-                cumdim = cumprod (dims)
-
-                if (size(dims) == 1) then
-                        y = [(ii, ii = -floor(siz(1)/2.0, INT64), floor(siz(1)/2.0, INT64))]
-                else
-                        tmp = ubound(cumsiz,1)
-                        forall (ii=1:siz(tmp))
-                                y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
-                                        stencillocs_l(siz(1:(tmp-1)), dims(1:(tmp-1)))
-                        end forall
-                end if
-        end function stencillocs_l
+#:endfor
 
         !****f* modules/stencil/stencilmask
         !
@@ -283,7 +279,7 @@ contains
         ! Compute size of the coo sparse matrix arrays required to store the stencil in matrix form
         !
         !****
-        pure function stencil2sparse_size (siz, dims, mask) result (numel)
+        pure function stencil2sparse_size_i (siz, dims, mask) result (numel)
                 implicit none
 
                 integer(INT32), dimension(:),            intent(in) :: siz  ! size of the stencil
@@ -292,13 +288,30 @@ contains
 
                 integer(INT32) :: numel
 
-                integer :: ii
+                integer(INT32) :: ii
 
                 numel = 0
                 do ii = 1, product(dims)
                         numel = numel + count(stencilmask(siz, dims, ii) .and. mask)
                 end do
-        end function stencil2sparse_size
+        end function stencil2sparse_size_i
+
+        pure function stencil2sparse_size_l (siz, dims, mask) result (numel)
+                implicit none
+
+                integer(INT64), dimension(:),            intent(in) :: siz  ! size of the stencil
+                integer(INT64), dimension(size(siz)),    intent(in) :: dims ! size of the grid
+                logical(INT64), dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
+
+                integer(INT64) :: numel
+
+                integer(INT64) :: ii
+
+                numel = 0
+                do ii = 1, product(dims)
+                        numel = numel + count(stencilmask(siz, dims, ii) .and. mask)
+                end do
+        end function stencil2sparse_size_l
 
         !****f* modules/stencil/const_stencil2sparse
         !
@@ -311,7 +324,7 @@ contains
         ! Convert a constant stencil into a sparse matrix representation in coo format.
         !
         !****
-        pure subroutine const_stencil2sparse (siz, dims, mask, sten, ir, jc, a)
+        pure subroutine const_stencil2sparse_i (siz, dims, mask, sten, ir, jc, a)
                 implicit none
 
                 integer(INT32), dimension(:),            intent(in) :: siz  ! size of the stencil
@@ -342,7 +355,40 @@ contains
                         a(counter:(counter+tmp_cnt-1))  = pack(sten, tmp_mask)
                         counter                         = counter + tmp_cnt
                 end do
-        end subroutine const_stencil2sparse
+            end subroutine const_stencil2sparse_i
+
+        pure subroutine const_stencil2sparse_l (siz, dims, mask, sten, ir, jc, a)
+                implicit none
+
+                integer(INT64), dimension(:),            intent(in) :: siz  ! size of the stencil
+                integer(INT64), dimension(size(siz)),    intent(in) :: dims ! size of the grid
+                logical(INT64), dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
+                real(real64),   dimension(product(siz)), intent(in) :: sten ! stencil entries
+
+                integer(INT64), dimension(count(mask)*product(dims)), intent(out) :: ir
+                integer(INT64), dimension(count(mask)*product(dims)), intent(out) :: jc
+                real(REAL64),   dimension(count(mask)*product(dims)), intent(out) :: a
+
+                integer(INT64), dimension(product(siz)) :: unused
+                logical,        dimension(product(siz)) :: tmp_mask
+                integer(INT64)                          :: tmp_cnt
+                integer(INT64)                          :: counter
+                integer(INT64), dimension(product(siz)) :: const_stl
+                integer(INT64)                          :: ii, jj
+
+                unused = -1
+                counter = 1
+                const_stl = stencillocs(siz, dims)
+
+                do ii = 1, product(dims)
+                        tmp_mask                        = stencilmask(siz, dims, ii) .and. mask
+                        tmp_cnt                         = count(tmp_mask)
+                        ir(counter:(counter+tmp_cnt-1)) = [(ii, jj=1,tmp_cnt)]
+                        jc(counter:(counter+tmp_cnt-1)) = pack(ii + const_stl, tmp_mask)
+                        a(counter:(counter+tmp_cnt-1))  = pack(sten, tmp_mask)
+                        counter                         = counter + tmp_cnt
+                end do
+            end subroutine const_stencil2sparse_l
 
         !****f* modules/stencil/stencil2sparse
         !
