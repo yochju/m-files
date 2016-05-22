@@ -2,6 +2,9 @@ FC=gfortran
 
 CC=gcc
 
+PP=fypp
+
+ISRC = $(wildcard *.in)
 FSRC = $(wildcard *.F08)
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))
 
@@ -21,7 +24,7 @@ LIB = libffiles.a
 .PHONY: clean all
 
 .SUFFIXES:
-.SUFFIXES: .o .c .F08 .mod
+.SUFFIXES: .o .c .F08 .mod .in .a
 
 all: $(LIB)
 	echo $(LIB)
@@ -40,6 +43,9 @@ mod_laplace.o : mod_laplace.F08 mod_sparse.o mod_stencil.o mod_array.o
 
 mod_cmexinterface.o : mod_cmexinterface.F08 mod_stencil.o mod_miscfun.o
 	$(FC) $(FCFLAGS) -c $<
+
+%.F08 : %.in
+	$(PP) $< $@
 
 %.o : %.F08
 	$(FC) $(FCFLAGS) -c $<
