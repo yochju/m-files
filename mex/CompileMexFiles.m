@@ -1,6 +1,9 @@
 if ismac
     % Code to run on Mac plaform
-    mex -v -largeArrayDims mexcumsum.c /opt/local/lib/libgcc/libgfortran.3.dylib -lffiles
+    mex -v -largeArrayDims mexcumsum.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
+    mex -v -largeArrayDims mexstencillocs.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
+    mex -v -largeArrayDims mexstencilmask.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
+    mex -v -largeArrayDims mexcreate_5p_stencil.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
 elseif isunix
     % Code to run on Linux plaform
     mex -v -largeArrayDims mexcumsum.c -lffiles -lgfortran
