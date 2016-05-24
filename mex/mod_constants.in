@@ -1,0 +1,13 @@
+module constants
+    use :: iso_fortran_env
+    implicit none
+    public
+    
+#:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
+#:for itype in akinds
+    integer(${itype}$), parameter :: I${itype}$ = 1
+    integer(${itype}$), parameter :: Z${itype}$ = 0
+
+#:endfor
+
+end module constants
