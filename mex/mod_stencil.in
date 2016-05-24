@@ -27,6 +27,7 @@
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
 module stencil
         use :: iso_fortran_env
+        use :: constants
         implicit none
         private
 
@@ -39,7 +40,9 @@ module stencil
 
         public :: stencilmask
         interface stencilmask
-            module procedure stencilmask_i, stencilmask_l
+#:for itype in ikinds
+            module procedure stencilmask_${itype}$
+#:endfor
         end interface
 
         public :: create_5p_stencil
@@ -146,73 +149,43 @@ contains
         ! Indicates out-of-bounds references for a given stencil on a specified position in an arbitrary grid.
         !
         !****
-        pure function stencilmask_i (siz, dims, x) result(y)
+#:for itype in ikinds
+        pure function stencilmask_${itype}$ (siz, dims, x) result(y)
                 use :: array, only : ind2sub
                 use :: miscfun, only : cumprod, repelem
                 implicit none
 
-                integer(INT32), dimension(:),         intent(in) :: siz  ! size of the stencil
-                integer(INT32), dimension(size(siz)), intent(in) :: dims ! size of the grid
-                integer(INT32),                       intent(in) :: x    ! current position (linear index)
+                integer(${itype}$), dimension(:),         intent(in) :: siz  ! size of the stencil
+                integer(${itype}$), dimension(size(siz)), intent(in) :: dims ! size of the grid
+                integer(${itype}$),                       intent(in) :: x    ! current position (linear index)
 
                 logical, dimension(product(siz)) :: y
 
-                integer(INT32), dimension(product(siz), size(siz)) :: tmp
-                integer(INT32), dimension(size(siz)+2)             :: csiz
-                integer(INT32), dimension(size(siz)+2)             :: cumsiz
-                integer(INT32), dimension(size(siz))               :: sub
-                integer(INT32)                                     :: ii, jj
-
-                csiz = [1, siz, 1]
+                integer(${itype}$), dimension(product(siz), size(siz)) :: tmp
+                integer(${itype}$), dimension(size(siz)+2)             :: csiz
+                integer(${itype}$), dimension(size(siz)+2)             :: cumsiz
+                integer(${itype}$), dimension(size(siz))               :: sub
+                integer(${itype}$)                                     :: ii, jj
+		
+                csiz = [I${itype}$, siz, I${itype}$]
                 cumsiz = cumprod(csiz)
 
                 forall (ii=1:size(siz))
                         tmp(1:product(siz), ii) = reshape(spread( &
-                                repelem([(jj, jj = -floor(siz(ii)/2.0, INT32), floor(siz(ii)/2.0, INT32))], cumsiz(ii)), &
+                                repelem([(jj, jj = -floor(siz(ii)/2.0, ${itype}$), floor(siz(ii)/2.0, ${itype}$))], cumsiz(ii)), &
                                 2, product(csiz((ii+2):ubound(csiz, 1))) ), [product(siz)] )
                 end forall
 
-                sub = ind2sub(dims, 1, 1, x)
+                sub = ind2sub(dims, I${itype}$, I${itype}$, x)
 
                 forall (ii=1:product(siz))
                         y(ii) = (.not. (any( tmp(ii, 1:size(siz)) + sub < 1 ) .or. any( tmp(ii, 1:size(siz)) + sub > dims )))
                 end forall
 
-        end function stencilmask_i
+        end function stencilmask_${itype}$
 
-        pure function stencilmask_l (siz, dims, x) result(y)
-                use :: array, only : ind2sub
-                use :: miscfun, only : cumprod, repelem
-                implicit none
+#:endfor
 
-                integer(INT64), dimension(:),         intent(in) :: siz  ! size of the stencil
-                integer(INT64), dimension(size(siz)), intent(in) :: dims ! size of the grid
-                integer(INT64),                       intent(in) :: x    ! current position (linear index)
-
-                logical, dimension(product(siz)) :: y
-
-                integer(INT64), dimension(product(siz), size(siz)) :: tmp
-                integer(INT64), dimension(size(siz)+2)             :: csiz
-                integer(INT64), dimension(size(siz)+2)             :: cumsiz
-                integer(INT64), dimension(size(siz))               :: sub
-                integer(INT64)                                     :: ii, jj
-
-                csiz = [1_8, siz, 1_8]
-                cumsiz = cumprod(csiz)
-
-                forall (ii=1:size(siz))
-                        tmp(1:product(siz), ii) = reshape(spread( &
-                                repelem([(jj, jj = -floor(siz(ii)/2.0, INT64), floor(siz(ii)/2.0, INT64))], cumsiz(ii)), &
-                                2, product(csiz((ii+2):ubound(csiz, 1))) ), [product(siz)] )
-                end forall
-
-                sub = ind2sub(dims, 1_8, 1_8, x)
-
-                forall (ii=1:product(siz))
-                        y(ii) = (.not. (any( tmp(ii, 1:size(siz)) + sub < 1 ) .or. any( tmp(ii, 1:size(siz)) + sub > dims )))
-                end forall
-
-        end function stencilmask_l
 
         !****f* modules/stencil/create_5p_stencil
         !
