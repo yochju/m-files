@@ -4,7 +4,7 @@ CC=gcc
 
 PP=fypp
 
-ISRC = $(wildcard *.in)
+ISRC = $(wildcard *.fypp)
 FSRC = $(wildcard *.F08)
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))
 
@@ -44,7 +44,7 @@ mod_laplace.o : mod_laplace.F08 mod_sparse.o mod_stencil.o mod_array.o
 mod_cmexinterface.o : mod_cmexinterface.F08 mod_stencil.o mod_miscfun.o
 	$(FC) $(FCFLAGS) -c $<
 
-%.F08 : %.in
+%.F08 : %.fypp
 	$(PP) $< $@
 
 %.o : %.F08
