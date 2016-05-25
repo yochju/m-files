@@ -1,0 +1,293 @@
+!****h* modules/miscfun
+!
+! NAME
+!
+! miscfun: provides miscellaneous useful functions.
+!
+! AUTHOR
+!
+! Laurent Hoeltgen <hoeltgen@b-tu.de>
+!*****
+
+! Copyright (C) 2015 Laurent Hoeltgen <hoeltgen@b-tu.de>
+!
+! This program is free software: you can redistribute it and/or modify it under
+! the terms of the GNU General Public License as published by the Free Software
+! Foundation, either version 3 of the License, or (at your option) any later
+! version.
+!
+! This program is distributed in the hope that it will be useful, but WITHOUT
+! ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License along with
+! this program. If not, see <http://www.gnu.org/licenses/>.
+!
+
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
+#:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
+module miscfun
+        use :: iso_fortran_env
+        implicit none
+        save
+        private
+
+        integer(INT32), parameter, private :: NPAR = 8  ! Used for allowing parallelisation of certain routines.
+
+        public :: cumsum
+        interface cumsum
+#:for type in akinds
+                module procedure cumsum_${type}$
+#:endfor
+        end interface cumsum
+
+        public :: cumprod
+        interface cumprod
+#:for type in akinds
+                module procedure cumprod_${type}$
+#:endfor
+        end interface cumprod
+
+        public :: outerproduct
+        interface outerproduct
+#:for type in akinds
+                module procedure outerproduct_${type}$
+#:endfor
+        end interface outerproduct
+
+        public :: scatter_add
+        interface scatter_add
+#:for type in ikinds
+                module procedure scatter_add_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+                module procedure scatter_add_${rtype}$_${itype}$
+#:endfor
+#:endfor
+        end interface scatter_add
+
+        public repelem
+        interface repelem
+#:for type in ikinds
+                module procedure repelem_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+                module procedure repelem_${rtype}$_${itype}$
+#:endfor
+#:endfor
+        end interface repelem
+
+contains
+
+
+    !! Cumulative sum of an array
+#:for type in ikinds
+        pure recursive function cumsum_${type}$ (arr) result(ans)
+
+                integer(${type}$), dimension(:), intent(in) :: arr
+
+                integer(${type}$), dimension(size(arr)) :: ans
+
+                integer(INT32) :: n, j
+
+                n = size(arr)
+
+                ans(1) = arr(1)
+
+                if (n < NPAR) then
+                        do j = 2, n
+                                ans(j) = ans(j-1) + arr(j)
+                        end do
+                else
+                        ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
+                        ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
+                end if
+            end function cumsum_${type}$
+
+#:endfor
+
+#:for type in rkinds
+        pure recursive function cumsum_${type}$ (arr) result(ans)
+
+                real(${type}$), dimension(:), intent(in) :: arr
+
+                real(${type}$), dimension(size(arr)) :: ans
+
+                integer(INT32) :: n, j
+
+                n = size(arr)
+
+                ans(1) = arr(1)
+
+                if (n < NPAR) then
+                        do j = 2, n
+                                ans(j) = ans(j-1) + arr(j)
+                        end do
+                else
+                        ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
+                        ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
+                end if
+            end function cumsum_${type}$
+
+#:endfor
+
+        !! Cumulative product of an array
+#:for type in ikinds
+        pure recursive function cumprod_${type}$ (arr) result(ans)
+
+                integer(${type}$), dimension(:), intent(in) :: arr
+
+                integer(${type}$), dimension(size(arr)) :: ans
+
+                integer(INT32) :: n, j
+
+                n = size(arr)
+
+                ans(1) = arr(1)
+
+                if (n < NPAR) then
+                        do j = 2, n
+                                ans(j) = ans(j-1) * arr(j)
+                        end do
+                else
+                        ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
+                        ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
+                end if
+        end function cumprod_${type}$
+
+#:endfor
+
+#:for type in rkinds
+        pure recursive function cumprod_${type}$ (arr) result(ans)
+
+                real(${type}$), dimension(:), intent(in) :: arr
+
+                real(${type}$), dimension(size(arr)) :: ans
+
+                integer(INT32) :: n, j
+
+                n = size(arr)
+
+                ans(1) = arr(1)
+
+                if (n < NPAR) then
+                        do j = 2, n
+                                ans(j) = ans(j-1) * arr(j)
+                        end do
+                else
+                        ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
+                        ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
+                end if
+        end function cumprod_${type}$
+
+#:endfor
+
+
+        !! Outer product
+#:for type in ikinds
+        pure function outerproduct_${type}$ (a, b) result(ans)
+
+                integer(${type}$), dimension(:), intent(in) :: a
+                integer(${type}$), dimension(:), intent(in) :: b
+
+                integer(${type}$), dimension(size(a),size(b)) :: ans
+
+                ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
+        end function outerproduct_${type}$
+
+#:endfor
+
+#:for type in rkinds
+        pure function outerproduct_${type}$ (a, b) result(ans)
+
+                real(${type}$), dimension(:), intent(in) :: a
+                real(${type}$), dimension(:), intent(in) :: b
+
+                real(${type}$), dimension(size(a),size(b)) :: ans
+
+                ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
+        end function outerproduct_${type}$
+
+#:endfor
+
+        !! Scatter Add
+#:for type in ikinds
+        pure subroutine scatter_add_${type}$ (source, dest_index, dest)
+
+                integer(${type}$), dimension(:),            intent(in) :: source
+                integer(${type}$), dimension(size(source)), intent(in) :: dest_index
+
+                integer(${type}$), dimension(:), intent(out) :: dest
+
+                integer(${type}$) :: m, n, j, i
+
+                n=size(source)
+                m=size(dest)
+                do j=1, n
+                        i=dest_index(j)
+                        if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
+                end do
+        end subroutine scatter_add_${type}$
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+        pure subroutine scatter_add_${rtype}$_${itype}$ (source, dest_index, dest)
+
+                real(${rtype}$), dimension(:),            intent(in) :: source
+                integer(${itype}$), dimension(size(source)), intent(in) :: dest_index
+
+                real(${rtype}$), dimension(:), intent(out) :: dest
+
+                integer(${itype}$) :: m, n, j, i
+
+                n=size(source)
+                m=size(dest)
+                do j=1, n
+                        i=dest_index(j)
+                        if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
+                end do
+        end subroutine scatter_add_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+#:for type in ikinds
+        pure function repelem_${type}$ (src, ncop) result(dest)
+                use :: constants
+                implicit none
+
+                integer(${type}$), dimension(:), intent(in) :: src
+                integer(${type}$),               intent(in) :: ncop
+
+                integer(${type}$), dimension(ncop*size(src)) :: dest
+
+                dest = reshape(spread(src, I${type}$, ncop), [ncop*size(src)])
+
+        end function repelem_${type}$
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+        pure function repelem_${rtype}$_${itype}$ (src, ncop) result(dest)
+                use :: constants
+                implicit none
+
+                real(${rtype}$), dimension(:), intent(in) :: src
+                integer(${itype}$),               intent(in) :: ncop
+
+                real(${rtype}$), dimension(ncop*size(src)) :: dest
+
+                dest = reshape(spread(src, I${itype}$, ncop), [ncop*size(src)])
+
+        end function repelem_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+end module
