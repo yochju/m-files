@@ -16,7 +16,7 @@ contains
     !! miscfun *****************************************************************
 
     pure subroutine mexcumsum (siz, arrIn, arrOut) bind(C, name="mexcumsum")
-        integer(C_INT64_T), value,                 intent(in)  :: siz
+        integer(c_int64_t), value,                 intent(in)  :: siz
         real(c_double),         dimension(siz), intent(in)  :: arrIn
         real(c_double),         dimension(siz), intent(out) :: arrOut
 
@@ -26,40 +26,125 @@ contains
     !! stencil *****************************************************************
     
     subroutine mexstencillocs (lenIn, lenOut, siz, dims, arrOut) bind(C, name="mexstencillocs")
-        integer(C_INT64_T), value,                    intent(in)  :: lenIn
-        integer(C_INT64_T), value,                    intent(in)  :: lenOut
-        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: siz
-        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: dims
-        integer(C_INT64_T),        dimension(lenOut), intent(out) :: arrOut
+        integer(c_int64_t), value,                    intent(in)  :: lenIn
+        integer(c_int64_t), value,                    intent(in)  :: lenOut
+        integer(c_int64_t),        dimension(lenIn),  intent(in)  :: siz
+        integer(c_int64_t),        dimension(lenIn),  intent(in)  :: dims
+        integer(c_int64_t),        dimension(lenOut), intent(out) :: arrOut
                 
         arrOut = stencillocs(siz, dims)
     end subroutine mexstencillocs
 
     subroutine mexstencilmask (lenIn, lenOut, siz, dims, pos, arrOut) bind(C, name="mexstencilmask")
-        integer(C_INT64_T), value,                    intent(in)  :: lenIn
-        integer(C_INT64_T), value,                    intent(in)  :: lenOut
-        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: siz
-        integer(C_INT64_T),        dimension(lenIn),  intent(in)  :: dims
-        integer(C_INT64_T), value,                    intent(in)  :: pos
-        integer(C_INT64_T),        dimension(lenOut), intent(out) :: arrOut
+        integer(c_int64_t), value,                    intent(in)  :: lenIn
+        integer(c_int64_t), value,                    intent(in)  :: lenOut
+        integer(c_int64_t),        dimension(lenIn),  intent(in)  :: siz
+        integer(c_int64_t),        dimension(lenIn),  intent(in)  :: dims
+        integer(c_int64_t), value,                    intent(in)  :: pos
+        integer(c_int64_t),        dimension(lenOut), intent(out) :: arrOut
 
-        logical, dimension(lenOut) :: mask
+        logical, dimension(:), allocatable :: mask
+
+        allocate(mask(lenOut))
         
         mask = stencilmask(siz, dims, pos)
         arrOut = 0
         where(mask) arrOut = 1
 
+        deallocate(mask)
+
     end subroutine mexstencilmask
 
     subroutine mexcreate_5p_stencil (dims, arrOut) bind(C, name="mexcreate_5p_stencil")
-        integer(C_INT64_T), value,                     intent(in)  :: dims
-        integer(C_INT64_T),        dimension(3**dims), intent(out) :: arrOut
+        integer(c_int64_t), value,                     intent(in)  :: dims
+        integer(c_int64_t),        dimension(3**dims), intent(out) :: arrOut
 
-        logical, dimension(3**dims) :: stencil
+        logical, dimension(:), allocatable :: stencil
 
+        allocate(stencil(3**dims))
+        
         stencil = create_5p_stencil(dims)
         arrOut = 0
         where(stencil) arrOut = 1
+
+        deallocate(stencil)
     end subroutine mexcreate_5p_stencil
 
+    subroutine mexstencil2sparse_size (lenIn, siz, dims, mask, numel) bind(C, name="mexstencil2sparse_size")
+        implicit none
+
+        integer(c_int64_t), value,                          intent(in) :: lenIn
+        integer(c_int64_t),        dimension(lenIn),        intent(in) :: siz
+        integer(c_int64_t),        dimension(size(siz)),    intent(in) :: dims
+        integer(c_int64_t),        dimension(product(siz)), intent(in) :: mask
+
+        integer(c_int64_t), intent(out) :: numel
+        
+        logical, dimension(:), allocatable :: tmp_mask
+
+        allocate(tmp_mask(product(siz)))
+        tmp_mask = .false.
+        where(.not. (mask == 0)) tmp_mask = .true.
+
+        numel = stencil2sparse_size(siz, dims, tmp_mask)
+
+        deallocate(tmp_mask)
+
+    end subroutine mexstencil2sparse_size
+
+    subroutine mexconst_stencil2sparse (lenIn, siz, dims, mask, sten, ir, jc, a) bind(C, name="mexconst_stencil2sparse")
+        implicit none
+        
+        integer(c_int64_t), value,                          intent(in) :: lenIn
+        integer(c_int64_t),        dimension(lenIn),        intent(in) :: siz
+        integer(c_int64_t),        dimension(size(siz)),    intent(in) :: dims
+        integer(c_int64_t),        dimension(product(siz)), intent(in) :: mask
+        real(c_double),            dimension(product(siz)), intent(in) :: sten
+
+        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: ir
+        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: jc
+        real(c_double),     dimension(count(mask > 0)*product(dims)), intent(out) :: a
+
+        logical, dimension(:), allocatable :: tmp_mask
+
+        allocate(tmp_mask(product(siz)))
+        tmp_mask = .false.
+        where(.not. (mask == 0)) tmp_mask = .true.
+
+        call const_stencil2sparse(siz, dims, tmp_mask, sten, ir, jc, a)
+
+        deallocate(tmp_mask)
+
+    end subroutine mexconst_stencil2sparse
+
+    subroutine mexstencil2sparse (lenIn, siz, dims, mask, sten, ir, jc, a) bind(C, name="mexstencil2sparse")
+        implicit none
+        
+        integer(c_int64_t), value,                                        intent(in) :: lenIn
+        integer(c_int64_t),        dimension(lenIn),                      intent(in) :: siz
+        integer(c_int64_t),        dimension(size(siz)),                  intent(in) :: dims
+        integer(c_int64_t),        dimension(product(siz)),               intent(in) :: mask
+        real(c_double),            dimension(product(dims)*product(siz)), intent(in) :: sten
+
+        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: ir
+        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: jc
+        real(c_double),     dimension(count(mask > 0)*product(dims)), intent(out) :: a
+
+        real(c_double), dimension(:,:), allocatable :: buffer
+        logical, dimension(:), allocatable :: tmp_mask
+
+        allocate(tmp_mask(product(siz)))
+        allocate(buffer(product(dims), product(siz)))
+
+        tmp_mask = .false.
+        where(.not. (mask == 0)) tmp_mask = .true.
+
+        buffer = reshape(sten, [product(dims), product(siz)])
+        call stencil2sparse(siz, dims, tmp_mask, buffer, ir, jc, a)
+
+        deallocate(tmp_mask)
+        deallocate(buffer)
+    end subroutine mexstencil2sparse
+
 end module cmexinterface
+
