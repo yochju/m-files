@@ -4,6 +4,8 @@ if ismac
     mex -v -largeArrayDims mexstencillocs.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
     mex -v -largeArrayDims mexstencilmask.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
     mex -v -largeArrayDims mexcreate_5p_stencil.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
+    mex -v -largeArrayDims mexstencil2sparse_size.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
+    mex -v -largeArrayDims mexconst_stencil2sparse.c /opt/local/lib/libgcc/libgfortran.3.dylib libffiles.a
 elseif isunix
     % Code to run on Linux plaform
     mex -v -largeArrayDims mexcumsum.c -lffiles -lgfortran

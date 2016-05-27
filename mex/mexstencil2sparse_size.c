@@ -8,10 +8,10 @@
 void mexFunction (int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[]
 ) {
-	int64_t *tmp_siz, *tmp_dims, *tmp_out;
-	double *siz, *dims, *out;
+        int64_t *tmp_siz, *tmp_dims, *tmp_mask, tmp_out;
+	double *siz, *dims, *mask, *out;
 	double pos;
-	mwSize ii, nc, nr, siz_out;
+	mwSize ii, nc, nr, siz_prod;
 
 	/* Check I/O number */
 	if (nlhs > 1) {
@@ -25,36 +25,30 @@ void mexFunction (int nlhs, mxArray *plhs[],
 	nc = mxGetN (prhs[0]);
 
 	/* Get input and output pointers. */
-	siz = mxGetPr (prhs[0]);
+	siz  = mxGetPr (prhs[0]);
 	dims = mxGetPr (prhs[1]);
+	mask = mxGetPr (prhs[2]);
 
-	pos = mxGetScalar (prhs[2]);
+	siz_prod = 1;
+	for (ii = 0; ii < nr * nc; ii++) { siz_prod *= (mwSize) siz[ii]; }
 
-	siz_out = 1;
-	for (ii = 0; ii < nr * nc; ii++) { siz_out *= (mwSize) siz[ii]; }
-
-	tmp_siz = mxCalloc (nr * nc, sizeof (int64_t));
+	tmp_siz  = mxCalloc (nr * nc, sizeof (int64_t));
 	tmp_dims = mxCalloc (nr * nc, sizeof (int64_t));
-	tmp_out = mxCalloc (siz_out, sizeof (int64_t));
-
-	plhs[0] = mxCreateDoubleMatrix (siz_out, 1, mxREAL);
-
-	out = mxGetPr (plhs[0]);
+	tmp_mask = mxCalloc (siz_prod, sizeof (int64_t));
 
 	for (ii = 0; ii < nr * nc; ii++) {
-		tmp_siz[ii] = (int64_t) siz[ii];
+		tmp_siz[ii]  = (int64_t) siz[ii];
 		tmp_dims[ii] = (int64_t) dims[ii];
+		tmp_mask[ii] = (int64_t) mask[ii];
 	}
 
-	mexstencilmask ((int64_t) nr * nc, (int64_t) siz_out, tmp_siz, tmp_dims, (int64_t) pos, tmp_out);
+	mexstencil2sparse_size ((int64_t) nr * nc, tmp_siz, tmp_dims, tmp_mask, &tmp_out);
 
-	for (ii = 0; ii < siz_out; ii++) {
-		out[ii] = (double) tmp_out[ii];
-	}
-
+	plhs[0] = mxCreateDoubleScalar ((double) tmp_out);
+	
 	mxFree (tmp_siz);
 	mxFree (tmp_dims);
-	mxFree (tmp_out);
+	mxFree (tmp_mask);
 
 	return;
 }
