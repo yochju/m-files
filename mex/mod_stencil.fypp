@@ -255,7 +255,7 @@ contains
 
                 integer(${itype}$), dimension(:),            intent(in) :: siz  ! size of the stencil
                 integer(${itype}$), dimension(size(siz)),    intent(in) :: dims ! size of the grid
-                logical(${itype}$), dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
+                logical,            dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
 
                 integer(${itype}$) :: numel
 
@@ -287,7 +287,7 @@ contains
 
                 integer(${itype}$), dimension(:),            intent(in) :: siz  ! size of the stencil
                 integer(${itype}$), dimension(size(siz)),    intent(in) :: dims ! size of the grid
-                logical(${itype}$), dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
+                logical,            dimension(product(siz)), intent(in) :: mask ! indicator for the relevant stencil entries
                 real(${rtype}$),       dimension(product(siz)), intent(in) :: sten ! stencil entries
 
                 integer(${itype}$), dimension(count(mask)*product(dims)), intent(out) :: ir
@@ -346,8 +346,8 @@ contains
 
                 integer(${itype}$), dimension(:),                           intent(in) :: siz  ! size of the stencil
                 integer(${itype}$), dimension(size(siz)),                   intent(in) :: dims ! size of the grid
-                logical(${itype}$), dimension(product(siz)),                intent(in) :: mask ! indicator for the stencil entries
-                real(${rtype}$),   dimension(product(dims), product(siz)), intent(in) :: sten ! stencil entries
+                logical,            dimension(product(siz)),                intent(in) :: mask ! indicator for the stencil entries
+                real(${rtype}$),    dimension(product(dims), product(siz)), intent(in) :: sten ! stencil entries
 
                 integer(${itype}$), dimension(count(mask)*product(dims)), intent(out) :: ir
                 integer(${itype}$), dimension(count(mask)*product(dims)), intent(out) :: jc
