@@ -83,6 +83,7 @@ contains
         logical, dimension(:), allocatable :: tmp_mask
 
         allocate(tmp_mask(product(siz)))
+
         tmp_mask = .false.
         where(.not. (mask == 0)) tmp_mask = .true.
 
@@ -92,24 +93,25 @@ contains
 
     end subroutine mexstencil2sparse_size
 
-    subroutine mexconst_stencil2sparse (lenIn, siz, dims, mask, sten, ir, jc, a) bind(C, name="mexconst_stencil2sparse")
+    subroutine mexconst_stencil2sparse (lenIn, lenOut, siz, dims, mask, sten, ir, jc, a) bind(C, name="mexconst_stencil2sparse")
         implicit none
         
         integer(c_int64_t), value,                          intent(in) :: lenIn
+        integer(c_int64_t), value,                          intent(in) :: lenOut
         integer(c_int64_t),        dimension(lenIn),        intent(in) :: siz
         integer(c_int64_t),        dimension(size(siz)),    intent(in) :: dims
         integer(c_int64_t),        dimension(product(siz)), intent(in) :: mask
         real(c_double),            dimension(product(siz)), intent(in) :: sten
 
-        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: ir
-        integer(c_int64_t), dimension(count(mask > 0)*product(dims)), intent(out) :: jc
-        real(c_double),     dimension(count(mask > 0)*product(dims)), intent(out) :: a
+        integer(c_int64_t), dimension(lenOut), intent(out) :: ir
+        integer(c_int64_t), dimension(lenOut), intent(out) :: jc
+        real(c_double),     dimension(lenOut), intent(out) :: a
 
         logical, dimension(:), allocatable :: tmp_mask
 
-        allocate(tmp_mask(product(siz)))
+        allocate(tmp_mask(product(siz))) ! does this fail?
         tmp_mask = .false.
-        where(.not. (mask == 0)) tmp_mask = .true.
+        ! where(.not. (mask == 0)) tmp_mask = .true. ! is this correct?
 
         call const_stencil2sparse(siz, dims, tmp_mask, sten, ir, jc, a)
 

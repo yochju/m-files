@@ -39,7 +39,10 @@ void mexFunction (int nlhs, mxArray *plhs[],
 	for (ii = 0; ii < nr * nc; ii++) {
 		tmp_siz[ii]  = (int64_t) siz[ii];
 		tmp_dims[ii] = (int64_t) dims[ii];
-		tmp_mask[ii] = (int64_t) mask[ii];
+	}
+
+	for (ii = 0; ii < siz_prod; ii++) {
+	  tmp_mask[ii] = (int64_t) mask[ii];
 	}
 
 	mexstencil2sparse_size ((int64_t) nr * nc, tmp_siz, tmp_dims, tmp_mask, &tmp_out);
