@@ -109,10 +109,14 @@ contains
 
         logical, dimension(:), allocatable :: tmp_mask
 
-        allocate(tmp_mask(product(siz))) ! does this fail?
-        tmp_mask = .false.
-        ! where(.not. (mask == 0)) tmp_mask = .true. ! is this correct?
-
+        allocate(tmp_mask(size(mask)))
+        
+        where (mask > 0)
+                tmp_mask = .true.
+        elsewhere
+                tmp_mask = .false.
+        end where
+        
         call const_stencil2sparse(siz, dims, tmp_mask, sten, ir, jc, a)
 
         deallocate(tmp_mask)
