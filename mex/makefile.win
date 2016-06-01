@@ -1,23 +1,26 @@
-all : mod_array.o mod_stencil.o mod_laplace.o
+all : mod_array.o mod_stencil.o mod_laplace.o mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_cmexinterface.F08
 
-mod_array.o : mod_miscfun.o mod_array.F08
+mod_array.o : mod_miscfun.o mod_array.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_array.F08
 
-mod_stencil.o : mod_miscfun.o mod_array.o mod_stencil.F08
+mod_stencil.o : mod_miscfun.o mod_array.o mod_stencil.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_stencil.F08
 
 mod_laplace.o : mod_sparse.o mod_stencil.o mod_array.o mod_laplace.F08
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_laplace.F08
 
-mod_miscfun.o : mod_miscfun.F08
+mod_miscfun.o : mod_miscfun.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_miscfun.F08
 
-mod_sparse.o : mod_sparse.F08
+mod_sparse.o : mod_sparse.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_sparse.F08
 
-mod_array_ops.o : mod_array_ops.F08
+mod_array_ops.o : mod_array_ops.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_array_ops.F08
 
-mod_colours.o : mod_colours.F08
+mod_colours.o : mod_colours.F08 mod_constants.o
 	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_colours.F08
+
+mod_constants.o : mod_constants.F08
+	ifort /stand:f08 /check:all /warn:all /extfor:F08 /free /c mod_constants.F08
