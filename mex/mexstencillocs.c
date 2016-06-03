@@ -6,8 +6,8 @@
 #include "f2mex.h"
 
 void mexFunction (int nlhs, mxArray *plhs[],
-                  int nrhs, const mxArray *prhs[]
-) {
+                  int nrhs, const mxArray *prhs[])
+{
 	int64_t *tmp_siz, *tmp_dims, *tmp_out;
 	double *siz, *dims, *out;
 	mwSize ii, nc, nr, siz_out;
