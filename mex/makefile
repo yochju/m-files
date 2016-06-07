@@ -7,10 +7,14 @@ PP=fypp
 ISRC = $(wildcard *.fypp)
 FSRC = $(wildcard *.F08)
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))
+CSRC = $(wildcard *.c)
+COBJ = $(patsubst %.c,%.o,$(CSRC))
 
 IFLAGS := -I.
+export IFLAGS
 
 LDFLAGS :=-L.
+export LDFLAGS
 
 # FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -O3 -fexpensive-optimizations -faggressive-loop-optimizations -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -fcheck=all -cpp $(IFLAGS) $(LDFLAGS)
 FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -cpp $(IFLAGS) $(LDFLAGS)
@@ -21,7 +25,7 @@ RM=rm -f
 
 LIB = libffiles.a
 
-.PHONY: clean all
+.PHONY: clean all tags
 
 .SUFFIXES:
 .SUFFIXES: .o .c .F08 .mod .in .a
@@ -56,3 +60,6 @@ mod_cmexinterface.o : mod_cmexinterface.F08 mod_stencil.o mod_miscfun.o
 $(LIB): $(FOBJ)
 	$(AR) $@ $^
 	$(RM) *.o
+
+tags: $(FSRC) $(CSRC)
+	ctags -e --langmap=fortran:.F08 $^
