@@ -21,6 +21,7 @@ export LDFLAGS
 
 # FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -O3 -fexpensive-optimizations -faggressive-loop-optimizations -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -fcheck=all -cpp $(IFLAGS) $(LDFLAGS)
 FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -cpp $(IFLAGS) $(LDFLAGS)
+CCFLAGS :=-Wall -Wextra -fPIC -O3
 
 AR=ar rcs
 
