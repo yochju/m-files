@@ -80,7 +80,31 @@ module miscfun
 #:endfor
         end interface repelem
 
-contains
+        public softshrinkage
+        interface softshrinkage
+#:for type in rkinds
+                module procedure softshrinkage_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+                module procedure softshrinkage_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface softshrinkage
+
+        public huberloss
+        interface huberloss
+#:for type in rkinds
+                module procedure huberloss_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+                module procedure huberloss_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface huberloss
+        
+    contains
 
 
     !! Cumulative sum of an array
@@ -289,5 +313,99 @@ contains
 
 #:endfor
 #:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+        pure function softshrinkage_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+            use :: constants
+            implicit none
+
+            integer(${itype}$),              intent(in) :: num
+            real(${rtype}$), dimension(num), intent(in) :: src
+            real(${rtype}$),                 intent(in) :: lambda
+
+            real(${rtype}$), dimension(num) :: dest
+
+            integer(${itype}$) :: ii
+
+            !$omp parallel do private( ii ) 
+            do ii = 1, num
+                if ( src(ii) > lambda) then
+                    dest(ii) = src(ii) - lambda
+                else if (src(ii) < -I${rtype}$ * lambda) then
+                    dest(ii) = src(ii) + lambda
+                else
+                    dest(ii) = Z${rtype}$
+                end if
+            end do
+            !$omp end parallel do
+
+        end function softshrinkage_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+#:for rtype in rkinds
+        pure elemental function softshrinkage_${rtype}$ (src, lambda) result(dest)
+            implicit none
+
+            real(${rtype}$), intent(in) :: src
+            real(${rtype}$), intent(in) :: lambda
+
+            real(${rtype}$)             :: dest
+
+            dest = sign(dim(abs(src), abs(lambda)), src)
+        end function softshrinkage_${rtype}$
+
+#:endfor        
+
+#:for rtype in rkinds
+#:for itype in ikinds
+        pure function huberloss_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+            use :: constants
+            implicit none
+
+            integer(${itype}$),              intent(in) :: num
+            real(${rtype}$), dimension(num), intent(in) :: src
+            real(${rtype}$),                 intent(in) :: lambda
+
+            real(${rtype}$), dimension(num) :: dest
+
+            integer(${itype}$) :: ii
+
+            !$omp parallel do private( ii ) 
+            do ii = 1, num
+                if (abs(src(ii))<=abs(lambda)) then
+                    dest(ii) = H${rtype}$*src(ii)**2
+                else
+                    dest(ii) = abs(lambda)*(abs(src(ii))-H${rtype}$*abs(lambda))
+                end if
+
+            end do
+            !$omp end parallel do
+
+        end function huberloss_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+#:for rtype in rkinds
+        pure elemental function huberloss_${rtype}$ (src, lambda) result(dest)
+            use :: constants
+            implicit none
+
+            real(${rtype}$), intent(in) :: src
+            real(${rtype}$), intent(in) :: lambda
+
+            real(${rtype}$)             :: dest
+
+            if (abs(src)<=abs(lambda)) then
+                dest = H${rtype}$*src**2
+            else
+                dest = abs(lambda)*(abs(src)-H${rtype}$*abs(lambda))
+            end if
+        end function huberloss_${rtype}$
+
+#:endfor        
 
 end module

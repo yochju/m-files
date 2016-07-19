@@ -2,11 +2,25 @@ module constants
     use :: iso_fortran_env
     implicit none
     public
+
+    !! Integer Constants
     
-#:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
-#:for itype in akinds
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:for itype in ikinds
+    integer(${itype}$), parameter :: I2${itype}$ = 2
     integer(${itype}$), parameter :: I${itype}$ = 1
     integer(${itype}$), parameter :: Z${itype}$ = 0
+
+#:endfor
+
+    !! Real Constants
+    
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
+#:for rtype in rkinds
+    real(${rtype}$), parameter :: I2${rtype}$ = 2
+    real(${rtype}$), parameter :: I${rtype}$ = 1
+    real(${rtype}$), parameter :: H${rtype}$ = 0.5
+    real(${rtype}$), parameter :: Z${rtype}$ = 0
 
 #:endfor
 
