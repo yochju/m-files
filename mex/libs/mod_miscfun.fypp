@@ -89,7 +89,9 @@ module miscfun
 #:for rtype in rkinds
 #:for itype in ikinds
         module procedure softshrinkage_${rtype}$_${itype}$
+        module procedure softshrinkage_p_${rtype}$_${itype}$
         module procedure softshrinkage_c_${rtype}$_${itype}$
+        module procedure softshrinkage_c_p_${rtype}$_${itype}$
 #:endfor
 #:endfor            
     end interface softshrinkage
@@ -367,6 +369,32 @@ contains
 
     end function softshrinkage_${rtype}$_${itype}$
 
+    pure function softshrinkage_p_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        real(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$), dimension(num), intent(in) :: lambda
+
+        real(${rtype}$), dimension(num) :: dest
+
+        integer(${itype}$) :: ii
+
+        !$omp parallel do private( ii ) 
+        do ii = 1, num
+            if ( src(ii) > lambda(ii)) then
+                dest(ii) = src(ii) - lambda(ii)
+            else if (src(ii) < -I${rtype}$ * lambda(ii)) then
+                dest(ii) = src(ii) + lambda(ii)
+            else
+                dest(ii) = Z${rtype}$
+            end if
+        end do
+        !$omp end parallel do
+
+    end function softshrinkage_p_${rtype}$_${itype}$
+        
     pure function softshrinkage_c_${rtype}$_${itype}$ (num, src, lambda) result(dest)
         use :: constants
         implicit none
@@ -382,6 +410,21 @@ contains
 
     end function softshrinkage_c_${rtype}$_${itype}$
 
+    pure function softshrinkage_c_p_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        complex(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),    dimension(num), intent(in) :: lambda
+
+        complex(${rtype}$), dimension(num) :: dest
+
+        dest = cmplx (softshrinkage_p_${rtype}$_${itype}$ (num, real(src), lambda), \
+        softshrinkage_p_${rtype}$_${itype}$ (num, aimag(src), lambda), ${rtype}$)
+
+    end function softshrinkage_c_p_${rtype}$_${itype}$
+        
 #:endfor
 #:endfor
 
@@ -552,6 +595,5 @@ contains
     end function binarise_${rtype}$
 
 #:endfor
-
 
 end module miscfun
