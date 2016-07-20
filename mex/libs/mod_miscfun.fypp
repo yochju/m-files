@@ -28,384 +28,413 @@
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
 #:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
 module miscfun
-        use :: iso_fortran_env
-        implicit none
-        save
-        private
+    use :: iso_fortran_env
+    implicit none
+    save
+    private
 
-        integer(INT32), parameter, private :: NPAR = 8  ! Used for allowing parallelisation of certain routines.
+    integer(INT32), parameter, private :: NPAR = 8  ! Used for allowing parallelisation of certain routines.
 
-        public :: cumsum
-        interface cumsum
+    public :: cumsum
+    interface cumsum
 #:for type in akinds
-                module procedure cumsum_${type}$
+        module procedure cumsum_${type}$
 #:endfor
-        end interface cumsum
+    end interface cumsum
 
-        public :: cumprod
-        interface cumprod
+    public :: cumprod
+    interface cumprod
 #:for type in akinds
-                module procedure cumprod_${type}$
+        module procedure cumprod_${type}$
 #:endfor
-        end interface cumprod
+    end interface cumprod
 
-        public :: outerproduct
-        interface outerproduct
+    public :: outerproduct
+    interface outerproduct
 #:for type in akinds
-                module procedure outerproduct_${type}$
+        module procedure outerproduct_${type}$
 #:endfor
-        end interface outerproduct
+    end interface outerproduct
 
-        public :: scatter_add
-        interface scatter_add
+    public :: scatter_add
+    interface scatter_add
 #:for type in ikinds
-                module procedure scatter_add_${type}$
+        module procedure scatter_add_${type}$
 #:endfor
 #:for rtype in rkinds
 #:for itype in ikinds
-                module procedure scatter_add_${rtype}$_${itype}$
+        module procedure scatter_add_${rtype}$_${itype}$
 #:endfor
 #:endfor
-        end interface scatter_add
+    end interface scatter_add
 
-        public repelem
-        interface repelem
+    public repelem
+    interface repelem
 #:for type in ikinds
-                module procedure repelem_${type}$
+        module procedure repelem_${type}$
 #:endfor
 #:for rtype in rkinds
 #:for itype in ikinds
-                module procedure repelem_${rtype}$_${itype}$
+        module procedure repelem_${rtype}$_${itype}$
 #:endfor
 #:endfor
-        end interface repelem
+    end interface repelem
 
-        public softshrinkage
-        interface softshrinkage
+    public softshrinkage
+    interface softshrinkage
 #:for type in rkinds
-                module procedure softshrinkage_${type}$
+        module procedure softshrinkage_${type}$
+        module procedure softshrinkage_c_${type}$
 #:endfor
 #:for rtype in rkinds
 #:for itype in ikinds
-                module procedure softshrinkage_${rtype}$_${itype}$
+        module procedure softshrinkage_${rtype}$_${itype}$
+        module procedure softshrinkage_c_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface softshrinkage
+    end interface softshrinkage
 
-        public huberloss
-        interface huberloss
+    public huberloss
+    interface huberloss
 #:for type in rkinds
-                module procedure huberloss_${type}$
+        module procedure huberloss_${type}$
 #:endfor
 #:for rtype in rkinds
 #:for itype in ikinds
-                module procedure huberloss_${rtype}$_${itype}$
+        module procedure huberloss_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface huberloss
-        
-    contains
+    end interface huberloss
 
+contains
 
     !! Cumulative sum of an array
 #:for type in ikinds
-        pure recursive function cumsum_${type}$ (arr) result(ans)
+    pure recursive function cumsum_${type}$ (arr) result(ans)
 
-                integer(${type}$), dimension(:), intent(in) :: arr
+        integer(${type}$), dimension(:), intent(in) :: arr
 
-                integer(${type}$), dimension(size(arr)) :: ans
+        integer(${type}$), dimension(size(arr)) :: ans
 
-                integer(INT32) :: n, j
+        integer(INT32) :: n, j
 
-                n = size(arr)
+        n = size(arr)
 
-                ans(1) = arr(1)
+        ans(1) = arr(1)
 
-                if (n < NPAR) then
-                        do j = 2, n
-                                ans(j) = ans(j-1) + arr(j)
-                        end do
-                else
-                        ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
-                        ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
-                end if
-            end function cumsum_${type}$
-
-#:endfor
-
-#:for type in rkinds
-        pure recursive function cumsum_${type}$ (arr) result(ans)
-
-                real(${type}$), dimension(:), intent(in) :: arr
-
-                real(${type}$), dimension(size(arr)) :: ans
-
-                integer(INT32) :: n, j
-
-                n = size(arr)
-
-                ans(1) = arr(1)
-
-                if (n < NPAR) then
-                        do j = 2, n
-                                ans(j) = ans(j-1) + arr(j)
-                        end do
-                else
-                        ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
-                        ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
-                end if
-            end function cumsum_${type}$
-
-#:endfor
-
-        !! Cumulative product of an array
-#:for type in ikinds
-        pure recursive function cumprod_${type}$ (arr) result(ans)
-
-                integer(${type}$), dimension(:), intent(in) :: arr
-
-                integer(${type}$), dimension(size(arr)) :: ans
-
-                integer(INT32) :: n, j
-
-                n = size(arr)
-
-                ans(1) = arr(1)
-
-                if (n < NPAR) then
-                        do j = 2, n
-                                ans(j) = ans(j-1) * arr(j)
-                        end do
-                else
-                        ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
-                        ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
-                end if
-        end function cumprod_${type}$
-
-#:endfor
-
-#:for type in rkinds
-        pure recursive function cumprod_${type}$ (arr) result(ans)
-
-                real(${type}$), dimension(:), intent(in) :: arr
-
-                real(${type}$), dimension(size(arr)) :: ans
-
-                integer(INT32) :: n, j
-
-                n = size(arr)
-
-                ans(1) = arr(1)
-
-                if (n < NPAR) then
-                        do j = 2, n
-                                ans(j) = ans(j-1) * arr(j)
-                        end do
-                else
-                        ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
-                        ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
-                end if
-        end function cumprod_${type}$
-
-#:endfor
-
-
-        !! Outer product
-#:for type in ikinds
-        pure function outerproduct_${type}$ (a, b) result(ans)
-
-                integer(${type}$), dimension(:), intent(in) :: a
-                integer(${type}$), dimension(:), intent(in) :: b
-
-                integer(${type}$), dimension(size(a),size(b)) :: ans
-
-                ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
-        end function outerproduct_${type}$
-
-#:endfor
-
-#:for type in rkinds
-        pure function outerproduct_${type}$ (a, b) result(ans)
-
-                real(${type}$), dimension(:), intent(in) :: a
-                real(${type}$), dimension(:), intent(in) :: b
-
-                real(${type}$), dimension(size(a),size(b)) :: ans
-
-                ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
-        end function outerproduct_${type}$
-
-#:endfor
-
-        !! Scatter Add
-#:for type in ikinds
-        pure subroutine scatter_add_${type}$ (source, dest_index, dest)
-
-                integer(${type}$), dimension(:),            intent(in) :: source
-                integer(${type}$), dimension(size(source)), intent(in) :: dest_index
-
-                integer(${type}$), dimension(:), intent(out) :: dest
-
-                integer(${type}$) :: m, n, j, i
-
-                n=size(source)
-                m=size(dest)
-                do j=1, n
-                        i=dest_index(j)
-                        if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
-                end do
-        end subroutine scatter_add_${type}$
-
-#:endfor
-
-#:for rtype in rkinds
-#:for itype in ikinds
-        pure subroutine scatter_add_${rtype}$_${itype}$ (source, dest_index, dest)
-
-                real(${rtype}$), dimension(:),            intent(in) :: source
-                integer(${itype}$), dimension(size(source)), intent(in) :: dest_index
-
-                real(${rtype}$), dimension(:), intent(out) :: dest
-
-                integer(${itype}$) :: m, n, j, i
-
-                n=size(source)
-                m=size(dest)
-                do j=1, n
-                        i=dest_index(j)
-                        if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
-                end do
-        end subroutine scatter_add_${rtype}$_${itype}$
-
-#:endfor
-#:endfor
-
-#:for type in ikinds
-        pure function repelem_${type}$ (src, ncop) result(dest)
-                use :: constants
-                implicit none
-
-                integer(${type}$), dimension(:), intent(in) :: src
-                integer(${type}$),               intent(in) :: ncop
-
-                integer(${type}$), dimension(ncop*size(src)) :: dest
-
-                dest = reshape(spread(src, I${type}$, ncop), [ncop*size(src)])
-
-        end function repelem_${type}$
-
-#:endfor
-
-#:for rtype in rkinds
-#:for itype in ikinds
-        pure function repelem_${rtype}$_${itype}$ (src, ncop) result(dest)
-                use :: constants
-                implicit none
-
-                real(${rtype}$), dimension(:), intent(in) :: src
-                integer(${itype}$),               intent(in) :: ncop
-
-                real(${rtype}$), dimension(ncop*size(src)) :: dest
-
-                dest = reshape(spread(src, I${itype}$, ncop), [ncop*size(src)])
-
-        end function repelem_${rtype}$_${itype}$
-
-#:endfor
-#:endfor
-
-#:for rtype in rkinds
-#:for itype in ikinds
-        pure function softshrinkage_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-            use :: constants
-            implicit none
-
-            integer(${itype}$),              intent(in) :: num
-            real(${rtype}$), dimension(num), intent(in) :: src
-            real(${rtype}$),                 intent(in) :: lambda
-
-            real(${rtype}$), dimension(num) :: dest
-
-            integer(${itype}$) :: ii
-
-            !$omp parallel do private( ii ) 
-            do ii = 1, num
-                if ( src(ii) > lambda) then
-                    dest(ii) = src(ii) - lambda
-                else if (src(ii) < -I${rtype}$ * lambda) then
-                    dest(ii) = src(ii) + lambda
-                else
-                    dest(ii) = Z${rtype}$
-                end if
+        if (n < NPAR) then
+            do j = 2, n
+                ans(j) = ans(j-1) + arr(j)
             end do
-            !$omp end parallel do
-
-        end function softshrinkage_${rtype}$_${itype}$
+        else
+            ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
+            ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
+        end if
+    end function cumsum_${type}$
 
 #:endfor
+
+#:for type in rkinds
+    pure recursive function cumsum_${type}$ (arr) result(ans)
+
+        real(${type}$), dimension(:), intent(in) :: arr
+
+        real(${type}$), dimension(size(arr)) :: ans
+
+        integer(INT32) :: n, j
+
+        n = size(arr)
+
+        ans(1) = arr(1)
+
+        if (n < NPAR) then
+            do j = 2, n
+                ans(j) = ans(j-1) + arr(j)
+            end do
+        else
+            ans(2:n:2) = cumsum(arr(2:n:2) + arr(1:n-1:2))
+            ans(3:n:2) = ans(2:n-1:2) + arr(3:n:2)
+        end if
+    end function cumsum_${type}$
+
 #:endfor
 
-#:for rtype in rkinds
-        pure elemental function softshrinkage_${rtype}$ (src, lambda) result(dest)
-            implicit none
+    !! Cumulative product of an array
+#:for type in ikinds
+    pure recursive function cumprod_${type}$ (arr) result(ans)
 
-            real(${rtype}$), intent(in) :: src
-            real(${rtype}$), intent(in) :: lambda
+        integer(${type}$), dimension(:), intent(in) :: arr
 
-            real(${rtype}$)             :: dest
+        integer(${type}$), dimension(size(arr)) :: ans
 
-            dest = sign(dim(abs(src), abs(lambda)), src)
-        end function softshrinkage_${rtype}$
+        integer(INT32) :: n, j
 
-#:endfor        
+        n = size(arr)
+
+        ans(1) = arr(1)
+
+        if (n < NPAR) then
+            do j = 2, n
+                ans(j) = ans(j-1) * arr(j)
+            end do
+        else
+            ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
+            ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
+        end if
+    end function cumprod_${type}$
+
+#:endfor
+
+#:for type in rkinds
+    pure recursive function cumprod_${type}$ (arr) result(ans)
+
+        real(${type}$), dimension(:), intent(in) :: arr
+
+        real(${type}$), dimension(size(arr)) :: ans
+
+        integer(INT32) :: n, j
+
+        n = size(arr)
+
+        ans(1) = arr(1)
+
+        if (n < NPAR) then
+            do j = 2, n
+                ans(j) = ans(j-1) * arr(j)
+            end do
+        else
+            ans(2:n:2) = cumprod (arr(2:n:2) * arr(1:n-1:2))
+            ans(3:n:2) = ans(2:n-1:2) * arr(3:n:2)
+        end if
+    end function cumprod_${type}$
+
+#:endfor
+
+
+    !! Outer product
+#:for type in ikinds
+    pure function outerproduct_${type}$ (a, b) result(ans)
+
+        integer(${type}$), dimension(:), intent(in) :: a
+        integer(${type}$), dimension(:), intent(in) :: b
+
+        integer(${type}$), dimension(size(a),size(b)) :: ans
+
+        ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
+    end function outerproduct_${type}$
+
+#:endfor
+
+#:for type in rkinds
+    pure function outerproduct_${type}$ (a, b) result(ans)
+
+        real(${type}$), dimension(:), intent(in) :: a
+        real(${type}$), dimension(:), intent(in) :: b
+
+        real(${type}$), dimension(size(a),size(b)) :: ans
+
+        ans = spread(a, dim=2, ncopies=size(b)) * spread(b, dim=1, ncopies=size(a))
+    end function outerproduct_${type}$
+
+#:endfor
+
+    !! Scatter Add
+#:for type in ikinds
+    pure subroutine scatter_add_${type}$ (source, dest_index, dest)
+
+        integer(${type}$), dimension(:),            intent(in) :: source
+        integer(${type}$), dimension(size(source)), intent(in) :: dest_index
+
+        integer(${type}$), dimension(:), intent(out) :: dest
+
+        integer(${type}$) :: m, n, j, i
+
+        n=size(source)
+        m=size(dest)
+        do j=1, n
+            i=dest_index(j)
+            if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
+        end do
+    end subroutine scatter_add_${type}$
+
+#:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds
-        pure function huberloss_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-            use :: constants
-            implicit none
+    pure subroutine scatter_add_${rtype}$_${itype}$ (source, dest_index, dest)
 
-            integer(${itype}$),              intent(in) :: num
-            real(${rtype}$), dimension(num), intent(in) :: src
-            real(${rtype}$),                 intent(in) :: lambda
+        real(${rtype}$), dimension(:),            intent(in) :: source
+        integer(${itype}$), dimension(size(source)), intent(in) :: dest_index
 
-            real(${rtype}$), dimension(num) :: dest
+        real(${rtype}$), dimension(:), intent(out) :: dest
 
-            integer(${itype}$) :: ii
+        integer(${itype}$) :: m, n, j, i
 
-            !$omp parallel do private( ii ) 
-            do ii = 1, num
-                if (abs(src(ii))<=abs(lambda)) then
-                    dest(ii) = H${rtype}$*src(ii)**2
-                else
-                    dest(ii) = abs(lambda)*(abs(src(ii))-H${rtype}$*abs(lambda))
-                end if
+        n=size(source)
+        m=size(dest)
+        do j=1, n
+            i=dest_index(j)
+            if (i > 0 .and. i <= m) dest(i) = dest(i) + source(j)
+        end do
+    end subroutine scatter_add_${rtype}$_${itype}$
 
-            end do
-            !$omp end parallel do
+#:endfor
+#:endfor
 
-        end function huberloss_${rtype}$_${itype}$
+#:for type in ikinds
+    pure function repelem_${type}$ (src, ncop) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${type}$), dimension(:), intent(in) :: src
+        integer(${type}$),               intent(in) :: ncop
+
+        integer(${type}$), dimension(ncop*size(src)) :: dest
+
+        dest = reshape(spread(src, I${type}$, ncop), [ncop*size(src)])
+
+    end function repelem_${type}$
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    pure function repelem_${rtype}$_${itype}$ (src, ncop) result(dest)
+        use :: constants
+        implicit none
+
+        real(${rtype}$), dimension(:), intent(in) :: src
+        integer(${itype}$),               intent(in) :: ncop
+
+        real(${rtype}$), dimension(ncop*size(src)) :: dest
+
+        dest = reshape(spread(src, I${itype}$, ncop), [ncop*size(src)])
+
+    end function repelem_${rtype}$_${itype}$
 
 #:endfor
 #:endfor
 
 #:for rtype in rkinds
-        pure elemental function huberloss_${rtype}$ (src, lambda) result(dest)
-            use :: constants
-            implicit none
+#:for itype in ikinds
+    pure function softshrinkage_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
 
-            real(${rtype}$), intent(in) :: src
-            real(${rtype}$), intent(in) :: lambda
+        integer(${itype}$),              intent(in) :: num
+        real(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),                 intent(in) :: lambda
 
-            real(${rtype}$)             :: dest
+        real(${rtype}$), dimension(num) :: dest
 
-            if (abs(src)<=abs(lambda)) then
-                dest = H${rtype}$*src**2
+        integer(${itype}$) :: ii
+
+        !$omp parallel do private( ii ) 
+        do ii = 1, num
+            if ( src(ii) > lambda) then
+                dest(ii) = src(ii) - lambda
+            else if (src(ii) < -I${rtype}$ * lambda) then
+                dest(ii) = src(ii) + lambda
             else
-                dest = abs(lambda)*(abs(src)-H${rtype}$*abs(lambda))
+                dest(ii) = Z${rtype}$
             end if
-        end function huberloss_${rtype}$
+        end do
+        !$omp end parallel do
+
+    end function softshrinkage_${rtype}$_${itype}$
+
+    pure function softshrinkage_c_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        complex(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),                 intent(in) :: lambda
+
+        complex(${rtype}$), dimension(num) :: dest
+
+        dest = cmplx (softshrinkage_${rtype}$_${itype}$ (num, real(src), lambda), \
+        softshrinkage_${rtype}$_${itype}$ (num, aimag(src), lambda), ${rtype}$)
+
+    end function softshrinkage_c_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+#:for rtype in rkinds
+    pure elemental function softshrinkage_${rtype}$ (src, lambda) result(dest)
+        implicit none
+
+        real(${rtype}$), intent(in) :: src
+        real(${rtype}$), intent(in) :: lambda
+
+        real(${rtype}$)             :: dest
+
+        dest = sign(dim(abs(src), abs(lambda)), src)
+    end function softshrinkage_${rtype}$
+
+    pure elemental function softshrinkage_c_${rtype}$ (src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        complex(${rtype}$), intent(in) :: src
+        real(${rtype}$), intent(in) :: lambda
+
+        complex(${rtype}$)             :: dest
+
+        dest = cmplx (softshrinkage_${rtype}$(real(src), lambda), \
+        softshrinkage_${rtype}$(aimag(src), lambda), ${rtype}$)
+    end function softshrinkage_c_${rtype}$
 
 #:endfor        
 
-end module
+#:for rtype in rkinds
+#:for itype in ikinds
+    pure function huberloss_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        real(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),                 intent(in) :: lambda
+
+        real(${rtype}$), dimension(num) :: dest
+
+        integer(${itype}$) :: ii
+
+        !$omp parallel do private( ii ) 
+        do ii = 1, num
+            if (abs(src(ii))<=abs(lambda)) then
+                dest(ii) = H${rtype}$*src(ii)**2
+            else
+                dest(ii) = abs(lambda)*(abs(src(ii))-H${rtype}$*abs(lambda))
+            end if
+
+        end do
+        !$omp end parallel do
+
+    end function huberloss_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+
+#:for rtype in rkinds
+    pure elemental function huberloss_${rtype}$ (src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        real(${rtype}$), intent(in) :: src
+        real(${rtype}$), intent(in) :: lambda
+
+        real(${rtype}$)             :: dest
+
+        if (abs(src)<=abs(lambda)) then
+            dest = H${rtype}$*src**2
+        else
+            dest = abs(lambda)*(abs(src)-H${rtype}$*abs(lambda))
+        end if
+    end function huberloss_${rtype}$
+
+#:endfor        
+
+end module miscfun
