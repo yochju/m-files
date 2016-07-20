@@ -165,54 +165,54 @@ module array_ops
 
 contains
 
-        pure elemental function softshrinkage (x, lambda) result(y)
-                implicit none
+!         pure elemental function softshrinkage (x, lambda) result(y)
+!                 implicit none
 
-                real(REAL64), intent(in) :: x
-                real(REAL64), intent(in) :: lambda
+!                 real(REAL64), intent(in) :: x
+!                 real(REAL64), intent(in) :: lambda
 
-                real(REAL64)             :: y
+!                 real(REAL64)             :: y
 
-                y = sign(dim(abs(x), abs(lambda)), x)
-        end function softshrinkage
+!                 y = sign(dim(abs(x), abs(lambda)), x)
+!         end function softshrinkage
 
-        pure elemental function huberloss (x, lambda) result(y)
-                implicit none
+!         pure elemental function huberloss (x, lambda) result(y)
+!                 implicit none
 
-                real(REAL64), intent(in) :: x
-                real(REAL64), intent(in) :: lambda
+!                 real(REAL64), intent(in) :: x
+!                 real(REAL64), intent(in) :: lambda
 
-                real(REAL64)             :: y
-!
-                if (abs(x)<=abs(lambda)) then
-                        y = 0.50d0*x**2
-                else
-                        y = abs(lambda)*(abs(x)-0.50d0*abs(lambda))
-                end if
-        end function huberloss
+!                 real(REAL64)             :: y
+! !
+!                 if (abs(x)<=abs(lambda)) then
+!                         y = 0.50d0*x**2
+!                 else
+!                         y = abs(lambda)*(abs(x)-0.50d0*abs(lambda))
+!                 end if
+!         end function huberloss
 
-        pure elemental function chop (x, min_val, max_val) result(y)
-                implicit none
+        ! pure elemental function chop (x, min_val, max_val) result(y)
+        !         implicit none
 
-                real(REAL64),  intent(in) :: x
-                real(REAL64),  intent(in) :: min_val
-                real(REAL64),  intent(in) :: max_val
+        !         real(REAL64),  intent(in) :: x
+        !         real(REAL64),  intent(in) :: min_val
+        !         real(REAL64),  intent(in) :: max_val
 
-                real(REAL64) :: y
+        !         real(REAL64) :: y
 
-                y = min ( max (x, min_val), max_val)
-        end function chop
+        !         y = min ( max (x, min_val), max_val)
+        ! end function chop
 
-        pure elemental function binarise (x, t) result(y)
-                implicit none
+        ! pure elemental function binarise (x, t) result(y)
+        !         implicit none
 
-                real(REAL64),  intent(in) :: x
-                real(REAL64),  intent(in) :: t
+        !         real(REAL64),  intent(in) :: x
+        !         real(REAL64),  intent(in) :: t
 
-                real(REAL64) :: y
+        !         real(REAL64) :: y
 
-                y = (sign(1.0D0, x-t) + 1.0D0)/2.0D0
-        end function binarise
+        !         y = (sign(1.0D0, x-t) + 1.0D0)/2.0D0
+        ! end function binarise
 !
 !        pure function dnrmf(x) result(y)
 !                use :: iso_c_binding

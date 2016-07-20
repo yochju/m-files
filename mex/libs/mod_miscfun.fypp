@@ -106,6 +106,30 @@ module miscfun
 #:endfor            
     end interface huberloss
 
+    public chop
+    interface chop
+#:for type in rkinds
+        module procedure chop_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure chop_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+    end interface chop
+
+    public binarise
+    interface binarise
+#:for type in rkinds
+        module procedure binarise_${type}$
+#:endfor
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure binarise_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+    end interface binarise
+
 contains
 
     !! Cumulative sum of an array
@@ -435,6 +459,99 @@ contains
         end if
     end function huberloss_${rtype}$
 
-#:endfor        
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    pure function chop_${rtype}$_${itype}$ (num, src, min_val, max_val) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        real(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),                 intent(in) :: min_val
+        real(${rtype}$),                 intent(in) :: max_val
+
+        real(${rtype}$), dimension(num) :: dest
+
+        integer(${itype}$) :: ii
+
+        !$omp parallel do private( ii ) 
+        do ii = 1, num
+            if (src(ii) < min_val) then
+                dest(ii) = min_val
+            elseif (src(ii) > max_val) then
+                dest(ii) = max_val
+            else
+                dest(ii) = src(ii)
+            end if
+        end do
+        !$omp end parallel do
+
+    end function chop_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+        
+#:for rtype in rkinds
+    pure elemental function chop_${rtype}$ (src, min_val, max_val) result(dest)
+        use :: constants
+        implicit none
+
+        real(${rtype}$), intent(in) :: src
+        real(${rtype}$), intent(in) :: min_val
+        real(${rtype}$), intent(in) :: max_val
+
+        real(${rtype}$)             :: dest
+
+        dest = min ( max (src, min_val), max_val)
+    end function chop_${rtype}$
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    pure function binarise_${rtype}$_${itype}$ (num, src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        integer(${itype}$),              intent(in) :: num
+        real(${rtype}$), dimension(num), intent(in) :: src
+        real(${rtype}$),                 intent(in) :: lambda
+
+        real(${rtype}$), dimension(num) :: dest
+
+        integer(${itype}$) :: ii
+
+        !$omp parallel do private( ii ) 
+        do ii = 1, num
+            if (src(ii) < lambda) then
+                dest(ii) = Z${rtype}$
+            else
+                dest(ii) = I${rtype}$
+            end if
+        end do
+        !$omp end parallel do
+
+    end function binarise_${rtype}$_${itype}$
+
+#:endfor
+#:endfor
+    
+#:for rtype in rkinds
+    pure elemental function binarise_${rtype}$ (src, lambda) result(dest)
+        use :: constants
+        implicit none
+
+        real(${rtype}$), intent(in) :: src
+        real(${rtype}$), intent(in) :: lambda
+
+        real(${rtype}$)             :: dest
+
+        dest = (sign (I${rtype}$, src-lambda) + ${rtype}$) * H${rtype}$
+    end function binarise_${rtype}$
+
+#:endfor
+
 
 end module miscfun
