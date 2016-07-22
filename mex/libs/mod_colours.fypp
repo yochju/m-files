@@ -13,54 +13,135 @@
 ! this program. If not, see <http://www.gnu.org/licenses/>.
 !
 
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
 module colours
-      use iso_fortran_env
-      implicit none
-      private
+    use :: iso_fortran_env
+    implicit none
+    save
+    private
 
-      public :: rgb2ycbcr
-      
-      public :: ycbcr2rgb
+    integer(INT32), parameter, public :: RGB2GRAY_AVG = 1
+    integer(INT32), parameter, public :: RGB2GRAY_LGT = 2
+    integer(INT32), parameter, public :: RGB2GRAY_LUM = 3
+
+    type colourspace
+        logical :: normalisedQ
+    end type colourspace
+
+    public :: rgb2gray
+    interface  rgb2gray
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure rgb2gray_${rtype}$_${itype}$
+#:endfor
+#:endfor
+    end interface rgb2gray
+    
+    public :: rgb2ycbcr
+    interface  rgb2ycbcr
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure rgb2ycbcr_${rtype}$_${itype}$
+#:endfor
+#:endfor
+    end interface rgb2ycbcr
+
+    public :: ycbcr2rgb
+    interface ycbcr2rgb
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure ycbcr2rgb_${rtype}$_${itype}$
+#:endfor
+#:endfor        
+    end interface ycbcr2rgb
 
 contains
 
-      !! Requires data in the range [0, 255]
-      !! Source: http://www.equasys.de/colorconversion.html
-      pure subroutine rgb2ycbcr(nr, nc, r, g, b, y, cb, cr)
-            implicit none
+#:for rtype in rkinds
+#:for itype in ikinds
+    !! http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
+    pure subroutine rgb2gray_${rtype}$_${itype}$ (nr, nc, r, g, b, gray, mode)
+        integer(${itype}$),  intent(in)                     :: nr
+        integer(${itype}$),  intent(in)                     :: nc
+        real(${rtype}$),     intent(in),  dimension(nr, nc) :: r
+        real(${rtype}$),     intent(in),  dimension(nr, nc) :: g
+        real(${rtype}$),     intent(in),  dimension(nr, nc) :: b
+        integer(INT32),      intent(in)                     :: mode
 
-            integer(INT32), intent(in)                   :: nr
-            integer(INT32), intent(in)                   :: nc
-            real(REAL64), intent(in),  dimension(nr,nc) :: r
-            real(REAL64), intent(in),  dimension(nr,nc) :: g
-            real(REAL64), intent(in),  dimension(nr,nc) :: b
-            real(REAL64), intent(out), dimension(nr,nc) :: y
-            real(REAL64), intent(out), dimension(nr,nc) :: cb
-            real(REAL64), intent(out), dimension(nr,nc) :: cr
+        real(${rtype}$),     intent(out),  dimension(nr, nc) :: gray
 
-            y  =   0.0D0 + 0.299D0*r + 0.587D0*g + 0.114D0*b
-            cb = 128.0D0 - 0.169D0*r - 0.331D0*g + 0.500D0*b
-            cr = 128.0D0 + 0.500D0*r - 0.419D0*g - 0.081D0*b
-      end subroutine rgb2ycbcr
+        integer(${itype}$) :: ii, jj
 
-      !! Requires data in the range [0, 255].
-      !! Source: http://www.equasys.de/colorconversion.html
-      pure subroutine ycbcr2rgb(nr, nc, r, g, b, y, cb, cr)
-            implicit none
+        select case (mode)
+        case (RGB2GRAY_AVG)
+            gray = (r + g + b)/3_${rtype}$
+        case (RGB2GRAY_LGT)
+            do jj = 1,nc
+                do ii = 1,nr
+                    gray(ii, jj) = (max(r(ii,jj), g(ii, jj), b(ii, jj)) + &
+                            & min(r(ii,jj), g(ii, jj), b(ii, jj)))/2_${rtype}$
+                end do
+            end do
+        case (RGB2GRAY_LUM)
+            gray = 0.2126_${rtype}$ * r + 0.7152_${rtype}$ * g + 0.0722_${rtype}$ * b
+        case default
+            gray = -1_${rtype}$
+        end select
 
-            integer(INT32), intent(in)                   :: nr
-            integer(INT32), intent(in)                   :: nc
-            real(REAL64), intent(out), dimension(nr,nc) :: r
-            real(REAL64), intent(out), dimension(nr,nc) :: g
-            real(REAL64), intent(out), dimension(nr,nc) :: b
-            real(REAL64), intent(in),  dimension(nr,nc) :: y
-            real(REAL64), intent(in),  dimension(nr,nc) :: cb
-            real(REAL64), intent(in),  dimension(nr,nc) :: cr
+    end subroutine rgb2gray_${rtype}$_${itype}$
+#:endfor
 
-            r = 1.0D0 * y + 0.000D0 * (cb - 128.0D0) + 1.400D0 * (cr - 128.0D0)
-            g = 1.0D0 * y - 0.343D0 * (cb - 128.0D0) - 0.711D0 * (cr - 128.0D0)
-            b = 1.0D0 * y + 1.765D0 * (cb - 128.0D0) + 0.000D0 * (cr - 128.0D0)
-      end subroutine ycbcr2rgb
+#:endfor
+    
+#:for rtype in rkinds
+#:for itype in ikinds
+    !! Requires data in the range [0, 255]
+    !! Source: http://www.equasys.de/colorconversion.html
+    pure subroutine rgb2ycbcr_${rtype}$_${itype}$ (nr, nc, r, g, b, y, cb, cr)
+        implicit none
 
+        integer(${itype}$), intent(in)                     :: nr
+        integer(${itype}$), intent(in)                     :: nc
+        real(${rtype}$),    intent(in),  dimension(nr, nc) :: r
+        real(${rtype}$),    intent(in),  dimension(nr, nc) :: g
+        real(${rtype}$),    intent(in),  dimension(nr, nc) :: b
 
-end module
+        real(${rtype}$), intent(out), dimension(nr, nc) :: y
+        real(${rtype}$), intent(out), dimension(nr, nc) :: cb
+        real(${rtype}$), intent(out), dimension(nr, nc) :: cr
+
+        y  =   0_${rtype}$ + 0.299_${rtype}$ * r + 0.587_${rtype}$ * g + 0.114_${rtype}$ * b
+        cb = 128_${rtype}$ - 0.169_${rtype}$ * r - 0.331_${rtype}$ * g + 0.500_${rtype}$ * b
+        cr = 128_${rtype}$ + 0.500_${rtype}$ * r - 0.419_${rtype}$ * g - 0.081_${rtype}$ * b
+    end subroutine rgb2ycbcr_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    !! Requires data in the range [0, 255].
+    !! Source: http://www.equasys.de/colorconversion.html
+    pure subroutine ycbcr2rgb_${rtype}$_${itype}$ (nr, nc, r, g, b, y, cb, cr)
+        implicit none
+
+        integer(${itype}$), intent(in)                     :: nr
+        integer(${itype}$), intent(in)                     :: nc
+        real(${rtype}$),    intent(out),  dimension(nr, nc) :: r
+        real(${rtype}$),    intent(out),  dimension(nr, nc) :: g
+        real(${rtype}$),    intent(out),  dimension(nr, nc) :: b
+
+        real(${rtype}$), intent(in), dimension(nr, nc) :: y
+        real(${rtype}$), intent(in), dimension(nr, nc) :: cb
+        real(${rtype}$), intent(in), dimension(nr, nc) :: cr
+
+        r = 1_${rtype}$ * y + 0.000_${rtype}$ * (cb - 128_${rtype}$) + 1.400_${rtype}$ * (cr - 128_${rtype}$)
+        g = 1_${rtype}$ * y - 0.343_${rtype}$ * (cb - 128_${rtype}$) - 0.711_${rtype}$ * (cr - 128_${rtype}$)
+        b = 1_${rtype}$ * y + 1.765_${rtype}$ * (cb - 128_${rtype}$) + 0.000_${rtype}$ * (cr - 128_${rtype}$)
+    end subroutine ycbcr2rgb_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+    
+end module colours
