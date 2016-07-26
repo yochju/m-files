@@ -3,7 +3,7 @@ include ../../makefile.defs
 FEDLIB=libfed.a
 
 all: $(FEDLIB)
-	echo $(LIB)
+	$(MV) $(FEDLIB) ../../lib/$(FEDLIB)
 
 clean:
 	$(RM) *.o *.mod *.dyn *.spi *.spl *.a \#* *.gcno *.gcda *.gcov gmon.out

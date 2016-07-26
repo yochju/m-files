@@ -7,6 +7,12 @@ export CC
 PP=fypp
 export PP
 
+MV=mv
+export MV
+
+CP=cp
+export CP
+
 ISRC = $(wildcard *.fypp)
 FSRC = $(wildcard *.F08) $(patsubst %.fypp,%.F08,$(ISRC))
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))

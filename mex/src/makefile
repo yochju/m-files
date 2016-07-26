@@ -1,9 +1,10 @@
 include ../makefile.defs
 
 all: $(LIB)
-	echo $(ISRC)
-	echo $(LIB)
 	$(MAKE) --directory=fedfjlib all
+	$(RM) *.o
+	$(MV) $(LIB) ../lib/$(LIB)
+	$(MV) *.mod ../mod/
 
 clean:
 	$(RM) *.o *.mod *.dyn *.spi *.spl *.a \#* *.gcno *.gcda *.gcov gmon.out
@@ -32,7 +33,6 @@ mod_cmexinterface.o : mod_cmexinterface.F08 mod_stencil.o mod_miscfun.o
 
 $(LIB): $(FOBJ)
 	$(AR) $@ $^
-	$(RM) *.o
 
 tags: $(FSRC) $(CSRC)
 	ctags -e --langmap=fortran:.F08 $^
