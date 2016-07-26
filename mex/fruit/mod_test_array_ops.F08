@@ -31,33 +31,4 @@ contains
         subroutine teardown_test_array_ops
         end subroutine teardown_test_array_ops
 
-        subroutine check_softshrinkage
-                implicit none
-
-                call assertEquals (real([0.0, 0.5, 1.5, 2.5], REAL64), softshrinkage(real([1, 2, 3, 4], REAL64), 1.5D0), 4)
-
-                call assertEquals (reshape(real([0.0, 0.5, 1.5, 2.5], REAL64), [2, 2]), &
-                        reshape(softshrinkage(real([1, 2, 3, 4], REAL64), 1.5D0), [2, 2]), 2, 2)
-
-                call assertEquals(softshrinkage([-3.0D0, -2.0D0, -1.0D0, 0.0D0, 1.0D0, 2.0D0, 3.0D0], 2.0D0), &
-             [-1.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0], 7)
-        call assertEquals(softshrinkage([-3.0D0, -2.0D0, -1.0D0, 0.0D0, 1.0D0, 2.0D0, 3.0D0], -2.0D0), &
-             [-1.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0], 7)
-
-
-        end subroutine check_softshrinkage
-
-        subroutine check_huberloss
-                implicit none
-        call assertEquals(huberloss([-2.0D0, -1.0D0, 0.0D0, 1.0D0, 2.0D0], 2.0D0), &
-             [2.0D0, 0.5D0, 0.0D0, 0.5D0, 2.0D0], 5)
-        call assertEquals(huberloss([-2.0D0, -1.0D0, 0.0D0, 1.0D0, 2.0D0], -2.0D0), &
-             [2.0D0, 0.5D0, 0.0D0, 0.5D0, 2.0D0], 5)
-        call assertEquals(huberloss([-4.0D0, -3.0D0, 3.0D0, 4.0D0], 2.0D0), &
-             [6.0D0, 4.0D0, 4.0D0, 6.0D0], 4)
-        call assertEquals(huberloss([-4.0D0, -3.0D0, 3.0D0, 4.0D0], -2.0D0), &
-             [6.0D0, 4.0D0, 4.0D0, 6.0D0], 4)
-
-        end subroutine check_huberloss
-
 end module test_array_ops
