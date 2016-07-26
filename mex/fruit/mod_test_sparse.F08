@@ -18,6 +18,7 @@ module test_sparse
         use :: sparse
         use :: iso_fortran_env
         implicit none
+        public
 
 contains
 

@@ -18,6 +18,7 @@ module test_miscfun
     use :: miscfun
     use :: iso_fortran_env
     implicit none
+    public
 
 contains
 

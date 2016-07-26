@@ -1,11 +1,11 @@
 program fruit_driver
         use :: fruit
-        use :: test_array
-        use :: test_array_ops
-        use :: test_gvo
-        use :: test_img_fun
-        use :: test_inpainting
-        use :: test_laplace
+        ! use :: test_array
+        ! use :: test_array_ops
+        ! use :: test_gvo
+        ! use :: test_img_fun
+        ! use :: test_inpainting
+        ! use :: test_laplace
         use :: test_miscfun
         use :: test_sparse
         use :: test_stencil
@@ -216,97 +216,97 @@ program fruit_driver
 
         ! !! miscfun
 
-        ! call setup_test_miscfun
-        ! write (*,*) ".. running test: check_cumsum"
-        ! call set_unit_name('check_cumsum')
-        ! call run_test_case(check_cumsum, "check_cumsum")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_miscfun
+        call setup_test_miscfun
+        write (*,*) ".. running test: check_cumsum"
+        call set_unit_name('check_cumsum')
+        call run_test_case(check_cumsum, "check_cumsum")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_miscfun
 
-        ! call setup_test_miscfun
-        ! write (*,*) ".. running test: check_cumprod"
-        ! call set_unit_name('check_cumprod')
-        ! call run_test_case(check_cumprod, "check_cumprod")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_miscfun
+        call setup_test_miscfun
+        write (*,*) ".. running test: check_cumprod"
+        call set_unit_name('check_cumprod')
+        call run_test_case(check_cumprod, "check_cumprod")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_miscfun
 
-        ! call setup_test_miscfun
-        ! write (*,*) ".. running test: check_outerproduct"
-        ! call set_unit_name('check_outerproduct')
-        ! call run_test_case(check_outerproduct, "check_outerproduct")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_miscfun
+        call setup_test_miscfun
+        write (*,*) ".. running test: check_outerproduct"
+        call set_unit_name('check_outerproduct')
+        call run_test_case(check_outerproduct, "check_outerproduct")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_miscfun
 
-        ! call setup_test_miscfun
-        ! write (*,*) ".. running test: check_scatter_add"
-        ! call set_unit_name('check_scatter_add')
-        ! call run_test_case(check_scatter_add, "check_scatter_add")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_miscfun
+        call setup_test_miscfun
+        write (*,*) ".. running test: check_scatter_add"
+        call set_unit_name('check_scatter_add')
+        call run_test_case(check_scatter_add, "check_scatter_add")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_miscfun
 
-        ! call setup_test_miscfun
-        ! write (*,*) ".. running test: check_repelem"
-        ! call set_unit_name('check_repelem')
-        ! call run_test_case(check_repelem, "check_repelem")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_miscfun
+        call setup_test_miscfun
+        write (*,*) ".. running test: check_repelem"
+        call set_unit_name('check_repelem')
+        call run_test_case(check_repelem, "check_repelem")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_miscfun
 
         ! !! sparse
 
-        ! call setup_test_sparse
-        ! write(*,*) ".. running test: check_coocsr_ops"
-        ! call set_unit_name('check_coocsr_ops')
-        ! call run_test_case(check_coocsr_ops, "check_coocsr_ops")
-        ! write(*,*) ""
-        ! write(*,*) ".. done."
-        ! write(*,*) ""
-        ! call teardown_test_sparse
+        call setup_test_sparse
+        write(*,*) ".. running test: check_coocsr_ops"
+        call set_unit_name('check_coocsr_ops')
+        call run_test_case(check_coocsr_ops, "check_coocsr_ops")
+        write(*,*) ""
+        write(*,*) ".. done."
+        write(*,*) ""
+        call teardown_test_sparse
 
-        ! call setup_test_sparse
-        ! write(*,*) ".. running test: check_fullnnz"
-        ! call set_unit_name('check_fullnnz')
-        ! call run_test_case(check_fullnnz, "check_fullnnz")
-        ! write(*,*) ""
-        ! write(*,*) ".. done."
-        ! write(*,*) ""
-        ! call teardown_test_sparse
+        call setup_test_sparse
+        write(*,*) ".. running test: check_fullnnz"
+        call set_unit_name('check_fullnnz')
+        call run_test_case(check_fullnnz, "check_fullnnz")
+        write(*,*) ""
+        write(*,*) ".. done."
+        write(*,*) ""
+        call teardown_test_sparse
 
-        ! call setup_test_sparse
-        ! write(*,*) ".. running test: check_full2coo"
-        ! call set_unit_name('check_full2coo')
-        ! call run_test_case(check_full2coo, "check_full2coo")
-        ! write(*,*) ""
-        ! write(*,*) ".. done."
-        ! write(*,*) ""
-        ! call teardown_test_sparse
+        call setup_test_sparse
+        write(*,*) ".. running test: check_full2coo"
+        call set_unit_name('check_full2coo')
+        call run_test_case(check_full2coo, "check_full2coo")
+        write(*,*) ""
+        write(*,*) ".. done."
+        write(*,*) ""
+        call teardown_test_sparse
 
-        ! call setup_test_sparse
-        ! write(*,*) ".. running test: check_full2coo"
-        ! call set_unit_name('check_full2coo')
-        ! call run_test_case(check_full2coo, "check_full2coo")
-        ! write(*,*) ""
-        ! write(*,*) ".. done."
-        ! write(*,*) ""
-        ! call teardown_test_sparse
+        call setup_test_sparse
+        write(*,*) ".. running test: check_full2coo"
+        call set_unit_name('check_full2coo')
+        call run_test_case(check_full2coo, "check_full2coo")
+        write(*,*) ""
+        write(*,*) ".. done."
+        write(*,*) ""
+        call teardown_test_sparse
 
-        ! call setup_test_sparse
-        ! write(*,*) ".. running test: check_amux"
-        ! call set_unit_name('check_amux')
-        ! call run_test_case(check_amux, "check_amux")
-        ! write(*,*) ""
-        ! write(*,*) ".. done."
-        ! write(*,*) ""
-        ! call teardown_test_sparse
+        call setup_test_sparse
+        write(*,*) ".. running test: check_amux"
+        call set_unit_name('check_amux')
+        call run_test_case(check_amux, "check_amux")
+        write(*,*) ""
+        write(*,*) ".. done."
+        write(*,*) ""
+        call teardown_test_sparse
 
         ! !! stencil
 
