@@ -1,6 +1,7 @@
 include ../makefile.defs
 
 all: $(LIB)
+	echo $(ISRC)
 	echo $(LIB)
 	$(MAKE) --directory=fedfjlib all
 

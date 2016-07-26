@@ -2,13 +2,17 @@ include ../makefile.defs
 
 EXE=run_fruit
 
-FSRC = $(wildcard *.f90) $(wildcard *.F08) $(wildcard ../modules/*.F08) $(wildcard ../modules/*.f90)
+FSRC = $(wildcard *.f90) $(wildcard *.F08)
 CSRC = $(wildcard ../modules/*.c)
 FOBJ = $(patsubst %.F08,%.o,$(patsubst %.f90,%.o,$(FSRC)))
 COBJ = $(patsubst %.c,%.o,$(CSRC))
 
+IFLAGS := -I. -I../libs
+LDFLAGS :=-L. -L../libs
+LIBS = -lffiles
+
 all: $(FOBJ) $(COBJ)
-	$(FC) -J../libs/ $(FCFLAGS) -o $(EXE) $(FOBJ) $(COBJ) $(LIBS)
+	$(FC) -J../libs/ $(IFLAGS) $(FCFLAGS) $(LDFLAGS) -o $(EXE) $(FOBJ) $(COBJ) $(LIBS)
 
 clean:
 	$(RM) *.o *.mod $(EXE) *.dyn *.spi *.spl *.a \#* ./prof/* test.txt *.gcno *.gcda *.gcov gmon.out

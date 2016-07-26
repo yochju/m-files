@@ -8,7 +8,7 @@ PP=fypp
 export PP
 
 ISRC = $(wildcard *.fypp)
-FSRC = $(wildcard *.F08)
+FSRC = $(wildcard *.F08) $(patsubst %.fypp,%.F08,$(ISRC))
 FOBJ = $(patsubst %.F08,%.o,$(FSRC))
 CSRC = $(wildcard *.c)
 COBJ = $(patsubst %.c,%.o,$(CSRC))
@@ -20,7 +20,8 @@ LDFLAGS :=-L.
 export LDFLAGS
 
 # FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O3 -fexpensive-optimizations -faggressive-loop-optimizations -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -fcheck=all -cpp $(IFLAGS) $(LDFLAGS)
-FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -cpp $(IFLAGS) $(LDFLAGS)
+# FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -cpp $(IFLAGS) $(LDFLAGS)
+FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -fPIC -cpp $(IFLAGS) $(LDFLAGS)
 CCFLAGS :=-Wall -Wextra -fPIC -O3
 
 AR=ar rcs
