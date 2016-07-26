@@ -107,9 +107,9 @@ module sparse
             module procedure csrcoo_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface coocsr
+        end interface csrcoo
 
-        public coodns
+        public csrdns
         interface csrdns
 #:for rtype in rkinds
 #:for itype in ikinds
@@ -126,6 +126,52 @@ module sparse
 #:endfor
 #:endfor            
         end interface dnscsr
+
+        public diamua
+        interface diamua
+#:for rtype in rkinds
+#:for itype in ikinds
+            module procedure diamua_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface diamua
+
+        public csrtranspose
+        interface csrtranspose
+#:for rtype in rkinds
+#:for itype in ikinds
+            module procedure csrtranspose_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface csrtranspose
+
+        public amux
+        interface amux
+#:for rtype in rkinds
+#:for itype in ikinds
+            module procedure amux_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface amux
+
+        public aplb
+        interface aplb
+#:for rtype in rkinds
+#:for itype in ikinds
+            module procedure aplb_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface aplb
+
+        public aplb1
+        interface aplb1
+#:for rtype in rkinds
+#:for itype in ikinds
+            module procedure aplb1_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+        end interface aplb1
+        
         
 contains
 
@@ -155,7 +201,7 @@ contains
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine dnscoo(nr, nc, nnz, mat, ir, jc, a)
+        pure subroutine dnscoo_${rtype}$_${itype}$ (nr, nc, nnz, mat, ir, jc, a)
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: nr
@@ -180,14 +226,14 @@ contains
                                 end if
                         end do
                 end do
-        end subroutine dnscoo
+        end subroutine dnscoo_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine coodns(nr, nc, nnz, ir, jc, a, mat)
+        pure subroutine coodns_${rtype}$_${itype}$ (nr, nc, nnz, ir, jc, a, mat)
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: nr
@@ -206,14 +252,14 @@ contains
                 forall(kk = 1:nnz)
                         mat(ir(kk),jc(kk)) = a(kk)
                 end forall
-        end subroutine coodns
+        end subroutine coodns_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine coocsr(nrow, nnz, ir, jc, a, iro, jco, ao)
+        pure subroutine coocsr_${rtype}$_${itype}$ (nrow, nnz, ir, jc, a, iro, jco, ao)
                 implicit none
 
                 integer(${itype}$), intent(in)                     :: nrow
@@ -262,14 +308,14 @@ contains
                         iro(j+1) = iro(j)
                 end do
                 iro(1) = 1
-        end subroutine coocsr
+        end subroutine coocsr_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine csrcoo ( nr, nnz, ia, ja, a, ir, jc, ao )
+        pure subroutine csrcoo_${rtype}$_${itype}$ ( nr, nnz, ia, ja, a, ir, jc, ao )
                 implicit none
 
                 integer(${itype}$), intent(in)                  :: nr
@@ -293,14 +339,14 @@ contains
                                 ir(k) = i
                         end do
                 end do
-        end subroutine csrcoo
+        end subroutine csrcoo_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine csrdns ( nr, nc, nnz, ir, jc, a, dns)
+        pure subroutine csrdns_${rtype}$_${itype}$ ( nr, nc, nnz, ir, jc, a, dns)
                 implicit none
 
                 integer(${itype}$), intent(in)                   :: nc
@@ -322,14 +368,14 @@ contains
                                 dns(i,j) = a(k)
                         end do
                 end do
-        end subroutine csrdns
+        end subroutine csrdns_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine dnscsr ( nr, nc, dns, nnz, ir, jc, a )
+        pure subroutine dnscsr_${rtype}$_${itype}$ ( nr, nc, dns, nnz, ir, jc, a )
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: nr
@@ -356,7 +402,7 @@ contains
                         end do
                         ir(i+1) = next
                 end do
-        end subroutine dnscsr
+        end subroutine dnscsr_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
@@ -381,7 +427,7 @@ contains
         !    integer(${itype}$) :: IB(NR+1), the resulting
         !    matrix B in compressed sparse row sparse format.
         !
-        pure subroutine diamua ( nr, nnz, diag, ia, ja, a, ib, jb, b )
+        pure subroutine diamua_${rtype}$_${itype}$ ( nr, nnz, diag, ia, ja, a, ib, jb, b )
                 implicit none
 
                 integer(${itype}$), intent(in)                  :: nr
@@ -416,7 +462,7 @@ contains
                                 jb(k) = ja(k)
                         end do
                 end do
-        end subroutine diamua
+        end subroutine diamua_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
@@ -445,7 +491,7 @@ contains
         ! c iao	= integer array of size n+1 containing the "ia" index array of
         ! c	  the transpose.
         ! c
-        pure subroutine csrtranspose (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
+        pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
                 implicit none
 
                 integer(${itype}$), intent(in)                     :: nrow
@@ -492,7 +538,7 @@ contains
                         iao(i+1) = iao(i)
                 end do
                 iao(1) = 1
-        end subroutine csrtranspose
+        end subroutine csrtranspose_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
@@ -504,7 +550,7 @@ contains
         !! A is a sparse matrix in CSR format.
         !
         !    Y = A*X, sparse matrix vector product
-        pure subroutine amux ( nrow, ncol, nnz, ia, ja, a, x, y )
+        pure subroutine amux_${rtype}$_${itype}$ ( nrow, ncol, nnz, ia, ja, a, x, y )
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: nrow
@@ -527,7 +573,7 @@ contains
                         end do
                         y(i) = t
                 end do
-        end subroutine amux
+        end subroutine amux_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
@@ -567,7 +613,7 @@ contains
         !         i-th row  of C with i = ierr, because the number
         !         of elements in C exceeds nzmax.
         !
-        subroutine aplb ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
+        subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: ncol
@@ -648,7 +694,7 @@ contains
                         ic(ii+1) = length+1
                 end do
                 deallocate(iw)
-        end subroutine aplb
+        end subroutine aplb_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
@@ -669,7 +715,7 @@ contains
         !    This routine will not work if either of the two input matrices is
         !    not sorted.
         !
-        subroutine aplb1 ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
+        subroutine aplb1_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
                 implicit none
 
                 integer(${itype}$), intent(in)                    :: ncol
@@ -748,7 +794,7 @@ contains
                         end do
                         ic(i+1) = kc
                 end do
-        end subroutine aplb1
+        end subroutine aplb1_${rtype}$_${itype}$
 #:endfor
         
 #:endfor
