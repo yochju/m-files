@@ -18,6 +18,7 @@ module test_array
         use :: array
         use :: iso_fortran_env
         implicit none
+        public
 
 contains
 

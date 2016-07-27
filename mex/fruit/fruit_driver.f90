@@ -1,6 +1,6 @@
 program fruit_driver
         use :: fruit
-        ! use :: test_array
+        use :: test_array
         ! use :: test_array_ops
         ! use :: test_gvo
         ! use :: test_img_fun
@@ -24,23 +24,23 @@ program fruit_driver
         ! write (*,*) ""
         ! call teardown_test_array
 
-        ! call setup_test_array
-        ! write (*,*) ".. running test: check_ind2sub"
-        ! call set_unit_name('check_ind2sub')
-        ! call run_test_case(check_ind2sub, "check_ind2sub")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_array
+        call setup_test_array
+        write (*,*) ".. running test: check_ind2sub"
+        call set_unit_name('check_ind2sub')
+        call run_test_case(check_ind2sub, "check_ind2sub")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_array
 
-        ! call setup_test_array
-        ! write (*,*) ".. running test: check_sub2ind"
-        ! call set_unit_name('check_sub2ind')
-        ! call run_test_case(check_sub2ind, "check_sub2ind")
-        ! write (*,*)
-        ! write (*,*) ".. done."
-        ! write (*,*) ""
-        ! call teardown_test_array
+        call setup_test_array
+        write (*,*) ".. running test: check_sub2ind"
+        call set_unit_name('check_sub2ind')
+        call run_test_case(check_sub2ind, "check_sub2ind")
+        write (*,*)
+        write (*,*) ".. done."
+        write (*,*) ""
+        call teardown_test_array
 
         ! !! array_ops
 
