@@ -18,6 +18,9 @@ all: $(FOBJ) $(COBJ)
 clean:
 	$(RM) *.o *.mod $(EXE) *.dyn *.spi *.spl *.a \#* ./prof/* test.txt *.gcno *.gcda *.gcov gmon.out
 
+test: $(EXE)
+	./$(EXE)
+
 fruit.o: fruit.f90
 	$(FC) $(IFLAGS) $(FCFLAGS) -c $<
 
