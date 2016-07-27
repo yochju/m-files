@@ -25,9 +25,12 @@ export IFLAGS
 LDFLAGS :=-L.
 export LDFLAGS
 
+DEBUGFLAGS :=-fprofile-arcs -ftest-coverage -g -pg
+export DEBUGFLAGS
+
 # FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O3 -fexpensive-optimizations -faggressive-loop-optimizations -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -fcheck=all -cpp $(IFLAGS) $(LDFLAGS)
 # FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -static -static-libgfortran -fPIC -cpp $(IFLAGS) $(LDFLAGS)
-FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -fPIC -cpp $(IFLAGS) $(LDFLAGS)
+FCFLAGS :=-fmodule-private -fimplicit-none -ffree-form -std=f2008ts -ffree-line-length-0 -O0 -Wall -Wextra -Wimplicit-interface -Wimplicit-procedure -Wsurprising -fPIC -cpp $(DEBUGFLAGS) $(IFLAGS) $(LDFLAGS)
 CCFLAGS :=-Wall -Wextra -fPIC -O3
 
 AR=ar rcs
@@ -36,7 +39,7 @@ RM=rm -f
 
 LIB = libffiles.a
 
-.PHONY: clean all tags
+.PHONY: clean all tags test doc
 
 .SUFFIXES:
 .SUFFIXES: .o .c .F08 .mod .in .a
