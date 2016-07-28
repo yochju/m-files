@@ -15,6 +15,4 @@ test:
 	$(MAKE) --directory=fruit test
 
 doc:
-	$(MAKE) --directory=src doc
-	$(MAKE) --directory=fruit doc
-	$(MAKE) --directory=benchmark doc
+	ford gendoc.md
