@@ -8,29 +8,19 @@ author_description: I program stuff in Fortran.
 github: https://github.com/hoeltgman
 email: hoeltgen@b-tu.de
 fpp_extensions: F08
-predocmark: >
-media_dir: ./media
-docmark_alt: #
-predocmark_alt: <
 display: public
          protected
          private
 source: true
 graph: false
 search: false
-macro: TEST
-       LOGIC=.true.
-extra_mods: json_module: http://jacobwilliams.github.io/json-fortran/
-            futility: http://cmacmackin.github.io
-license: by-nc
-extra_filetypes: sh #
 
 Hi, my name is ${USER}.
 
 This is a project which I wrote. This file will provide the documents. I'm
 writing the body of the text here. It contains an overall description of the
 project. It might explain how to go about installing/compiling it. It might
-provide a change-log for the code. [[linalg]] Maybe it will talk about the
+provide a change-log for the code. Maybe it will talk about the
 history and/or motivation for this software.
 
 @Note
