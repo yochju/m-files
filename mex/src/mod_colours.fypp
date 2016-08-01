@@ -1,4 +1,4 @@
-! Copyright (C) 2015 Laurent Hoeltgen <hoeltgen@b-tu.de>
+! Copyright (C) 2015, 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 !
 ! This program is free software: you can redistribute it and/or modify it under
 ! the terms of the GNU General Public License as published by the Free Software
@@ -11,11 +11,13 @@
 !
 ! You should have received a copy of the GNU General Public License along with
 ! this program. If not, see <http://www.gnu.org/licenses/>.
-!
 
 #:setvar ikinds [ 'INT32',  'INT64' ]
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
 module colours
+    !! author: Laurent Hoeltgen
+    !! date:   01/08/2016
+    !! license: GPL
     use :: iso_fortran_env
     implicit none
     save
@@ -60,7 +62,7 @@ contains
 
 #:for rtype in rkinds
 #:for itype in ikinds
-    !! http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
+    ! http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
     pure subroutine rgb2gray_${rtype}$_${itype}$ (nr, nc, r, g, b, gray, mode)
         integer(${itype}$),  intent(in)                     :: nr
         integer(${itype}$),  intent(in)                     :: nc
@@ -96,8 +98,8 @@ contains
     
 #:for rtype in rkinds
 #:for itype in ikinds
-    !! Requires data in the range [0, 255]
-    !! Source: http://www.equasys.de/colorconversion.html
+    ! Requires data in the range [0, 255]
+    ! Source: http://www.equasys.de/colorconversion.html
     pure subroutine rgb2ycbcr_${rtype}$_${itype}$ (nr, nc, r, g, b, y, cb, cr)
         implicit none
 
@@ -121,8 +123,8 @@ contains
 
 #:for rtype in rkinds
 #:for itype in ikinds
-    !! Requires data in the range [0, 255].
-    !! Source: http://www.equasys.de/colorconversion.html
+    ! Requires data in the range [0, 255].
+    ! Source: http://www.equasys.de/colorconversion.html
     pure subroutine ycbcr2rgb_${rtype}$_${itype}$ (nr, nc, r, g, b, y, cb, cr)
         implicit none
 

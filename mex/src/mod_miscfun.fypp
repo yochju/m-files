@@ -1,15 +1,4 @@
-!****h* modules/miscfun
-!
-! NAME
-!
-! miscfun: provides miscellaneous useful functions.
-!
-! AUTHOR
-!
-! Laurent Hoeltgen <hoeltgen@b-tu.de>
-!*****
-
-! Copyright (C) 2015 Laurent Hoeltgen <hoeltgen@b-tu.de>
+! Copyright (C) 2015, 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 !
 ! This program is free software: you can redistribute it and/or modify it under
 ! the terms of the GNU General Public License as published by the Free Software
@@ -22,12 +11,17 @@
 !
 ! You should have received a copy of the GNU General Public License along with
 ! this program. If not, see <http://www.gnu.org/licenses/>.
-!
 
 #:setvar ikinds [ 'INT32',  'INT64' ]
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
 #:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
 module miscfun
+    !! author: Laurent Hoeltgen
+    !! date:   01/08/2016
+    !! license: GPL
+    !!
+    !! Miscellaneous functions which are useful on their own but which can't be
+    !! placed in a more specific module.
     use :: iso_fortran_env
     implicit none
     save
@@ -134,14 +128,19 @@ module miscfun
 
 contains
 
-    !! Cumulative sum of an array
 #:for type in ikinds
     pure recursive function cumsum_${type}$ (arr) result(ans)
-
+        !! Cumulative sum of an integer type array
+        
+        ! Input variables
         integer(${type}$), dimension(:), intent(in) :: arr
+        !! 1D array of integer type of size n
 
+        ! Output variables
         integer(${type}$), dimension(size(arr)) :: ans
+        !! 1D array of integer of same type and size as input.
 
+        ! Internal variables
         integer(INT32) :: n, j
 
         n = size(arr)
@@ -162,11 +161,17 @@ contains
 
 #:for type in rkinds
     pure recursive function cumsum_${type}$ (arr) result(ans)
+        !! Cumulative sum of a real type array
 
+        ! Input variables
         real(${type}$), dimension(:), intent(in) :: arr
+        !! 1D array of integer type of size n
 
+        ! Output variables
         real(${type}$), dimension(size(arr)) :: ans
+        !! 1D array of integer of same type and size as input.
 
+        ! Internal variables
         integer(INT32) :: n, j
 
         n = size(arr)
@@ -185,14 +190,17 @@ contains
 
 #:endfor
 
-    !! Cumulative product of an array
 #:for type in ikinds
     pure recursive function cumprod_${type}$ (arr) result(ans)
+        !! Cumulative product of an array of type ${type}$
 
+        ! Input variables
         integer(${type}$), dimension(:), intent(in) :: arr
 
+        ! Output variables
         integer(${type}$), dimension(size(arr)) :: ans
 
+        ! Internal variables
         integer(INT32) :: n, j
 
         n = size(arr)
@@ -213,6 +221,7 @@ contains
 
 #:for type in rkinds
     pure recursive function cumprod_${type}$ (arr) result(ans)
+        !! Cumulative product of an array
 
         real(${type}$), dimension(:), intent(in) :: arr
 
@@ -236,10 +245,9 @@ contains
 
 #:endfor
 
-
-    !! Outer product
 #:for type in ikinds
     pure function outerproduct_${type}$ (a, b) result(ans)
+        !! Outer product
 
         integer(${type}$), dimension(:), intent(in) :: a
         integer(${type}$), dimension(:), intent(in) :: b
@@ -253,6 +261,7 @@ contains
 
 #:for type in rkinds
     pure function outerproduct_${type}$ (a, b) result(ans)
+        !! Outer product
 
         real(${type}$), dimension(:), intent(in) :: a
         real(${type}$), dimension(:), intent(in) :: b
@@ -264,10 +273,10 @@ contains
 
 #:endfor
 
-    !! Scatter Add
 #:for type in ikinds
     pure subroutine scatter_add_${type}$ (source, dest_index, dest)
-
+        !! Scatter Add
+        
         integer(${type}$), dimension(:),            intent(in) :: source
         integer(${type}$), dimension(size(source)), intent(in) :: dest_index
 
@@ -288,7 +297,8 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure subroutine scatter_add_${rtype}$_${itype}$ (source, dest_index, dest)
-
+        !! Scatter Add
+        
         real(${rtype}$), dimension(:),            intent(in) :: source
         integer(${itype}$), dimension(size(source)), intent(in) :: dest_index
 
@@ -309,15 +319,14 @@ contains
 
 #:for type in ikinds
     pure function repelem_${type}$ (src, ncop) result(dest)
-        use :: constants
-        implicit none
-
+        !! repelem
+        
         integer(${type}$), dimension(:), intent(in) :: src
         integer(${type}$),               intent(in) :: ncop
 
         integer(${type}$), dimension(ncop*size(src)) :: dest
 
-        dest = reshape(spread(src, I${type}$, ncop), [ncop*size(src)])
+        dest = reshape(spread(src, 1_${type}$, ncop), [ncop*size(src)])
 
     end function repelem_${type}$
 
@@ -326,15 +335,14 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure function repelem_${rtype}$_${itype}$ (src, ncop) result(dest)
-        use :: constants
-        implicit none
-
+        !! repelem
+        
         real(${rtype}$), dimension(:), intent(in) :: src
         integer(${itype}$),               intent(in) :: ncop
 
         real(${rtype}$), dimension(ncop*size(src)) :: dest
 
-        dest = reshape(spread(src, I${itype}$, ncop), [ncop*size(src)])
+        dest = reshape(spread(src, 1_${itype}$, ncop), [ncop*size(src)])
 
     end function repelem_${rtype}$_${itype}$
 
@@ -344,8 +352,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure function softshrinkage_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! softshrinkage
 
         integer(${itype}$),              intent(in) :: num
         real(${rtype}$), dimension(num), intent(in) :: src
@@ -359,10 +366,10 @@ contains
         do ii = 1, num
             if ( src(ii) > lambda) then
                 dest(ii) = src(ii) - lambda
-            else if (src(ii) < -I${rtype}$ * lambda) then
+            else if (src(ii) < -1.0_${rtype}$ * lambda) then
                 dest(ii) = src(ii) + lambda
             else
-                dest(ii) = Z${rtype}$
+                dest(ii) = 0.0_${rtype}$
             end if
         end do
         !$omp end parallel do
@@ -370,9 +377,8 @@ contains
     end function softshrinkage_${rtype}$_${itype}$
 
     pure function softshrinkage_p_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
-
+        !! softshrinkage
+        
         integer(${itype}$),              intent(in) :: num
         real(${rtype}$), dimension(num), intent(in) :: src
         real(${rtype}$), dimension(num), intent(in) :: lambda
@@ -385,10 +391,10 @@ contains
         do ii = 1, num
             if ( src(ii) > lambda(ii)) then
                 dest(ii) = src(ii) - lambda(ii)
-            else if (src(ii) < -I${rtype}$ * lambda(ii)) then
+            else if (src(ii) < -1.0_${rtype}$ * lambda(ii)) then
                 dest(ii) = src(ii) + lambda(ii)
             else
-                dest(ii) = Z${rtype}$
+                dest(ii) = 0.0_${rtype}$
             end if
         end do
         !$omp end parallel do
@@ -396,8 +402,7 @@ contains
     end function softshrinkage_p_${rtype}$_${itype}$
         
     pure function softshrinkage_c_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! softshrinkage
 
         integer(${itype}$),              intent(in) :: num
         complex(${rtype}$), dimension(num), intent(in) :: src
@@ -411,8 +416,7 @@ contains
     end function softshrinkage_c_${rtype}$_${itype}$
 
     pure function softshrinkage_c_p_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! softshrinkage
 
         integer(${itype}$),              intent(in) :: num
         complex(${rtype}$), dimension(num), intent(in) :: src
@@ -430,7 +434,7 @@ contains
 
 #:for rtype in rkinds
     pure elemental function softshrinkage_${rtype}$ (src, lambda) result(dest)
-        implicit none
+        !! softshrinkage
 
         real(${rtype}$), intent(in) :: src
         real(${rtype}$), intent(in) :: lambda
@@ -441,8 +445,7 @@ contains
     end function softshrinkage_${rtype}$
 
     pure elemental function softshrinkage_c_${rtype}$ (src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! softshrinkage
 
         complex(${rtype}$), intent(in) :: src
         real(${rtype}$), intent(in) :: lambda
@@ -458,8 +461,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure function huberloss_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! huberloss
 
         integer(${itype}$),              intent(in) :: num
         real(${rtype}$), dimension(num), intent(in) :: src
@@ -472,9 +474,9 @@ contains
         !$omp parallel do private( ii ) 
         do ii = 1, num
             if (abs(src(ii))<=abs(lambda)) then
-                dest(ii) = H${rtype}$*src(ii)**2
+                dest(ii) = 0.5_${rtype}$*src(ii)**2
             else
-                dest(ii) = abs(lambda)*(abs(src(ii))-H${rtype}$*abs(lambda))
+                dest(ii) = abs(lambda)*(abs(src(ii))-0.5_${rtype}$*abs(lambda))
             end if
 
         end do
@@ -487,18 +489,17 @@ contains
 
 #:for rtype in rkinds
     pure elemental function huberloss_${rtype}$ (src, lambda) result(dest)
-        use :: constants
-        implicit none
-
+        !! huberloss
+        
         real(${rtype}$), intent(in) :: src
         real(${rtype}$), intent(in) :: lambda
 
         real(${rtype}$)             :: dest
 
         if (abs(src)<=abs(lambda)) then
-            dest = H${rtype}$*src**2
+            dest = 0.5_${rtype}$*src**2
         else
-            dest = abs(lambda)*(abs(src)-H${rtype}$*abs(lambda))
+            dest = abs(lambda)*(abs(src)-0.5_${rtype}$*abs(lambda))
         end if
     end function huberloss_${rtype}$
 
@@ -507,8 +508,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure function chop_${rtype}$_${itype}$ (num, src, min_val, max_val) result(dest)
-        use :: constants
-        implicit none
+        !! chop
 
         integer(${itype}$),              intent(in) :: num
         real(${rtype}$), dimension(num), intent(in) :: src
@@ -538,8 +538,7 @@ contains
         
 #:for rtype in rkinds
     pure elemental function chop_${rtype}$ (src, min_val, max_val) result(dest)
-        use :: constants
-        implicit none
+        !! chop
 
         real(${rtype}$), intent(in) :: src
         real(${rtype}$), intent(in) :: min_val
@@ -555,8 +554,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds
     pure function binarise_${rtype}$_${itype}$ (num, src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! binarise
 
         integer(${itype}$),              intent(in) :: num
         real(${rtype}$), dimension(num), intent(in) :: src
@@ -569,9 +567,9 @@ contains
         !$omp parallel do private( ii ) 
         do ii = 1, num
             if (src(ii) < lambda) then
-                dest(ii) = Z${rtype}$
+                dest(ii) = 0.0_${rtype}$
             else
-                dest(ii) = I${rtype}$
+                dest(ii) = 1.0_${rtype}$
             end if
         end do
         !$omp end parallel do
@@ -583,15 +581,14 @@ contains
     
 #:for rtype in rkinds
     pure elemental function binarise_${rtype}$ (src, lambda) result(dest)
-        use :: constants
-        implicit none
+        !! binarise
 
         real(${rtype}$), intent(in) :: src
         real(${rtype}$), intent(in) :: lambda
 
         real(${rtype}$)             :: dest
 
-        dest = (sign (I${rtype}$, src-lambda) + ${rtype}$) * H${rtype}$
+        dest = (sign (1.0_${rtype}$, src-lambda) + ${rtype}$) * 0.5_${rtype}$
     end function binarise_${rtype}$
 
 #:endfor

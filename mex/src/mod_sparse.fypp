@@ -1,15 +1,4 @@
-!****h* modules/sparse
-!
-! NAME
-!
-! sparse: Provides functionality for sparse matrix handling
-!
-! AUTHOR
-!
-! Laurent Hoeltgen <hoeltgen@b-tu.de>
-!*****
-
-! Copyright (C) 2015 Laurent Hoeltgen <hoeltgen@b-tu.de>
+! Copyright (C) 2015, 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
 !
 ! This program is free software: you can redistribute it and/or modify it under
 ! the terms of the GNU General Public License as published by the Free Software
@@ -26,777 +15,780 @@
 #:setvar ikinds [ 'INT32',  'INT64' ]
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
 module sparse
-        use :: iso_fortran_env
-        implicit none
-        save
-        private
+    !! author: Laurent Hoeltgen
+    !! date:   01/08/2016
+    !! license: GPL
+    use :: iso_fortran_env
+    implicit none
+    save
+    private
 
 #:for rtype in rkinds
 #:for itype in ikinds        
-        !! Sparse matrix in Compressed Sparse Row Format
-        !! Stores a matrix in sparse CSR format.
-        type, public :: csr_matrix_${rtype}$_${itype}$
-            integer(${itype}$)                            :: nr    ! Number of rows in the matrix.
-            integer(${itype}$)                            :: nc    ! Number of columns in the matrix.
-            integer(${itype}$)                            :: nnz   ! Number of non-zero entries in the matrix.
-            integer(${itype}$)                            :: nzmax ! Maximal number of possible non-zero entries.
-            integer(${itype}$), dimension(:), allocatable :: ir    ! Row index pointer. Size (nr+1)
-            integer(${itype}$), dimension(:), allocatable :: jc    ! Column index pointer. Size nnz
-            real(${rtype}$),    dimension(:), allocatable :: a     ! Pointer with values. Size nnz
-        end type csr_matrix_${rtype}$_${itype}$
+    ! Sparse matrix in Compressed Sparse Row Format
+    ! Stores a matrix in sparse CSR format.
+    type, public :: csr_matrix_${rtype}$_${itype}$
+        integer(${itype}$)                            :: nr    ! Number of rows in the matrix.
+        integer(${itype}$)                            :: nc    ! Number of columns in the matrix.
+        integer(${itype}$)                            :: nnz   ! Number of non-zero entries in the matrix.
+        integer(${itype}$)                            :: nzmax ! Maximal number of possible non-zero entries.
+        integer(${itype}$), dimension(:), allocatable :: ir    ! Row index pointer. Size (nr+1)
+        integer(${itype}$), dimension(:), allocatable :: jc    ! Column index pointer. Size nnz
+        real(${rtype}$),    dimension(:), allocatable :: a     ! Pointer with values. Size nnz
+    end type csr_matrix_${rtype}$_${itype}$
 #:endfor
-        
+
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                
-        !! Sparse matrix in Coordinate Triplet Format
-        !! Stores a matrix in sparse COO format.
-        type, public :: coo_matrix_${rtype}$_${itype}$
-                integer(${itype}$)                            :: nr  ! Number of rows in the matrix.
-                integer(${itype}$)                            :: nc  ! Number of columns in the matrix.
-                integer(${itype}$)                            :: nnz ! Number of non-zero entries in the matrix.
-                integer(${itype}$), dimension(:), allocatable :: ir  ! Row index pointer. Size nnz
-                integer(${itype}$), dimension(:), allocatable :: jc  ! Column index pointer. Size nnz
-                real(${rtype}$),    dimension(:), allocatable :: a   ! Pointer with values. Size nnz
-        end type coo_matrix_${rtype}$_${itype}$
-#:endfor
-        
+    ! Sparse matrix in Coordinate Triplet Format
+    ! Stores a matrix in sparse COO format.
+    type, public :: coo_matrix_${rtype}$_${itype}$
+        integer(${itype}$)                            :: nr  ! Number of rows in the matrix.
+        integer(${itype}$)                            :: nc  ! Number of columns in the matrix.
+        integer(${itype}$)                            :: nnz ! Number of non-zero entries in the matrix.
+        integer(${itype}$), dimension(:), allocatable :: ir  ! Row index pointer. Size nnz
+        integer(${itype}$), dimension(:), allocatable :: jc  ! Column index pointer. Size nnz
+        real(${rtype}$),    dimension(:), allocatable :: a   ! Pointer with values. Size nnz
+    end type coo_matrix_${rtype}$_${itype}$
 #:endfor
 
-        public fullnnz
-        interface fullnnz
-#:for rtype in rkinds
-#:for itype in ikinds
-            module procedure fullnnz_${rtype}$_${itype}$
 #:endfor
-#:endfor
-        end interface fullnnz
 
-        public dnscoo
-        interface dnscoo
+    public fullnnz
+    interface fullnnz
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure dnscoo_${rtype}$_${itype}$
+        module procedure fullnnz_${rtype}$_${itype}$
 #:endfor
-#:endfor            
-        end interface dnscoo
-        
-        public coodns
-        interface coodns
-#:for rtype in rkinds
-#:for itype in ikinds
-            module procedure coodns_${rtype}$_${itype}$
 #:endfor
-#:endfor            
-        end interface coodns
+    end interface fullnnz
 
-        public coocsr
-        interface coocsr
+    public dnscoo
+    interface dnscoo
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure coocsr_${rtype}$_${itype}$
+        module procedure dnscoo_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface coocsr
+    end interface dnscoo
 
-        public csrcoo
-        interface csrcoo
+    public coodns
+    interface coodns
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure csrcoo_${rtype}$_${itype}$
+        module procedure coodns_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface csrcoo
+    end interface coodns
 
-        public csrdns
-        interface csrdns
+    public coocsr
+    interface coocsr
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure csrdns_${rtype}$_${itype}$
+        module procedure coocsr_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface csrdns
+    end interface coocsr
 
-        public dnscsr
-        interface dnscsr
+    public csrcoo
+    interface csrcoo
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure dnscsr_${rtype}$_${itype}$
+        module procedure csrcoo_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface dnscsr
+    end interface csrcoo
 
-        public diamua
-        interface diamua
+    public csrdns
+    interface csrdns
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure diamua_${rtype}$_${itype}$
+        module procedure csrdns_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface diamua
+    end interface csrdns
 
-        public csrtranspose
-        interface csrtranspose
+    public dnscsr
+    interface dnscsr
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure csrtranspose_${rtype}$_${itype}$
+        module procedure dnscsr_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface csrtranspose
+    end interface dnscsr
 
-        public amux
-        interface amux
+    public diamua
+    interface diamua
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure amux_${rtype}$_${itype}$
+        module procedure diamua_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface amux
+    end interface diamua
 
-        public aplb
-        interface aplb
+    public csrtranspose
+    interface csrtranspose
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure aplb_${rtype}$_${itype}$
+        module procedure csrtranspose_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface aplb
+    end interface csrtranspose
 
-        public aplb1
-        interface aplb1
+    public amux
+    interface amux
 #:for rtype in rkinds
 #:for itype in ikinds
-            module procedure aplb1_${rtype}$_${itype}$
+        module procedure amux_${rtype}$_${itype}$
 #:endfor
 #:endfor            
-        end interface aplb1
-        
-        
+    end interface amux
+
+    public aplb
+    interface aplb
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure aplb_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+    end interface aplb
+
+    public aplb1
+    interface aplb1
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure aplb1_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+    end interface aplb1
+
+
 contains
 
 #:for rtype in rkinds
 #:for itype in ikinds                    
-        pure function fullnnz_${rtype}$_${itype}$ (nr, nc, mat) result(nnz)
-                implicit none
+    pure function fullnnz_${rtype}$_${itype}$ (nr, nc, mat) result(nnz)
+        implicit none
 
-                integer(${itype}$), intent(in)                   :: nr
-                integer(${itype}$), intent(in)                   :: nc
-                real(${rtype}$),    intent(in), dimension(nr,nc) :: mat
+        integer(${itype}$), intent(in)                   :: nr
+        integer(${itype}$), intent(in)                   :: nc
+        real(${rtype}$),    intent(in), dimension(nr,nc) :: mat
 
-                integer(${itype}$) :: nnz
+        integer(${itype}$) :: nnz
 
-                integer(${itype}$) :: ii, jj
+        integer(${itype}$) :: ii, jj
 
-                nnz = 0_${itype}$
-                do jj = 1, nc
-                        do ii = 1, nr
-                                if (abs(mat(ii,jj)) > 0_${rtype}$) nnz = nnz + 1
-                        end do
-                end do
-        end function fullnnz_${rtype}$_${itype}$
-#:endfor
-        
+        nnz = 0_${itype}$
+        do jj = 1, nc
+            do ii = 1, nr
+                if (abs(mat(ii,jj)) > 0_${rtype}$) nnz = nnz + 1
+            end do
+        end do
+    end function fullnnz_${rtype}$_${itype}$
 #:endfor
 
-#:for rtype in rkinds
-#:for itype in ikinds                            
-        pure subroutine dnscoo_${rtype}$_${itype}$ (nr, nc, nnz, mat, ir, jc, a)
-                implicit none
-
-                integer(${itype}$), intent(in)                    :: nr
-                integer(${itype}$), intent(in)                    :: nc
-                integer(${itype}$), intent(in)                    :: nnz
-                real(${rtype}$),   intent(in),  dimension(nr,nc) :: mat
-
-                integer(${itype}$), intent(out), dimension(nnz)   :: ir
-                integer(${itype}$), intent(out), dimension(nnz)   :: jc
-                real(${rtype}$),   intent(out), dimension(nnz)   :: a
-
-                integer(${itype}$) :: ii, jj, kk
-
-                kk = 1_${itype}$
-                do jj = 1, nc
-                        do ii = 1, nr
-                                if (abs(mat(ii,jj)) > 0.0D0) then
-                                        ir(kk) = ii
-                                        jc(kk) = jj
-                                        a(kk)  = mat(ii,jj)
-                                        kk     = kk + 1_${itype}$
-                                end if
-                        end do
-                end do
-        end subroutine dnscoo_${rtype}$_${itype}$
-#:endfor
-        
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine coodns_${rtype}$_${itype}$ (nr, nc, nnz, ir, jc, a, mat)
-                implicit none
+    pure subroutine dnscoo_${rtype}$_${itype}$ (nr, nc, nnz, mat, ir, jc, a)
+        implicit none
 
-                integer(${itype}$), intent(in)                    :: nr
-                integer(${itype}$), intent(in)                    :: nc
-                integer(${itype}$), intent(in)                    :: nnz
-                integer(${itype}$), intent(in),  dimension(nnz)   :: ir
-                integer(${itype}$), intent(in),  dimension(nnz)   :: jc
-                real(${rtype}$),   intent(in),  dimension(nnz)   :: a
+        integer(${itype}$), intent(in)                    :: nr
+        integer(${itype}$), intent(in)                    :: nc
+        integer(${itype}$), intent(in)                    :: nnz
+        real(${rtype}$),   intent(in),  dimension(nr,nc) :: mat
 
-                real(${rtype}$),  intent(out), dimension(nr,nc)  :: mat
+        integer(${itype}$), intent(out), dimension(nnz)   :: ir
+        integer(${itype}$), intent(out), dimension(nnz)   :: jc
+        real(${rtype}$),   intent(out), dimension(nnz)   :: a
 
-                integer(${itype}$) :: kk
+        integer(${itype}$) :: ii, jj, kk
 
-                mat = 0_${rtype}$
-
-                forall(kk = 1:nnz)
-                        mat(ir(kk),jc(kk)) = a(kk)
-                end forall
-        end subroutine coodns_${rtype}$_${itype}$
+        kk = 1_${itype}$
+        do jj = 1, nc
+            do ii = 1, nr
+                if (abs(mat(ii,jj)) > 0.0D0) then
+                    ir(kk) = ii
+                    jc(kk) = jj
+                    a(kk)  = mat(ii,jj)
+                    kk     = kk + 1_${itype}$
+                end if
+            end do
+        end do
+    end subroutine dnscoo_${rtype}$_${itype}$
 #:endfor
-        
-#:endfor
 
-#:for rtype in rkinds
-#:for itype in ikinds                            
-        pure subroutine coocsr_${rtype}$_${itype}$ (nrow, nnz, ir, jc, a, iro, jco, ao)
-                implicit none
-
-                integer(${itype}$), intent(in)                     :: nrow
-                integer(${itype}$), intent(in)                     :: nnz
-                integer(${itype}$), intent(in),  dimension(nnz)    :: ir
-                integer(${itype}$), intent(in),  dimension(nnz)    :: jc
-                real(${rtype}$),   intent(in),  dimension(nnz)    :: a
-
-                integer(${itype}$), intent(out), dimension(nrow+1) :: iro
-                integer(${itype}$), intent(out), dimension(nnz)    :: jco
-                real(${rtype}$),   intent(out), dimension(nnz)    :: ao
-
-                integer(${itype}$) :: i, j, iad, k, k0
-                real(${rtype}$)   :: x
-
-                do k = 1, nrow+1
-                        iro(k) = 0
-                end do
-
-                ! determine row-lengths.
-                do k = 1, nnz
-                        iro(ir(k)) = iro(ir(k))+1
-                end do
-
-                ! starting position of each row.
-                k = 1
-                do j = 1, nrow+1
-                        k0 = iro(j)
-                        iro(j) = k
-                        k = k+k0
-                end do
-
-                ! go through the structure  once more. Fill in output matrix.
-                do k = 1, nnz
-                        i = ir(k)
-                        j = jc(k)
-                        x = a(k)
-                        iad = iro(i)
-                        ao(iad) = x
-                        jco(iad) = j
-                        iro(i) = iad+1
-                end do
-
-                ! shift back iao
-                do j = nrow, 1, -1
-                        iro(j+1) = iro(j)
-                end do
-                iro(1) = 1
-        end subroutine coocsr_${rtype}$_${itype}$
-#:endfor
-        
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine csrcoo_${rtype}$_${itype}$ ( nr, nnz, ia, ja, a, ir, jc, ao )
-                implicit none
+    pure subroutine coodns_${rtype}$_${itype}$ (nr, nc, nnz, ir, jc, a, mat)
+        implicit none
 
-                integer(${itype}$), intent(in)                  :: nr
-                integer(${itype}$), intent(in)                  :: nnz
-                integer(${itype}$), intent(in), dimension(nr+1) :: ia
-                integer(${itype}$), intent(in), dimension(nnz)  :: ja
-                real(${rtype}$),   intent(in), dimension(nnz)  :: a
+        integer(${itype}$), intent(in)                    :: nr
+        integer(${itype}$), intent(in)                    :: nc
+        integer(${itype}$), intent(in)                    :: nnz
+        integer(${itype}$), intent(in),  dimension(nnz)   :: ir
+        integer(${itype}$), intent(in),  dimension(nnz)   :: jc
+        real(${rtype}$),   intent(in),  dimension(nnz)   :: a
 
-                integer(${itype}$), intent(out), dimension(nnz) :: ir
-                integer(${itype}$), intent(out), dimension(nnz) :: jc
-                real(${rtype}$),   intent(out), dimension(nnz) :: ao
+        real(${rtype}$),  intent(out), dimension(nr,nc)  :: mat
 
-                integer(${itype}$)                              :: i, k, k1, k2
+        integer(${itype}$) :: kk
 
-                ao(1:nnz) = a(1:nnz)
-                jc(1:nnz) = ja(1:nnz)
-                do i = nr, 1, -1
-                        k1 = ia(i+1) - 1
-                        k2 = ia(i)
-                        do k = k1, k2, -1
-                                ir(k) = i
-                        end do
-                end do
-        end subroutine csrcoo_${rtype}$_${itype}$
+        mat = 0_${rtype}$
+
+        forall(kk = 1:nnz)
+            mat(ir(kk),jc(kk)) = a(kk)
+        end forall
+    end subroutine coodns_${rtype}$_${itype}$
 #:endfor
-        
+
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        pure subroutine csrdns_${rtype}$_${itype}$ ( nr, nc, nnz, ir, jc, a, dns)
-                implicit none
+    pure subroutine coocsr_${rtype}$_${itype}$ (nrow, nnz, ir, jc, a, iro, jco, ao)
+        implicit none
 
-                integer(${itype}$), intent(in)                   :: nc
-                integer(${itype}$), intent(in)                   :: nr
-                integer(${itype}$), intent(in)                   :: nnz
-                real(${rtype}$),   intent(in), dimension(nnz)   :: a
-                integer(${itype}$), intent(in), dimension(nr+1)  :: ir
-                integer(${itype}$), intent(in), dimension(nnz)   :: jc
+        integer(${itype}$), intent(in)                     :: nrow
+        integer(${itype}$), intent(in)                     :: nnz
+        integer(${itype}$), intent(in),  dimension(nnz)    :: ir
+        integer(${itype}$), intent(in),  dimension(nnz)    :: jc
+        real(${rtype}$),   intent(in),  dimension(nnz)    :: a
 
-                real(${rtype}$), intent(out), dimension(nr,nc)  :: dns
+        integer(${itype}$), intent(out), dimension(nrow+1) :: iro
+        integer(${itype}$), intent(out), dimension(nnz)    :: jco
+        real(${rtype}$),   intent(out), dimension(nnz)    :: ao
 
-                integer(${itype}$)                               :: i, j, k
+        integer(${itype}$) :: i, j, iad, k, k0
+        real(${rtype}$)   :: x
 
-                dns(1:nr,1:nc) = 0.0D+00
+        do k = 1, nrow+1
+            iro(k) = 0
+        end do
 
-                do i = 1, nr
-                        do k = ir(i), ir(i+1)-1
-                                j = jc(k)
-                                dns(i,j) = a(k)
-                        end do
-                end do
-        end subroutine csrdns_${rtype}$_${itype}$
+        ! determine row-lengths.
+        do k = 1, nnz
+            iro(ir(k)) = iro(ir(k))+1
+        end do
+
+        ! starting position of each row.
+        k = 1
+        do j = 1, nrow+1
+            k0 = iro(j)
+            iro(j) = k
+            k = k+k0
+        end do
+
+        ! go through the structure  once more. Fill in output matrix.
+        do k = 1, nnz
+            i = ir(k)
+            j = jc(k)
+            x = a(k)
+            iad = iro(i)
+            ao(iad) = x
+            jco(iad) = j
+            iro(i) = iad+1
+        end do
+
+        ! shift back iao
+        do j = nrow, 1, -1
+            iro(j+1) = iro(j)
+        end do
+        iro(1) = 1
+    end subroutine coocsr_${rtype}$_${itype}$
 #:endfor
-        
-#:endfor
 
-#:for rtype in rkinds
-#:for itype in ikinds                            
-        pure subroutine dnscsr_${rtype}$_${itype}$ ( nr, nc, dns, nnz, ir, jc, a )
-                implicit none
-
-                integer(${itype}$), intent(in)                    :: nr
-                integer(${itype}$), intent(in)                    :: nc
-                real(${rtype}$),   intent(in),  dimension(nr,nc) :: dns
-                integer(${itype}$), intent(in)                    :: nnz
-
-                integer(${itype}$), intent(out), dimension(nr+1)  :: ir
-                integer(${itype}$), intent(out), dimension(nnz)   :: jc
-                real(${rtype}$),   intent(out), dimension(nnz)   :: a
-
-                integer(${itype}$) :: i, j, next
-
-                next = 1
-                ir(1) = 1
-
-                do i = 1, nr
-                        do j = 1, nc
-                                if ( abs(dns(i,j)) > 100.0D0*EPSILON(1.0D+00) ) then
-                                        jc(next) = j
-                                        a(next) = dns(i,j)
-                                        next = next + 1
-                                end if
-                        end do
-                        ir(i+1) = next
-                end do
-        end subroutine dnscsr_${rtype}$_${itype}$
-#:endfor
-        
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        !*****************************************************************************80
-        !
-        !! DIAMUA performs the matrix by matrix product B = Diag * A.
-        !
-        !
-        !  Parameters:
-        !
-        !    Input, integer(${itype}$) :: NR, the row dimension of the matrix.
-        !
-        !    Input, real A(*), integer(${itype}$) :: JA(*), IA(NR+1), the matrix in CSR
-        !    Compressed Sparse Row format.
-        !
-        !    Input, real DIAG(N), a diagonal matrix stored as a vector.
-        !
-        !    Output, real B(*), integer(${itype}$) :: JB(*),
-        !    integer(${itype}$) :: IB(NR+1), the resulting
-        !    matrix B in compressed sparse row sparse format.
-        !
-        pure subroutine diamua_${rtype}$_${itype}$ ( nr, nnz, diag, ia, ja, a, ib, jb, b )
-                implicit none
+    pure subroutine csrcoo_${rtype}$_${itype}$ ( nr, nnz, ia, ja, a, ir, jc, ao )
+        implicit none
 
-                integer(${itype}$), intent(in)                  :: nr
-                integer(${itype}$), intent(in)                  :: nnz
-                real(${rtype}$),   intent(in), dimension(nr)   :: diag
-                integer(${itype}$), intent(in), dimension(nr+1) :: ia
-                integer(${itype}$), intent(in), dimension(nnz)  :: ja
-                real(${rtype}$),   intent(in), dimension(nnz)  :: a
+        integer(${itype}$), intent(in)                  :: nr
+        integer(${itype}$), intent(in)                  :: nnz
+        integer(${itype}$), intent(in), dimension(nr+1) :: ia
+        integer(${itype}$), intent(in), dimension(nnz)  :: ja
+        real(${rtype}$),   intent(in), dimension(nnz)  :: a
 
-                integer(${itype}$), intent(out), dimension(nr+1) :: ib
-                integer(${itype}$), intent(out), dimension(nnz)  :: jb
-                real(${rtype}$),   intent(out), dimension(nnz)  :: b
+        integer(${itype}$), intent(out), dimension(nnz) :: ir
+        integer(${itype}$), intent(out), dimension(nnz) :: jc
+        real(${rtype}$),   intent(out), dimension(nnz) :: ao
 
-                integer(${itype}$) :: ii, k, k1, k2
-                real(${rtype}$)   :: scal
+        integer(${itype}$)                              :: i, k, k1, k2
 
-                do ii = 1, nr
-                        !
-                        !  Normalize each row.
-                        !
-                        k1 = ia(ii)
-                        k2 = ia(ii+1) - 1
-                        scal = diag(ii)
-                        b(k1:k2) = a(k1:k2) * scal
-                end do
-
-                ib(1) = ia(1)
-
-                do ii = 1, nr
-                        ib(ii) = ia(ii)
-                        do k = ia(ii), ia(ii+1)-1
-                                jb(k) = ja(k)
-                        end do
-                end do
-        end subroutine diamua_${rtype}$_${itype}$
+        ao(1:nnz) = a(1:nnz)
+        jc(1:nnz) = ja(1:nnz)
+        do i = nr, 1, -1
+            k1 = ia(i+1) - 1
+            k2 = ia(i)
+            do k = k1, k2, -1
+                ir(k) = i
+            end do
+        end do
+    end subroutine csrcoo_${rtype}$_${itype}$
 #:endfor
-        
+
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        ! c-----------------------------------------------------------------------
-        ! c Rectangular version.  n is number of rows of CSR matrix,
-        ! c                       n2 (input) is number of columns of CSC matrix.
-        ! c-----------------------------------------------------------------------
-        ! c----------
-        ! c n	= number of rows of CSR matrix.
-        ! c n2    = number of columns of CSC matrix.
-        ! c a	= real array of length nnz (nnz=number of nonzero elements in input
-        ! c         matrix) containing the nonzero elements.
-        ! c ja	= integer array of length nnz containing the column positions
-        ! c 	  of the corresponding elements in a.
-        ! c ia	= integer of size n+1. ia(k) contains the position in a, ja of
-        ! c	  the beginning of the k-th row.
-        ! c
-        ! c on return:
-        ! c ----------
-        ! c output arguments:
-        ! c ao	= real array of size nzz containing the "a" part of the transpose
-        ! c jao	= integer array of size nnz containing the column indices.
-        ! c iao	= integer array of size n+1 containing the "ia" index array of
-        ! c	  the transpose.
-        ! c
-        pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
-                implicit none
+    pure subroutine csrdns_${rtype}$_${itype}$ ( nr, nc, nnz, ir, jc, a, dns)
+        implicit none
 
-                integer(${itype}$), intent(in)                     :: nrow
-                integer(${itype}$), intent(in)                     :: ncol
-                integer(${itype}$), intent(in)                     :: nnz
-                integer(${itype}$), intent(in),  dimension(nrow+1) :: ia
-                integer(${itype}$), intent(in),  dimension(nnz)    :: ja
-                real(${rtype}$),   intent(in),  dimension(nnz)    :: a
+        integer(${itype}$), intent(in)                   :: nc
+        integer(${itype}$), intent(in)                   :: nr
+        integer(${itype}$), intent(in)                   :: nnz
+        real(${rtype}$),   intent(in), dimension(nnz)   :: a
+        integer(${itype}$), intent(in), dimension(nr+1)  :: ir
+        integer(${itype}$), intent(in), dimension(nnz)   :: jc
 
-                integer(${itype}$), intent(out), dimension(ncol+1) :: iao
-                integer(${itype}$), intent(out), dimension(nnz)    :: jao
-                real(${rtype}$),   intent(out), dimension(nnz)    :: ao
+        real(${rtype}$), intent(out), dimension(nr,nc)  :: dns
 
-                integer(${itype}$) :: i, j, k, next
+        integer(${itype}$)                               :: i, j, k
 
-                do i=1, ncol+1
-                        iao(i) = 0
-                end do
+        dns(1:nr,1:nc) = 0.0D+00
 
-                do i=1, nrow
-                        do k= ia(i), ia(i+1)-1
-                                j = ja(k)+1
-                                iao(j) = iao(j)+1
-                        end do
-                end do
-
-                iao(1) = 1
-
-                do i=1,ncol
-                        iao(i+1) = iao(i) + iao(i+1)
-                end do
-
-                do i=1,nrow
-                        do k=ia(i),ia(i+1)-1
-                                j = ja(k)
-                                next = iao(j)
-                                ao(next) = a(k)
-                                jao(next) = i
-                                iao(j) = next+1
-                        end do
-                end do
-
-                do i=ncol,1,-1
-                        iao(i+1) = iao(i)
-                end do
-                iao(1) = 1
-        end subroutine csrtranspose_${rtype}$_${itype}$
+        do i = 1, nr
+            do k = ir(i), ir(i+1)-1
+                j = jc(k)
+                dns(i,j) = a(k)
+            end do
+        end do
+    end subroutine csrdns_${rtype}$_${itype}$
 #:endfor
-        
+
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        !> @brief Computes y = A*x, sparse matrix, full vector product.
-        !!
-        !! A is a sparse matrix in CSR format.
-        !
-        !    Y = A*X, sparse matrix vector product
-        pure subroutine amux_${rtype}$_${itype}$ ( nrow, ncol, nnz, ia, ja, a, x, y )
-                implicit none
+    pure subroutine dnscsr_${rtype}$_${itype}$ ( nr, nc, dns, nnz, ir, jc, a )
+        implicit none
 
-                integer(${itype}$), intent(in)                    :: nrow
-                integer(${itype}$), intent(in)                    :: ncol
-                integer(${itype}$), intent(in)                    :: nnz
-                integer(${itype}$), intent(in), dimension(nrow+1) :: ia
-                integer(${itype}$), intent(in), dimension(nnz)    :: ja
-                real(${rtype}$),   intent(in), dimension(nnz)    :: a
-                real(${rtype}$),   intent(in), dimension(ncol)   :: x
+        integer(${itype}$), intent(in)                    :: nr
+        integer(${itype}$), intent(in)                    :: nc
+        real(${rtype}$),   intent(in),  dimension(nr,nc) :: dns
+        integer(${itype}$), intent(in)                    :: nnz
 
-                real(${rtype}$),  intent(out), dimension(nrow)   :: y
+        integer(${itype}$), intent(out), dimension(nr+1)  :: ir
+        integer(${itype}$), intent(out), dimension(nnz)   :: jc
+        real(${rtype}$),   intent(out), dimension(nnz)   :: a
 
-                integer(${itype}$) :: i, k
-                real(${rtype}$)  :: t
+        integer(${itype}$) :: i, j, next
 
-                do i = 1, nrow
-                        t = 0.0D+00
-                        do k = ia(i), ia(i+1)-1
-                                t = t + a(k) * x(ja(k))
-                        end do
-                        y(i) = t
-                end do
-        end subroutine amux_${rtype}$_${itype}$
-#:endfor
-        
+        next = 1
+        ir(1) = 1
+
+        do i = 1, nr
+            do j = 1, nc
+                if ( abs(dns(i,j)) > 100.0D0*EPSILON(1.0D+00) ) then
+                    jc(next) = j
+                    a(next) = dns(i,j)
+                    next = next + 1
+                end if
+            end do
+            ir(i+1) = next
+        end do
+    end subroutine dnscsr_${rtype}$_${itype}$
 #:endfor
 
-#:for rtype in rkinds
-#:for itype in ikinds                            
-        !*****************************************************************************80
-        !
-        !! APLB performs the CSR matrix sum C = A + B.
-        !
-        !  Parameters:
-        !
-        !    Input, integer(${itype}$) NROW, the row dimension of A and B.
-        !
-        !    Input, integer(${itype}$) NCOL, the column dimension of A and B.
-        !
-        !    Input, integer(${itype}$) JOB.  When JOB = 0, only the structure
-        !    (i.e. the arrays jc, ic) is computed and the
-        !    real values are ignored.
-        !
-        !    Input, real A(*), integer(${itype}$) JA(*), IA(NROW+1), the matrix in CSR
-        !    Compressed Sparse Row format.
-        !
-        ! b,
-        ! jb,
-        ! ib      =  Matrix B in compressed sparse row format.
-        !
-        ! on return:
-        !
-        ! c,
-        ! jc,
-        ! ic      = resulting matrix C in compressed sparse row sparse format.
-        !
-        ! ierr      = integer(${itype}$). serving as error message.
-        !         ierr = 0 means normal return,
-        !         ierr > 0 means that amub stopped while computing the
-        !         i-th row  of C with i = ierr, because the number
-        !         of elements in C exceeds nzmax.
-        !
-        subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
-                implicit none
-
-                integer(${itype}$), intent(in)                    :: ncol
-                integer(${itype}$), intent(in)                    :: nrow
-                integer(${itype}$), intent(in)                    :: nnz
-                logical,        intent(in)                    :: job
-                integer(${itype}$), intent(in), dimension(nrow+1) :: ia
-                integer(${itype}$), intent(in), dimension(nnz)    :: ja
-                real(${rtype}$),   intent(in), dimension(nnz)    :: a
-                integer(${itype}$), intent(in), dimension(nrow+1) :: ib
-                integer(${itype}$), intent(in), dimension(nnz)    :: jb
-                real(${rtype}$),   intent(in), dimension(nnz)    :: b
-
-                integer(${itype}$), intent(out), dimension(nrow+1) :: ic
-                integer(${itype}$), intent(out), dimension(nnz)    :: jc
-                real(${rtype}$),   intent(out), dimension(nnz)    :: c
-                integer(${itype}$), intent(out)                    :: ierr
-
-                integer(${itype}$)                            :: ii, jcol, jpos, k, ka, kb, length
-                integer(${itype}$), dimension(:), allocatable :: iw
-
-                allocate(iw(ncol))
-
-                ierr = 0
-                length = 0
-                ic(1) = 1
-                iw(1:ncol) = 0
-
-                do ii = 1, nrow
-                        !  Row I.
-                        do ka = ia(ii), ia(ii+1)-1
-
-                                length = length + 1
-                                jcol = ja(ka)
-
-                                if ( nnz < length ) then
-                                        ierr = ii
-                                        return
-                                end if
-
-                                jc(length) = jcol
-                                if ( job ) then
-                                        c(length) = a(ka)
-                                end if
-                                iw(jcol) = length
-                        end do
-
-                        do kb = ib(ii), ib(ii+1)-1
-
-                                jcol = jb(kb)
-                                jpos = iw(jcol)
-
-                                if ( jpos == 0 ) then
-
-                                        length = length + 1
-
-                                        if ( nnz < length ) then
-                                                ierr = ii
-                                                return
-                                        end if
-
-                                        jc(length) = jcol
-                                        if ( job ) then
-                                                c(length) = b(kb)
-                                        end if
-                                        iw(jcol)= length
-                                else
-                                        if ( job ) then
-                                                c(jpos) = c(jpos) + b(kb)
-                                        end if
-                                end if
-                        end do
-
-                        do k = ic(ii), length
-                                iw(jc(k)) = 0
-                        end do
-
-                        ic(ii+1) = length+1
-                end do
-                deallocate(iw)
-        end subroutine aplb_${rtype}$_${itype}$
-#:endfor
-        
 #:endfor
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
-        !*****************************************************************************80
-        !
-        !! APLB1 performs the sum C = A + B for sorted CSR matrices.
-        !
-        !  Discussion:
-        !
-        !    The difference between this routine and APLB is that here the
-        !    resulting matrix is such that the elements of each row are sorted,
-        !    with increasing column indices in each row, provided the original
-        !    matrices are sorted in the same way.
-        !
-        !    This routine will not work if either of the two input matrices is
-        !    not sorted.
-        !
-        subroutine aplb1_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
-                implicit none
+    !*****************************************************************************80
+    !
+    ! DIAMUA performs the matrix by matrix product B = Diag * A.
+    !
+    !
+    !  Parameters:
+    !
+    !    Input, integer(${itype}$) :: NR, the row dimension of the matrix.
+    !
+    !    Input, real A(*), integer(${itype}$) :: JA(*), IA(NR+1), the matrix in CSR
+    !    Compressed Sparse Row format.
+    !
+    !    Input, real DIAG(N), a diagonal matrix stored as a vector.
+    !
+    !    Output, real B(*), integer(${itype}$) :: JB(*),
+    !    integer(${itype}$) :: IB(NR+1), the resulting
+    !    matrix B in compressed sparse row sparse format.
+    !
+    pure subroutine diamua_${rtype}$_${itype}$ ( nr, nnz, diag, ia, ja, a, ib, jb, b )
+        implicit none
 
-                integer(${itype}$), intent(in)                    :: ncol
-                integer(${itype}$), intent(in)                    :: nrow
-                integer(${itype}$), intent(in)                    :: nnz
-                logical,        intent(in)                    :: job
-                integer(${itype}$), intent(in), dimension(nrow+1) :: ia
-                integer(${itype}$), intent(in), dimension(nnz)    :: ja
-                real(${rtype}$),   intent(in), dimension(nnz)    :: a
-                integer(${itype}$), intent(in), dimension(nrow+1) :: ib
-                integer(${itype}$), intent(in), dimension(nnz)    :: jb
-                real(${rtype}$),   intent(in), dimension(nnz)    :: b
+        integer(${itype}$), intent(in)                  :: nr
+        integer(${itype}$), intent(in)                  :: nnz
+        real(${rtype}$),   intent(in), dimension(nr)   :: diag
+        integer(${itype}$), intent(in), dimension(nr+1) :: ia
+        integer(${itype}$), intent(in), dimension(nnz)  :: ja
+        real(${rtype}$),   intent(in), dimension(nnz)  :: a
 
-                integer(${itype}$), intent(out), dimension(nrow+1) :: ic
-                integer(${itype}$), intent(out), dimension(nnz)    :: jc
-                real(${rtype}$),   intent(out), dimension(nnz)    :: c
-                integer(${itype}$), intent(out)                    :: ierr
+        integer(${itype}$), intent(out), dimension(nr+1) :: ib
+        integer(${itype}$), intent(out), dimension(nnz)  :: jb
+        real(${rtype}$),   intent(out), dimension(nnz)  :: b
 
-                integer(${itype}$) :: i, j1, j2, ka, kamax, kb, kbmax, kc
+        integer(${itype}$) :: ii, k, k1, k2
+        real(${rtype}$)   :: scal
 
-                ierr = 0
-                kc = 1
-                ic(1) = kc
+        do ii = 1, nr
+            !
+            !  Normalize each row.
+            !
+            k1 = ia(ii)
+            k2 = ia(ii+1) - 1
+            scal = diag(ii)
+            b(k1:k2) = a(k1:k2) * scal
+        end do
 
-                do i = 1, nrow
-                        ka = ia(i)
-                        kb = ib(i)
-                        kamax = ia(i+1) - 1
-                        kbmax = ib(i+1) - 1
+        ib(1) = ia(1)
 
-                        do
-                                if ( ka <= kamax ) then
-                                        j1 = ja(ka)
-                                else
-                                        j1 = ncol + 1
-                                end if
-
-                                if ( kb <= kbmax ) then
-                                        j2 = jb(kb)
-                                else
-                                        j2 = ncol + 1
-                                end if
-
-                                if ( j1 == j2 ) then
-                                        if ( job ) then
-                                                c(kc) = a(ka) + b(kb)
-                                        end if
-                                        jc(kc) = j1
-                                        ka = ka + 1
-                                        kb = kb + 1
-                                        kc = kc + 1
-                                else if ( j1 < j2 ) then
-                                        jc(kc) = j1
-                                        if ( job ) then
-                                                c(kc) = a(ka)
-                                        end if
-                                        ka = ka + 1
-                                        kc = kc + 1
-                                else if ( j2 < j1 ) then
-                                        jc(kc) = j2
-                                        if ( job ) then
-                                                c(kc) = b(kb)
-                                        end if
-                                        kb = kb + 1
-                                        kc = kc + 1
-                                end if
-
-                                if ( nnz < kc ) then
-                                        ierr = i
-                                        return
-                                end if
-
-                                if ( kamax < ka .and. kbmax < kb ) then
-                                        exit
-                                end if
-                        end do
-                        ic(i+1) = kc
-                end do
-        end subroutine aplb1_${rtype}$_${itype}$
-#:endfor
-        
+        do ii = 1, nr
+            ib(ii) = ia(ii)
+            do k = ia(ii), ia(ii+1)-1
+                jb(k) = ja(k)
+            end do
+        end do
+    end subroutine diamua_${rtype}$_${itype}$
 #:endfor
 
-end module
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds                            
+    ! c-----------------------------------------------------------------------
+    ! c Rectangular version.  n is number of rows of CSR matrix,
+    ! c                       n2 (input) is number of columns of CSC matrix.
+    ! c-----------------------------------------------------------------------
+    ! c----------
+    ! c n	= number of rows of CSR matrix.
+    ! c n2    = number of columns of CSC matrix.
+    ! c a	= real array of length nnz (nnz=number of nonzero elements in input
+    ! c         matrix) containing the nonzero elements.
+    ! c ja	= integer array of length nnz containing the column positions
+    ! c 	  of the corresponding elements in a.
+    ! c ia	= integer of size n+1. ia(k) contains the position in a, ja of
+    ! c	  the beginning of the k-th row.
+    ! c
+    ! c on return:
+    ! c ----------
+    ! c output arguments:
+    ! c ao	= real array of size nzz containing the "a" part of the transpose
+    ! c jao	= integer array of size nnz containing the column indices.
+    ! c iao	= integer array of size n+1 containing the "ia" index array of
+    ! c	  the transpose.
+    ! c
+    pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
+        implicit none
+
+        integer(${itype}$), intent(in)                     :: nrow
+        integer(${itype}$), intent(in)                     :: ncol
+        integer(${itype}$), intent(in)                     :: nnz
+        integer(${itype}$), intent(in),  dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in),  dimension(nnz)    :: ja
+        real(${rtype}$),   intent(in),  dimension(nnz)    :: a
+
+        integer(${itype}$), intent(out), dimension(ncol+1) :: iao
+        integer(${itype}$), intent(out), dimension(nnz)    :: jao
+        real(${rtype}$),   intent(out), dimension(nnz)    :: ao
+
+        integer(${itype}$) :: i, j, k, next
+
+        do i=1, ncol+1
+            iao(i) = 0
+        end do
+
+        do i=1, nrow
+            do k= ia(i), ia(i+1)-1
+                j = ja(k)+1
+                iao(j) = iao(j)+1
+            end do
+        end do
+
+        iao(1) = 1
+
+        do i=1,ncol
+            iao(i+1) = iao(i) + iao(i+1)
+        end do
+
+        do i=1,nrow
+            do k=ia(i),ia(i+1)-1
+                j = ja(k)
+                next = iao(j)
+                ao(next) = a(k)
+                jao(next) = i
+                iao(j) = next+1
+            end do
+        end do
+
+        do i=ncol,1,-1
+            iao(i+1) = iao(i)
+        end do
+        iao(1) = 1
+    end subroutine csrtranspose_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds                            
+    !  brief Computes y = A*x, sparse matrix, full vector product.
+    !
+    ! A is a sparse matrix in CSR format.
+    !
+    !    Y = A*X, sparse matrix vector product
+    pure subroutine amux_${rtype}$_${itype}$ ( nrow, ncol, nnz, ia, ja, a, x, y )
+        implicit none
+
+        integer(${itype}$), intent(in)                    :: nrow
+        integer(${itype}$), intent(in)                    :: ncol
+        integer(${itype}$), intent(in)                    :: nnz
+        integer(${itype}$), intent(in), dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in), dimension(nnz)    :: ja
+        real(${rtype}$),   intent(in), dimension(nnz)    :: a
+        real(${rtype}$),   intent(in), dimension(ncol)   :: x
+
+        real(${rtype}$),  intent(out), dimension(nrow)   :: y
+
+        integer(${itype}$) :: i, k
+        real(${rtype}$)  :: t
+
+        do i = 1, nrow
+            t = 0.0D+00
+            do k = ia(i), ia(i+1)-1
+                t = t + a(k) * x(ja(k))
+            end do
+            y(i) = t
+        end do
+    end subroutine amux_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds                            
+    !*****************************************************************************80
+    !
+    ! APLB performs the CSR matrix sum C = A + B.
+    !
+    !  Parameters:
+    !
+    !    Input, integer(${itype}$) NROW, the row dimension of A and B.
+    !
+    !    Input, integer(${itype}$) NCOL, the column dimension of A and B.
+    !
+    !    Input, integer(${itype}$) JOB.  When JOB = 0, only the structure
+    !    (i.e. the arrays jc, ic) is computed and the
+    !    real values are ignored.
+    !
+    !    Input, real A(*), integer(${itype}$) JA(*), IA(NROW+1), the matrix in CSR
+    !    Compressed Sparse Row format.
+    !
+    ! b,
+    ! jb,
+    ! ib      =  Matrix B in compressed sparse row format.
+    !
+    ! on return:
+    !
+    ! c,
+    ! jc,
+    ! ic      = resulting matrix C in compressed sparse row sparse format.
+    !
+    ! ierr      = integer(${itype}$). serving as error message.
+    !         ierr = 0 means normal return,
+    !         ierr > 0 means that amub stopped while computing the
+    !         i-th row  of C with i = ierr, because the number
+    !         of elements in C exceeds nzmax.
+    !
+    subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
+        implicit none
+
+        integer(${itype}$), intent(in)                    :: ncol
+        integer(${itype}$), intent(in)                    :: nrow
+        integer(${itype}$), intent(in)                    :: nnz
+        logical,        intent(in)                    :: job
+        integer(${itype}$), intent(in), dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in), dimension(nnz)    :: ja
+        real(${rtype}$),   intent(in), dimension(nnz)    :: a
+        integer(${itype}$), intent(in), dimension(nrow+1) :: ib
+        integer(${itype}$), intent(in), dimension(nnz)    :: jb
+        real(${rtype}$),   intent(in), dimension(nnz)    :: b
+
+        integer(${itype}$), intent(out), dimension(nrow+1) :: ic
+        integer(${itype}$), intent(out), dimension(nnz)    :: jc
+        real(${rtype}$),   intent(out), dimension(nnz)    :: c
+        integer(${itype}$), intent(out)                    :: ierr
+
+        integer(${itype}$)                            :: ii, jcol, jpos, k, ka, kb, length
+        integer(${itype}$), dimension(:), allocatable :: iw
+
+        allocate(iw(ncol))
+
+        ierr = 0
+        length = 0
+        ic(1) = 1
+        iw(1:ncol) = 0
+
+        do ii = 1, nrow
+            !  Row I.
+            do ka = ia(ii), ia(ii+1)-1
+
+                length = length + 1
+                jcol = ja(ka)
+
+                if ( nnz < length ) then
+                    ierr = ii
+                    return
+                end if
+
+                jc(length) = jcol
+                if ( job ) then
+                    c(length) = a(ka)
+                end if
+                iw(jcol) = length
+            end do
+
+            do kb = ib(ii), ib(ii+1)-1
+
+                jcol = jb(kb)
+                jpos = iw(jcol)
+
+                if ( jpos == 0 ) then
+
+                    length = length + 1
+
+                    if ( nnz < length ) then
+                        ierr = ii
+                        return
+                    end if
+
+                    jc(length) = jcol
+                    if ( job ) then
+                        c(length) = b(kb)
+                    end if
+                    iw(jcol)= length
+                else
+                    if ( job ) then
+                        c(jpos) = c(jpos) + b(kb)
+                    end if
+                end if
+            end do
+
+            do k = ic(ii), length
+                iw(jc(k)) = 0
+            end do
+
+            ic(ii+1) = length+1
+        end do
+        deallocate(iw)
+    end subroutine aplb_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds                            
+    !*****************************************************************************80
+    !
+    ! APLB1 performs the sum C = A + B for sorted CSR matrices.
+    !
+    !  Discussion:
+    !
+    !    The difference between this routine and APLB is that here the
+    !    resulting matrix is such that the elements of each row are sorted,
+    !    with increasing column indices in each row, provided the original
+    !    matrices are sorted in the same way.
+    !
+    !    This routine will not work if either of the two input matrices is
+    !    not sorted.
+    !
+    subroutine aplb1_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
+        implicit none
+
+        integer(${itype}$), intent(in)                    :: ncol
+        integer(${itype}$), intent(in)                    :: nrow
+        integer(${itype}$), intent(in)                    :: nnz
+        logical,        intent(in)                    :: job
+        integer(${itype}$), intent(in), dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in), dimension(nnz)    :: ja
+        real(${rtype}$),   intent(in), dimension(nnz)    :: a
+        integer(${itype}$), intent(in), dimension(nrow+1) :: ib
+        integer(${itype}$), intent(in), dimension(nnz)    :: jb
+        real(${rtype}$),   intent(in), dimension(nnz)    :: b
+
+        integer(${itype}$), intent(out), dimension(nrow+1) :: ic
+        integer(${itype}$), intent(out), dimension(nnz)    :: jc
+        real(${rtype}$),   intent(out), dimension(nnz)    :: c
+        integer(${itype}$), intent(out)                    :: ierr
+
+        integer(${itype}$) :: i, j1, j2, ka, kamax, kb, kbmax, kc
+
+        ierr = 0
+        kc = 1
+        ic(1) = kc
+
+        do i = 1, nrow
+            ka = ia(i)
+            kb = ib(i)
+            kamax = ia(i+1) - 1
+            kbmax = ib(i+1) - 1
+
+            do
+                if ( ka <= kamax ) then
+                    j1 = ja(ka)
+                else
+                    j1 = ncol + 1
+                end if
+
+                if ( kb <= kbmax ) then
+                    j2 = jb(kb)
+                else
+                    j2 = ncol + 1
+                end if
+
+                if ( j1 == j2 ) then
+                    if ( job ) then
+                        c(kc) = a(ka) + b(kb)
+                    end if
+                    jc(kc) = j1
+                    ka = ka + 1
+                    kb = kb + 1
+                    kc = kc + 1
+                else if ( j1 < j2 ) then
+                    jc(kc) = j1
+                    if ( job ) then
+                        c(kc) = a(ka)
+                    end if
+                    ka = ka + 1
+                    kc = kc + 1
+                else if ( j2 < j1 ) then
+                    jc(kc) = j2
+                    if ( job ) then
+                        c(kc) = b(kb)
+                    end if
+                    kb = kb + 1
+                    kc = kc + 1
+                end if
+
+                if ( nnz < kc ) then
+                    ierr = i
+                    return
+                end if
+
+                if ( kamax < ka .and. kbmax < kb ) then
+                    exit
+                end if
+            end do
+            ic(i+1) = kc
+        end do
+    end subroutine aplb1_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+end module sparse
