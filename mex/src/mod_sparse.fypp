@@ -322,6 +322,7 @@ contains
 
         integer(${itype}$)                              :: i, k, k1, k2
 
+        ! Note: the tuples are sorted row wise
         ao(1:nnz) = a(1:nnz)
         jc(1:nnz) = ja(1:nnz)
         do i = nr, 1, -1
@@ -401,6 +402,82 @@ contains
 
 #:for rtype in rkinds
 #:for itype in ikinds                            
+    ! c-----------------------------------------------------------------------
+    ! c Rectangular version.  n is number of rows of CSR matrix,
+    ! c                       n2 (input) is number of columns of CSC matrix.
+    ! c-----------------------------------------------------------------------
+    ! c----------
+    ! c n	= number of rows of CSR matrix.
+    ! c n2    = number of columns of CSC matrix.
+    ! c a	= real array of length nnz (nnz=number of nonzero elements in input
+    ! c         matrix) containing the nonzero elements.
+    ! c ja	= integer array of length nnz containing the column positions
+    ! c 	  of the corresponding elements in a.
+    ! c ia	= integer of size n+1. ia(k) contains the position in a, ja of
+    ! c	  the beginning of the k-th row.
+    ! c
+    ! c on return:
+    ! c ----------
+    ! c output arguments:
+    ! c ao	= real array of size nzz containing the "a" part of the transpose
+    ! c jao	= integer array of size nnz containing the column indices.
+    ! c iao	= integer array of size n+1 containing the "ia" index array of
+    ! c	  the transpose.
+    ! c
+    pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
+        implicit none
+
+        integer(${itype}$), intent(in)                     :: nrow
+        integer(${itype}$), intent(in)                     :: ncol
+        integer(${itype}$), intent(in)                     :: nnz
+        integer(${itype}$), intent(in),  dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in),  dimension(nnz)    :: ja
+        real(${rtype}$),   intent(in),  dimension(nnz)     :: a
+
+        integer(${itype}$), intent(out), dimension(ncol+1) :: iao
+        integer(${itype}$), intent(out), dimension(nnz)    :: jao
+        real(${rtype}$),   intent(out), dimension(nnz)    :: ao
+
+        integer(${itype}$) :: i, j, k, next
+
+        do i=1, ncol+1
+            iao(i) = 0
+        end do
+
+        do i=1, nrow
+            do k= ia(i), ia(i+1)-1
+                j = ja(k)+1
+                iao(j) = iao(j)+1
+            end do
+        end do
+
+        iao(1) = 1
+
+        do i=1,ncol
+            iao(i+1) = iao(i) + iao(i+1)
+        end do
+
+        do i=1,nrow
+            do k=ia(i),ia(i+1)-1
+                j = ja(k)
+                next = iao(j)
+                ao(next) = a(k)
+                jao(next) = i
+                iao(j) = next+1
+            end do
+        end do
+
+        do i=ncol,1,-1
+            iao(i+1) = iao(i)
+        end do
+        iao(1) = 1
+    end subroutine csrtranspose_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+        
+#:for rtype in rkinds
+#:for itype in ikinds                            
     !*****************************************************************************80
     !
     ! DIAMUA performs the matrix by matrix product B = Diag * A.
@@ -446,91 +523,19 @@ contains
             b(k1:k2) = a(k1:k2) * scal
         end do
 
-        ib(1) = ia(1)
+        ib = ia
+        jb = ja
 
-        do ii = 1, nr
-            ib(ii) = ia(ii)
-            do k = ia(ii), ia(ii+1)-1
-                jb(k) = ja(k)
-            end do
-        end do
+        ! TODO: Do I need this?
+        ! ib(1) = ia(1)
+
+        ! do ii = 1, nr
+        !     ib(ii) = ia(ii)
+        !     do k = ia(ii), ia(ii+1)-1
+        !         jb(k) = ja(k)
+        !     end do
+        ! end do
     end subroutine diamua_${rtype}$_${itype}$
-#:endfor
-
-#:endfor
-
-#:for rtype in rkinds
-#:for itype in ikinds                            
-    ! c-----------------------------------------------------------------------
-    ! c Rectangular version.  n is number of rows of CSR matrix,
-    ! c                       n2 (input) is number of columns of CSC matrix.
-    ! c-----------------------------------------------------------------------
-    ! c----------
-    ! c n	= number of rows of CSR matrix.
-    ! c n2    = number of columns of CSC matrix.
-    ! c a	= real array of length nnz (nnz=number of nonzero elements in input
-    ! c         matrix) containing the nonzero elements.
-    ! c ja	= integer array of length nnz containing the column positions
-    ! c 	  of the corresponding elements in a.
-    ! c ia	= integer of size n+1. ia(k) contains the position in a, ja of
-    ! c	  the beginning of the k-th row.
-    ! c
-    ! c on return:
-    ! c ----------
-    ! c output arguments:
-    ! c ao	= real array of size nzz containing the "a" part of the transpose
-    ! c jao	= integer array of size nnz containing the column indices.
-    ! c iao	= integer array of size n+1 containing the "ia" index array of
-    ! c	  the transpose.
-    ! c
-    pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
-        implicit none
-
-        integer(${itype}$), intent(in)                     :: nrow
-        integer(${itype}$), intent(in)                     :: ncol
-        integer(${itype}$), intent(in)                     :: nnz
-        integer(${itype}$), intent(in),  dimension(nrow+1) :: ia
-        integer(${itype}$), intent(in),  dimension(nnz)    :: ja
-        real(${rtype}$),   intent(in),  dimension(nnz)    :: a
-
-        integer(${itype}$), intent(out), dimension(ncol+1) :: iao
-        integer(${itype}$), intent(out), dimension(nnz)    :: jao
-        real(${rtype}$),   intent(out), dimension(nnz)    :: ao
-
-        integer(${itype}$) :: i, j, k, next
-
-        do i=1, ncol+1
-            iao(i) = 0
-        end do
-
-        do i=1, nrow
-            do k= ia(i), ia(i+1)-1
-                j = ja(k)+1
-                iao(j) = iao(j)+1
-            end do
-        end do
-
-        iao(1) = 1
-
-        do i=1,ncol
-            iao(i+1) = iao(i) + iao(i+1)
-        end do
-
-        do i=1,nrow
-            do k=ia(i),ia(i+1)-1
-                j = ja(k)
-                next = iao(j)
-                ao(next) = a(k)
-                jao(next) = i
-                iao(j) = next+1
-            end do
-        end do
-
-        do i=ncol,1,-1
-            iao(i+1) = iao(i)
-        end do
-        iao(1) = 1
-    end subroutine csrtranspose_${rtype}$_${itype}$
 #:endfor
 
 #:endfor
