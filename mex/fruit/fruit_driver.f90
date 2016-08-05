@@ -273,15 +273,6 @@ program fruit_driver
     ! !! sparse
 
     call setup_test_sparse
-    write(*,*) ".. running test: check_coocsr_ops"
-    call set_unit_name('check_coocsr_ops')
-    call run_test_case(check_coocsr_ops, "check_coocsr_ops")
-    write(*,*) ""
-    write(*,*) ".. done."
-    write(*,*) ""
-    call teardown_test_sparse
-
-    call setup_test_sparse
     write(*,*) ".. running test: check_fullnnz"
     call set_unit_name('check_fullnnz')
     call run_test_case(check_fullnnz, "check_fullnnz")
@@ -291,23 +282,77 @@ program fruit_driver
     call teardown_test_sparse
 
     call setup_test_sparse
-    write(*,*) ".. running test: check_full2coo"
-    call set_unit_name('check_full2coo')
-    call run_test_case(check_full2coo, "check_full2coo")
+    write(*,*) ".. running test: check_dnscoo"
+    call set_unit_name('check_dnscoo')
+    call run_test_case(check_dnscoo, "check_dnscoo")
     write(*,*) ""
     write(*,*) ".. done."
     write(*,*) ""
     call teardown_test_sparse
 
     call setup_test_sparse
-    write(*,*) ".. running test: check_full2coo"
-    call set_unit_name('check_full2coo')
-    call run_test_case(check_full2coo, "check_full2coo")
+    write(*,*) ".. running test: check_dnscoo"
+    call set_unit_name('check_dnscoo')
+    call run_test_case(check_dnscoo, "check_dnscoo")
     write(*,*) ""
     write(*,*) ".. done."
     write(*,*) ""
     call teardown_test_sparse
 
+    call setup_test_sparse
+    write(*,*) ".. running test: check_coodns"
+    call set_unit_name('check_coodns')
+    call run_test_case(check_coodns, "check_coodns")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_coocsr"
+    call set_unit_name('check_coocsr')
+    call run_test_case(check_coocsr, "check_coocsr")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_csrcoo"
+    call set_unit_name('check_csrcoo')
+    call run_test_case(check_csrcoo, "check_csrcoo")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_csrtranspose"
+    call set_unit_name('check_csrtranspose')
+    call run_test_case(check_csrtranspose, "check_csrtranspose")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+    
+    call setup_test_sparse
+    write(*,*) ".. running test: check_coocsr_ops"
+    call set_unit_name('check_coocsr_ops')
+    call run_test_case(check_coocsr_ops, "check_coocsr_ops")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_diamua"
+    call set_unit_name('check_diamua')
+    call run_test_case(check_diamua, "check_diamua")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+    
     call setup_test_sparse
     write(*,*) ".. running test: check_amux"
     call set_unit_name('check_amux')
