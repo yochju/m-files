@@ -235,40 +235,86 @@ contains
                 10, -2, 6, 18, 6, 21, 24, 21, 12, 32, 28, 20, 40, 45, 45, 65, 24, 12, -6]), &
                 a, 19)
     end subroutine check_diamua
-    
-    subroutine check_coocsr_ops
-        implicit none
-
-        real(REAL64),  dimension(3,5) :: mat, mat2, mat3
-        real(REAL64),  dimension(5,3) :: matT
-        integer(INT32), dimension(4)   :: ir, irT, ir2
-        integer(INT32), dimension(9)   :: jc, jcT, icoo, jcoo, icoo2, jcoo2, jc2
-        real(REAL64),  dimension(9)   :: a, aT, acoo, acoo2, a2
-
-        ! 1 0 3 0 7
-        ! 2 0 4 0 8
-        ! 0 0 5 6 9
-        mat = reshape(real([1, 2, 0, 0, 0, 0, 3, 4, 5, 0, 0, 6, 7, 8, 9], REAL64), [3, 5])
-
-        call dnscsr( int(3, INT32), int(5, INT32), mat, int(9, INT32), ir, jc, a )
-        call csrtranspose( int(3, INT32), int(5, INT32), int(9, INT32), ir, jc, a, irT, jcT, aT)
-        call csrdns(int(5, INT32), int(3, INT32), int(9, INT32), irT, jcT, aT, matT)
-        call csrcoo(int(3, INT32), int(9, INT32), ir, jc, a, icoo, jcoo, acoo)
-        call dnscoo(int(3, INT32), int(5, INT32), int(9, INT32), mat, icoo2, jcoo2, acoo2)
-        call coocsr(int(3, INT32), int(9, INT32), icoo2, jcoo2, acoo2, ir2, jc2, a2)
-        call coodns(int(3, INT32), int(5, INT32), int(9, INT32), icoo, jcoo, acoo, mat2)
-        call coodns(int(3, INT32), int(5, INT32), int(9, INT32), icoo2, jcoo2, acoo2, mat3)
-        call assertEquals(matT, transpose(mat), 5, 3)
-        call assertEquals(mat2, mat, 3, 5)
-        call assertEquals(mat3, mat, 3, 5)
-        call assertEquals(int(ir), int(ir2), 4)
-        call assertEquals(int(jc), int(jc2), 9)
-        call assertEquals(a, a2, 9)
-    end subroutine check_coocsr_ops
 
     subroutine check_amux
-        implicit none
 
+        real, dimension(6) :: y
+
+        ! 10  0  0  0 -2   0
+        !  3  9  0  0  0   3
+        !  0  7  8  7  0   0 
+        !  3  0  8  7  5   0
+        !  0  8  0  9  9  13
+        !  0  4  0  0  2  -1
+
+        call amux(6, 6, 19, &
+                [1, 3, 6, 9, 13, 17, 20], &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
+                real([1, 2, 3, 4, 5, 6]), y)
+
+        call assertEquals(real([0, 39, 66, 80, 175, 12]), y, 6)
+        
     end subroutine check_amux
+
+    subroutine check_aplb
+
+        integer, dimension(7)  :: ir
+        integer, dimension(19) :: jc
+        real,    dimension(19) :: a
+        
+        call aplb(6, 6, 19, .true., &
+                [1, 3, 6, 9, 13, 17, 20], &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
+                [1, 3, 6, 9, 13, 17, 20], &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
+                ir, jc, a)
+
+        call assertEquals( &
+                [1, 3, 6, 9, 13, 17, 20], &
+                ir, 7)
+        call assertEquals( &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                jc, 19)
+
+        call assertEquals( &
+                2*real([ &
+                10, -2, 6, 18, 6, 21, 24, 21, 12, 32, 28, 20, 40, 45, 45, 65, 24, 12, -6]), &
+                a, 19)
+
+    end subroutine check_aplb
+
+    subroutine check_aplb1
+
+        integer, dimension(7)  :: ir
+        integer, dimension(19) :: jc
+        real,    dimension(19) :: a
+        integer :: ierr
+        
+        call aplb1(6, 6, 19, .true., &
+                [1, 3, 6, 9, 13, 17, 20], &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
+                [1, 3, 6, 9, 13, 17, 20], &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
+                ir, jc, a, ierr)
+
+        call assertEquals( &
+                [1, 3, 6, 9, 13, 17, 20], &
+                ir, 7)
+        call assertEquals( &
+                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
+                jc, 19)
+
+        call assertEquals( &
+                2*real([ &
+                10, -2, 6, 18, 6, 21, 24, 21, 12, 32, 28, 20, 40, 45, 45, 65, 24, 12, -6]), &
+                a, 19)
+        call assertEquals(0, ierr)
+
+    end subroutine check_aplb1
 
 end module test_sparse

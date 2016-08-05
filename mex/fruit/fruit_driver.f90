@@ -336,15 +336,6 @@ program fruit_driver
     call teardown_test_sparse
     
     call setup_test_sparse
-    write(*,*) ".. running test: check_coocsr_ops"
-    call set_unit_name('check_coocsr_ops')
-    call run_test_case(check_coocsr_ops, "check_coocsr_ops")
-    write(*,*) ""
-    write(*,*) ".. done."
-    write(*,*) ""
-    call teardown_test_sparse
-
-    call setup_test_sparse
     write(*,*) ".. running test: check_diamua"
     call set_unit_name('check_diamua')
     call run_test_case(check_diamua, "check_diamua")
@@ -362,6 +353,24 @@ program fruit_driver
     write(*,*) ""
     call teardown_test_sparse
 
+    call setup_test_sparse
+    write(*,*) ".. running test: check_aplb"
+    call set_unit_name('check_aplb')
+    call run_test_case(check_aplb, "check_aplb")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_aplb1"
+    call set_unit_name('check_aplb1')
+    call run_test_case(check_aplb1, "check_aplb1")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+        
     ! !! stencil
 
     ! !        call setup_test_stencil
