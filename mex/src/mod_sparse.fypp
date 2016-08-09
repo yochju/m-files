@@ -612,52 +612,73 @@ contains
     !
     subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c)
         implicit none
-
         integer(${itype}$), intent(in)                    :: ncol
+        ! Number of columns
         integer(${itype}$), intent(in)                    :: nrow
+        ! Number of rows
         integer(${itype}$), intent(in)                    :: nnz
-        logical,        intent(in)                    :: job
+        ! Number of nnz entries
+        logical,            intent(in)                    :: job
+        ! whether to compute the entries or just the structure
+
+        ! Matrix A in CSR
         integer(${itype}$), intent(in), dimension(nrow+1) :: ia
         integer(${itype}$), intent(in), dimension(nnz)    :: ja
-        real(${rtype}$),   intent(in), dimension(nnz)    :: a
+        real(${rtype}$),    intent(in), dimension(nnz)    :: a
+
+        ! Matrix B in CSR
         integer(${itype}$), intent(in), dimension(nrow+1) :: ib
         integer(${itype}$), intent(in), dimension(nnz)    :: jb
-        real(${rtype}$),   intent(in), dimension(nnz)    :: b
+        real(${rtype}$),    intent(in), dimension(nnz)    :: b
 
+        ! Matrix C = A+B in CSR
         integer(${itype}$), intent(out), dimension(nrow+1) :: ic
         integer(${itype}$), intent(out), dimension(nnz)    :: jc
-        real(${rtype}$),   intent(out), dimension(nnz)    :: c
+        real(${rtype}$),    intent(out), dimension(nnz)    :: c
 
-        integer(${itype}$)                            :: ii, jcol, jpos, k, ka, kb, length
+        integer(${itype}$)                            :: ii, k, ka, kb
+        ! loop variable
+        integer(${itype}$)                            :: jcol
+        ! dummy variable to save column position
+        integer(${itype}$)                            :: jpos
+        integer(${itype}$)                            :: length
+        ! keeps track of the number of entries in C
         integer(${itype}$), dimension(:), allocatable :: iw
-
+        ! internal working array
+        
         allocate(iw(ncol))
 
-        length = 0
-        ic(1) = 1
+        length     = 0
+        ic(1)      = 1
         iw(1:ncol) = 0
 
         do ii = 1, nrow
-            !  Row I.
+            !  Run over all rows
             do ka = ia(ii), ia(ii+1)-1
-
+                ! Consider ii-th row of A and copy it into C
+                
                 length = length + 1
                 jcol = ja(ka)
 
                 jc(length) = jcol
+                
                 if ( job ) then
                     c(length) = a(ka)
                 end if
+
                 iw(jcol) = length
             end do
 
             do kb = ib(ii), ib(ii+1)-1
+                ! Consider ii-th row in B
 
-                jcol = jb(kb)
-                jpos = iw(jcol)
+                jcol = jb(kb)   ! Get column index
+                jpos = iw(jcol) ! Check if A contained entry in the same column
 
                 if ( jpos == 0 ) then
-
+                    ! corresponding entry in A was empty and we create a new
+                    ! entry in C
+                    
                     length = length + 1
 
                     jc(length) = jcol
@@ -668,10 +689,14 @@ contains
 
                     iw(jcol)= length
                 else
+                    ! corresponding entry in A was not empty.
+                    ! we add our value
+                    
                     if ( job ) then
                         c(jpos) = c(jpos) + b(kb)
                     end if
                 end if
+
             end do
 
             do k = ic(ii), length
