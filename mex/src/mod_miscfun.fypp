@@ -126,6 +126,15 @@ module miscfun
 #:endfor            
     end interface binarise
 
+    public quicksort
+    interface quicksort
+#:for rtype in rkinds
+        module procedure quicksort_${rtype}$
+#:endfor
+#:for itype in ikinds
+        module procedure quicksort_${itype}$
+#:endfor        
+    end interface quicksort
 contains
 
 #:for type in ikinds
@@ -591,6 +600,128 @@ contains
         dest = (sign (1.0_${rtype}$, src-lambda) + ${rtype}$) * 0.5_${rtype}$
     end function binarise_${rtype}$
 
+#:endfor
+
+#:for rtype in rkinds
+recursive subroutine quicksort_${rtype}$ (in)
+    real(${rtype}$), intent(in out),  dimension(:) :: in
+    
+    integer(INT64) :: iq
+
+    if (size(in) > 1) then
+        call partition_sort_${rtype}$_INT64 (in, iq)
+        call quicksort_${rtype}$ (in(  :iq-1))
+        call quicksort_${rtype}$ (in(iq:    ))
+    end if
+end subroutine quicksort_${rtype}$
+#:endfor
+
+#:for itype in ikinds
+recursive subroutine quicksort_${itype}$ (in)
+    integer(${itype}$), intent(in out),  dimension(:) :: in
+    
+    integer(INT64) :: iq
+    
+    if (size(in) > 1) then
+        call partition_sort_${itype}$_INT64 (in, iq)
+        call quicksort_${itype}$ (in(  :iq-1))
+        call quicksort_${itype}$ (in(iq:    ))
+    end if
+end subroutine quicksort_${itype}$
+#:endfor
+
+! Internal routines
+
+#:for rtype in rkinds
+#:for itype in ikinds
+subroutine partition_sort_${rtype}$_${itype}$ (array, marker)
+    real(${rtype}$),    intent(in out), dimension(:) :: array
+    integer(${itype}$), intent(out)                  :: marker
+    integer(${itype}$)                               :: i, j
+    real(${rtype}$)                                  :: temp
+    real(${rtype}$)                                  :: x      ! pivot point
+
+    x = array(1)
+    i = 0
+    j = size(array) + 1
+    
+    do
+        j = j-1
+
+        do
+            if (array(j) <= x) exit
+            j = j-1
+        end do
+
+        i = i+1
+
+        do
+            if (array(i) >= x) exit
+            i = i+1
+        end do
+        
+        if (i < j) then
+            temp = array(i)
+            array(i) = array(j)
+            array(j) = temp
+        else if (i == j) then
+            marker = i+1
+            return
+        else
+            marker = i
+            return
+        end if
+        
+    end do
+    
+end subroutine partition_sort_${rtype}$_${itype}$
+#:endfor
+#:endfor
+
+#:for rtype in ikinds
+#:for itype in ikinds
+subroutine partition_sort_${rtype}$_${itype}$ (array, marker)
+    integer(${rtype}$), intent(in out), dimension(:) :: array
+    integer(${itype}$), intent(out)                  :: marker
+    integer(${itype}$)                               :: i, j
+    integer(${rtype}$)                               :: temp
+    integer(${rtype}$)                               :: x      ! pivot point
+
+    x = array(1)
+    i = 0
+    j = size(array) + 1
+    
+    do
+        j = j-1
+
+        do
+            if (array(j) <= x) exit
+            j = j-1
+        end do
+
+        i = i+1
+
+        do
+            if (array(i) >= x) exit
+            i = i+1
+        end do
+        
+        if (i < j) then
+            temp = array(i)
+            array(i) = array(j)
+            array(j) = temp
+        else if (i == j) then
+            marker = i+1
+            return
+        else
+            marker = i
+            return
+        end if
+        
+    end do
+    
+end subroutine partition_sort_${rtype}$_${itype}$
+#:endfor
 #:endfor
 
 end module miscfun
