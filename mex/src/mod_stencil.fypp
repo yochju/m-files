@@ -132,10 +132,10 @@ contains
             y = [(ii, ii = -bound, bound)]
         else
             tmp = ubound(cumsiz,1)
-            forall (ii=1:siz(tmp))
+            do ii = 1, siz(tmp)
                 y( (ii-1)*cumsiz(tmp-1) + 1:cumsiz(tmp-1) ) = cumdim(tmp-1) * ( (ii-1) - floor(siz(tmp)/2.0) ) + &
                         stencillocs_${itype}$(siz(1:(tmp-1)), dims(1:(tmp-1)))
-            end forall
+            end do
         end if
 
     end function stencillocs_${itype}$
@@ -171,17 +171,17 @@ contains
         csiz = [I${itype}$, siz, I${itype}$]
         cumsiz = cumprod(csiz)
 
-        forall (ii=1:size(siz))
+        do ii = 1, size(siz)
             tmp(1:product(siz), ii) = reshape(spread( &
                     repelem([(jj, jj = -floor(siz(ii)/2.0, ${itype}$), floor(siz(ii)/2.0, ${itype}$))], cumsiz(ii)), &
                     2, product(csiz((ii+2):ubound(csiz, 1))) ), [product(siz)] )
-        end forall
+        end do
 
         sub = ind2sub(dims, I${itype}$, I${itype}$, x)
 
-        forall (ii=1:product(siz))
+        do ii = 1, product(siz)
             y(ii) = (.not. (any( tmp(ii, 1:size(siz)) + sub < 1 ) .or. any( tmp(ii, 1:size(siz)) + sub > dims )))
-        end forall
+        end do
 
     end function stencilmask_${itype}$
 
@@ -208,10 +208,10 @@ contains
         integer(${itype}$), dimension(3**dims, dims) :: tmp
         integer(${itype}$)                           :: ii
 
-        forall (ii=1:dims)
+        do ii=1, dims
             tmp(1:(3**dims), ii) = reshape (spread ( &
                     repelem([-I${itype}$, Z${itype}$, I${itype}$], 3**(ii-1)), 2*I${itype}$, 3**(dims-ii) ), [3**dims] )
-        end forall
+        end do
 
         sten = .false.
         where (sum(abs(tmp), 2) <= 1) sten = .true.
@@ -367,10 +367,10 @@ contains
 
         res = Z${rtype}$
 
-        forall (ii = lbound(arr,1):ubound(arr,1))
+        do ii = lbound(arr,1), ubound(arr,1)
             res(ii) = sum(arr(ii + stencillocs (siz, dims))*ker(ubound(ker,1):lbound(ker,1):-1), 1, &
                     mask .and. stencilmask (siz, dims, ii))
-        end forall
+        end do
     end function convolve_${itype}$_${rtype}$
 
 #:endfor

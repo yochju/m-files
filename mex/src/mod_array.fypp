@@ -154,12 +154,12 @@ contains
             csz = cumprod(siz)
 
             last = ubound(siz,1)
-            forall (ii=1:siz(last))
+            do ii=1, siz(last)
                 y( (csp(last-1)*padding(last)+(ii-1)*csp(last-1)+1): &
                         (csp(last-1)*padding(last)+(ii-1)*csp(last-1)+csp(last-1)) ) = &
                         add0padding_${itype}$( siz(1:last-1), padding(1:last-1), &
                         sig( ((ii-1)*csz(last-1) + 1):((ii-1)*csz(last-1) + csz(last-1)) ))
-            end forall
+            end do
         end if
     end function add0padding_${itype}$
 
@@ -186,12 +186,12 @@ contains
             csz = cumprod(siz)
 
             last = ubound(siz,1)
-            forall (ii=1:siz(last))
+            do ii = 1, siz(last)
                 y( (csp(last-1)*padding(last)+(ii-1)*csp(last-1)+1): &
                         (csp(last-1)*padding(last)+(ii-1)*csp(last-1)+csp(last-1)) ) = &
                         add0padding_${itype}$_${rtype}$( siz(1:last-1), padding(1:last-1), &
                         sig( ((ii-1)*csz(last-1) + 1):((ii-1)*csz(last-1) + csz(last-1)) ))
-            end forall
+            end do
         end if
     end function add0padding_${itype}$_${rtype}$
 #:endfor
