@@ -361,15 +361,6 @@ program fruit_driver
     write(*,*) ".. done."
     write(*,*) ""
     call teardown_test_sparse
-
-    call setup_test_sparse
-    write(*,*) ".. running test: check_aplb1"
-    call set_unit_name('check_aplb1')
-    call run_test_case(check_aplb1, "check_aplb1")
-    write(*,*) ""
-    write(*,*) ".. done."
-    write(*,*) ""
-    call teardown_test_sparse
         
     ! !! stencil
 

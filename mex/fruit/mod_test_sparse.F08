@@ -262,6 +262,17 @@ contains
         integer, dimension(7)  :: ir
         integer, dimension(19) :: jc
         real,    dimension(19) :: a
+
+        ! integer, dimension(9) :: ir2
+        ! integer, dimension(9) :: jc2
+        ! real,    dimension(9) :: a2
+        
+        ! 10  0  0  0 -2   0
+        !  3  9  0  0  0   3
+        !  0  7  8  7  0   0 
+        !  3  0  8  7  5   0
+        !  0  8  0  9  9  13
+        !  0  4  0  0  2  -1
         
         call aplb(6, 6, 19, .true., &
                 [1, 3, 6, 9, 13, 17, 20], &
@@ -271,37 +282,7 @@ contains
                 [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
                 real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
                 ir, jc, a)
-
-        call assertEquals( &
-                [1, 3, 6, 9, 13, 17, 20], &
-                ir, 7)
-        call assertEquals( &
-                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
-                jc, 19)
-
-        call assertEquals( &
-                2*real([ &
-                10, -2, 6, 18, 6, 21, 24, 21, 12, 32, 28, 20, 40, 45, 45, 65, 24, 12, -6]), &
-                a, 19)
-
-    end subroutine check_aplb
-
-    subroutine check_aplb1
-
-        integer, dimension(7)  :: ir
-        integer, dimension(19) :: jc
-        real,    dimension(19) :: a
-        integer :: ierr
         
-        call aplb1(6, 6, 19, .true., &
-                [1, 3, 6, 9, 13, 17, 20], &
-                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
-                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
-                [1, 3, 6, 9, 13, 17, 20], &
-                [1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], &
-                real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
-                ir, jc, a, ierr)
-
         call assertEquals( &
                 [1, 3, 6, 9, 13, 17, 20], &
                 ir, 7)
@@ -311,10 +292,18 @@ contains
 
         call assertEquals( &
                 2*real([ &
-                10, -2, 6, 18, 6, 21, 24, 21, 12, 32, 28, 20, 40, 45, 45, 65, 24, 12, -6]), &
+                10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1]), &
                 a, 19)
-        call assertEquals(0, ierr)
 
-    end subroutine check_aplb1
+        !  1 -1  0     0  0  1
+        !  0  0  2  +  1  1  0
+        !  3  4  5     0  1  0
+
+        ! call aplb(3, 3, 9, .true., &
+        !         [1, 3, 4, 7], [1, 2, 3, 1, 2, 3], real([1, -1, 2, 3, 4, 5]), &
+        !         [1, 2, 4, 7], [3, 1, 2, 1],       real([1,  1, 1, 1]), &
+        !         ir2, jc2, a2
+        !         )
+    end subroutine check_aplb
 
 end module test_sparse

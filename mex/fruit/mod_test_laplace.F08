@@ -35,11 +35,11 @@ contains
         subroutine check_stencil_laplace_5p
                 implicit none
 
-                call assertEquals(real([1, -2, 1], REAL64), stencil_laplace_5p (1), 3)
-                call assertEquals(real([0, 1, 0, 1, -4, 1, 0, 1, 0], REAL64), stencil_laplace_5p (2), 9)
+                call assertEquals(real([1, -2, 1], REAL64), stencil_laplace_5p_REAL64 (1), 3)
+                call assertEquals(real([0, 1, 0, 1, -4, 1, 0, 1, 0], REAL64), stencil_laplace_5p_REAL64 (2), 9)
                 call assertEquals( &
                         real([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, -6, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], REAL64), &
-                        stencil_laplace_5p (3), 27)
+                        stencil_laplace_5p_REAL64 (3), 27)
         end subroutine check_stencil_laplace_5p
 
         subroutine check_laplace_5p_sparse_coo
