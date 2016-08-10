@@ -28,13 +28,14 @@ module sparse
     ! Sparse matrix in Compressed Sparse Row Format
     ! Stores a matrix in sparse CSR format.
     type, public :: csr_matrix_${rtype}$_${itype}$
-        integer(${itype}$)                            :: nr    ! Number of rows in the matrix.
-        integer(${itype}$)                            :: nc    ! Number of columns in the matrix.
-        integer(${itype}$)                            :: nnz   ! Number of non-zero entries in the matrix.
-        integer(${itype}$)                            :: nzmax ! Maximal number of possible non-zero entries.
-        integer(${itype}$), dimension(:), allocatable :: ir    ! Row index pointer. Size (nr+1)
-        integer(${itype}$), dimension(:), allocatable :: jc    ! Column index pointer. Size nnz
-        real(${rtype}$),    dimension(:), allocatable :: a     ! Pointer with values. Size nnz
+        integer(${itype}$)                            :: nr     ! Number of rows in the matrix.
+        integer(${itype}$)                            :: nc     ! Number of columns in the matrix.
+        integer(${itype}$)                            :: nnz    ! Number of non-zero entries in the matrix.
+        integer(${itype}$)                            :: nzmax  ! Maximal number of possible non-zero entries.
+        logical                                       :: sorted ! Whether the coloumn indices are sorted
+        integer(${itype}$), dimension(:), allocatable :: ir     ! Row index pointer. Size (nr+1)
+        integer(${itype}$), dimension(:), allocatable :: jc     ! Column index pointer. Size nnz
+        real(${rtype}$),    dimension(:), allocatable :: a      ! Pointer with values. Size nnz
     end type csr_matrix_${rtype}$_${itype}$
 #:endfor
 
@@ -45,12 +46,14 @@ module sparse
     ! Sparse matrix in Coordinate Triplet Format
     ! Stores a matrix in sparse COO format.
     type, public :: coo_matrix_${rtype}$_${itype}$
-        integer(${itype}$)                            :: nr  ! Number of rows in the matrix.
-        integer(${itype}$)                            :: nc  ! Number of columns in the matrix.
-        integer(${itype}$)                            :: nnz ! Number of non-zero entries in the matrix.
-        integer(${itype}$), dimension(:), allocatable :: ir  ! Row index pointer. Size nnz
-        integer(${itype}$), dimension(:), allocatable :: jc  ! Column index pointer. Size nnz
-        real(${rtype}$),    dimension(:), allocatable :: a   ! Pointer with values. Size nnz
+        integer(${itype}$)                            :: nr   ! Number of rows in the matrix.
+        integer(${itype}$)                            :: nc   ! Number of columns in the matrix.
+        integer(${itype}$)                            :: nnz  ! Number of non-zero entries in the matrix.
+        logical                                       :: sort ! Whether the data is sorted
+        integer(${itype}$)                            :: ord  ! sorting order (row-col or col-row)
+        integer(${itype}$), dimension(:), allocatable :: ir   ! Row index pointer. Size nnz
+        integer(${itype}$), dimension(:), allocatable :: jc   ! Column index pointer. Size nnz
+        real(${rtype}$),    dimension(:), allocatable :: a    ! Pointer with values. Size nnz
     end type coo_matrix_${rtype}$_${itype}$
 #:endfor
 
@@ -160,6 +163,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                    
     pure function fullnnz_${rtype}$_${itype}$ (nr, nc, mat) result(nnz)
+        !! Return number of non-zero entries in a dense matrix
         implicit none
 
         integer(${itype}$), intent(in)                   :: nr
@@ -184,6 +188,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine dnscoo_${rtype}$_${itype}$ (nr, nc, nnz, mat, ir, jc, a)
+        !! Convert dense matrix to coordinate triplet representation
         implicit none
 
         integer(${itype}$), intent(in)                    :: nr
@@ -216,6 +221,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine coodns_${rtype}$_${itype}$ (nr, nc, nnz, ir, jc, a, mat)
+        !! Convert coordinate triplet sparse matrix to dense matrix
         implicit none
 
         integer(${itype}$), intent(in)                    :: nr
@@ -242,6 +248,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine coocsr_${rtype}$_${itype}$ (nrow, nnz, ir, jc, a, iro, jco, ao)
+        !! Convert coordinate triplet matrix to compressed row format
         implicit none
 
         integer(${itype}$), intent(in)                     :: nrow
@@ -274,7 +281,7 @@ contains
             k = k+k0
         end do
 
-        ! go through the structure  once more. Fill in output matrix.
+        ! go through the structure once more. Fill in output matrix.
         do k = 1, nnz
             i = ir(k)
             j = jc(k)
@@ -298,6 +305,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine csrcoo_${rtype}$_${itype}$ ( nr, nnz, ia, ja, a, ir, jc, ao )
+        !! Convert compressed row to coordinate triplet format
         implicit none
 
         integer(${itype}$), intent(in)                  :: nr
@@ -330,6 +338,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine csrdns_${rtype}$_${itype}$ ( nr, nc, nnz, ir, jc, a, dns)
+        !! Convert compressed row to dense matrix
         implicit none
 
         integer(${itype}$), intent(in)                   :: nc
@@ -359,6 +368,7 @@ contains
 #:for rtype in rkinds
 #:for itype in ikinds                            
     pure subroutine dnscsr_${rtype}$_${itype}$ ( nr, nc, dns, nnz, ir, jc, a )
+        !! Convert dense matrix to compressed row format
         implicit none
 
         integer(${itype}$), intent(in)                    :: nr
@@ -415,6 +425,7 @@ contains
     ! c	  the transpose.
     ! c
     pure subroutine csrtranspose_${rtype}$_${itype}$ (nrow, ncol, nnz, ia, ja, a, iao, jao, ao)
+        !! transpose compressed row matrix
         implicit none
 
         integer(${itype}$), intent(in)                     :: nrow
@@ -600,31 +611,39 @@ contains
     !         i-th row  of C with i = ierr, because the number
     !         of elements in C exceeds nzmax.
     !
-    subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c)
+    subroutine aplb_${rtype}$_${itype}$ ( nrow, ncol, nnza, nnzb, nnzc, job, ia, ja, a, ib, jb, b, ic, jc, c)
+        !! Computes C = A + B for compressed row matrices.
+        !!
+        !! TODO: sort entries before output.
+        !! requires sort routine and scatter routine
         implicit none
         integer(${itype}$), intent(in)                    :: ncol
         ! Number of columns
         integer(${itype}$), intent(in)                    :: nrow
         ! Number of rows
-        integer(${itype}$), intent(in)                    :: nnz
-        ! Number of nnz entries
+        integer(${itype}$), intent(in)                    :: nnza
+        ! Number of nnz entries of first input matrix
+        integer(${itype}$), intent(in)                    :: nnzb
+        ! Number of nnz entries of second input matrix
+        integer(${itype}$), intent(in)                    :: nnzc
+        ! Number of nnz entries of output matrix
         logical,            intent(in)                    :: job
         ! whether to compute the entries or just the structure
 
         ! Matrix A in CSR
         integer(${itype}$), intent(in), dimension(nrow+1) :: ia
-        integer(${itype}$), intent(in), dimension(nnz)    :: ja
-        real(${rtype}$),    intent(in), dimension(nnz)    :: a
+        integer(${itype}$), intent(in), dimension(nnza)   :: ja
+        real(${rtype}$),    intent(in), dimension(nnza)   :: a
 
         ! Matrix B in CSR
         integer(${itype}$), intent(in), dimension(nrow+1) :: ib
-        integer(${itype}$), intent(in), dimension(nnz)    :: jb
-        real(${rtype}$),    intent(in), dimension(nnz)    :: b
+        integer(${itype}$), intent(in), dimension(nnzb)   :: jb
+        real(${rtype}$),    intent(in), dimension(nnzb)   :: b
 
         ! Matrix C = A+B in CSR
         integer(${itype}$), intent(out), dimension(nrow+1) :: ic
-        integer(${itype}$), intent(out), dimension(nnz)    :: jc
-        real(${rtype}$),    intent(out), dimension(nnz)    :: c
+        integer(${itype}$), intent(out), dimension(nnzc)   :: jc
+        real(${rtype}$),    intent(out), dimension(nnzc)   :: c
 
         integer(${itype}$)                            :: ii, k, ka, kb
         ! loop variable
