@@ -155,16 +155,6 @@ module sparse
 #:endfor            
     end interface aplb
 
-    public aplb1
-    interface aplb1
-#:for rtype in rkinds
-#:for itype in ikinds
-        module procedure aplb1_${rtype}$_${itype}$
-#:endfor
-#:endfor            
-    end interface aplb1
-
-
 contains
 
 #:for rtype in rkinds
@@ -241,9 +231,9 @@ contains
 
         mat = 0_${rtype}$
 
-        forall(kk = 1:nnz)
+        do kk = 1, nnz
             mat(ir(kk),jc(kk)) = a(kk)
-        end forall
+        end do
     end subroutine coodns_${rtype}$_${itype}$
 #:endfor
 
@@ -709,106 +699,6 @@ contains
         deallocate(iw)
         
     end subroutine aplb_${rtype}$_${itype}$
-#:endfor
-
-#:endfor
-
-#:for rtype in rkinds
-#:for itype in ikinds                            
-    !*****************************************************************************80
-    !
-    ! APLB1 performs the sum C = A + B for sorted CSR matrices.
-    !
-    !  Discussion:
-    !
-    !    The difference between this routine and APLB is that here the
-    !    resulting matrix is such that the elements of each row are sorted,
-    !    with increasing column indices in each row, provided the original
-    !    matrices are sorted in the same way.
-    !
-    !    This routine will not work if either of the two input matrices is
-    !    not sorted.
-    !
-    subroutine aplb1_${rtype}$_${itype}$ ( nrow, ncol, nnz, job, ia, ja, a, ib, jb, b, ic, jc, c, ierr )
-        implicit none
-
-        integer(${itype}$), intent(in)                    :: ncol
-        integer(${itype}$), intent(in)                    :: nrow
-        integer(${itype}$), intent(in)                    :: nnz
-        logical,        intent(in)                    :: job
-        integer(${itype}$), intent(in), dimension(nrow+1) :: ia
-        integer(${itype}$), intent(in), dimension(nnz)    :: ja
-        real(${rtype}$),   intent(in), dimension(nnz)    :: a
-        integer(${itype}$), intent(in), dimension(nrow+1) :: ib
-        integer(${itype}$), intent(in), dimension(nnz)    :: jb
-        real(${rtype}$),   intent(in), dimension(nnz)    :: b
-
-        integer(${itype}$), intent(out), dimension(nrow+1) :: ic
-        integer(${itype}$), intent(out), dimension(nnz)    :: jc
-        real(${rtype}$),   intent(out), dimension(nnz)    :: c
-        integer(${itype}$), intent(out)                    :: ierr
-
-        integer(${itype}$) :: i, j1, j2, ka, kamax, kb, kbmax, kc
-
-        ierr = 0
-        kc = 1
-        ic(1) = kc
-
-        do i = 1, nrow
-            ka = ia(i)
-            kb = ib(i)
-            kamax = ia(i+1) - 1
-            kbmax = ib(i+1) - 1
-
-            do
-                if ( ka <= kamax ) then
-                    j1 = ja(ka)
-                else
-                    j1 = ncol + 1
-                end if
-
-                if ( kb <= kbmax ) then
-                    j2 = jb(kb)
-                else
-                    j2 = ncol + 1
-                end if
-
-                if ( j1 == j2 ) then
-                    if ( job ) then
-                        c(kc) = a(ka) + b(kb)
-                    end if
-                    jc(kc) = j1
-                    ka = ka + 1
-                    kb = kb + 1
-                    kc = kc + 1
-                else if ( j1 < j2 ) then
-                    jc(kc) = j1
-                    if ( job ) then
-                        c(kc) = a(ka)
-                    end if
-                    ka = ka + 1
-                    kc = kc + 1
-                else if ( j2 < j1 ) then
-                    jc(kc) = j2
-                    if ( job ) then
-                        c(kc) = b(kb)
-                    end if
-                    kb = kb + 1
-                    kc = kc + 1
-                end if
-
-                if ( nnz < kc ) then
-                    ierr = i
-                    return
-                end if
-
-                if ( kamax < ka .and. kbmax < kb ) then
-                    exit
-                end if
-            end do
-            ic(i+1) = kc
-        end do
-    end subroutine aplb1_${rtype}$_${itype}$
 #:endfor
 
 #:endfor
