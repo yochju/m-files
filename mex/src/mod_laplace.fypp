@@ -1,0 +1,166 @@
+! Copyright (C) 2015, 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
+!
+! This program is free software: you can redistribute it and/or modify it under
+! the terms of the GNU General Public License as published by the Free Software
+! Foundation, either version 3 of the License, or (at your option) any later
+! version.
+!
+! This program is distributed in the hope that it will be useful, but WITHOUT
+! ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License along with
+! this program. If not, see <http://www.gnu.org/licenses/>.
+
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
+module laplace
+    !! author: Laurent Hoeltgen
+    !! date:   01/08/2016
+    !! license: GPL
+    !!
+    !! Several functions for working with discrete laplacians on regular spaced
+    !! grids in any dimension
+    use :: iso_fortran_env
+    use :: array
+    use :: sparse
+    implicit none
+    private
+
+#:for rtype in rkinds
+    ! interface resolution is based solely on input parameters. Thus, we need an
+    ! interface for each output type.
+    public :: stencil_laplace_5p_${rtype}$
+    interface stencil_laplace_5p_${rtype}$
+#:for itype in ikinds
+        module procedure stencil_laplace_5p_${itype}$_${rtype}$
+#:endfor
+    end interface stencil_laplace_5p_${rtype}$
+#:endfor
+    
+    public :: laplace_5p_sparse_coo
+    interface laplace_5p_sparse_coo
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure laplace_5p_sparse_coo_${itype}$_${rtype}$
+#:endfor
+#:endfor
+    end interface laplace_5p_sparse_coo
+    
+    public :: apply_laplace_5p
+    interface apply_laplace_5p
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure apply_laplace_5p_${itype}$_${rtype}$
+#:endfor
+#:endfor        
+    end interface apply_laplace_5p
+    
+contains
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    pure recursive function stencil_laplace_5p_${itype}$_${rtype}$ (dim) result(y)
+        !! Computes standard 5 point stencil for the Laplacian in a dim
+        !! dimensional setting. Grid size is assumed to be 1.0
+        implicit none
+
+        integer(${itype}$), intent(in) :: dim
+        !! grid dimensions
+
+        real(${rtype}$), dimension(3**dim) :: y
+
+        real(${rtype}$),  dimension(3**(dim-1)) :: tmp
+
+        if (dim == 1_${itype}$) then
+            y = real([1, -2, 1], ${rtype}$)
+        else
+            tmp = 0.0_${rtype}$
+            tmp(ceiling(3**(dim-1)/2.0_${rtype}$)) = 1.0_${rtype}$
+            y = [tmp,  stencil_laplace_5p_${itype}$_${rtype}$ (dim-1_${itype}$) - 2.0_${rtype}$*tmp, tmp]
+        end if
+    end function stencil_laplace_5p_${itype}$_${rtype}$
+#:endfor
+#:endfor        
+
+#:for rtype in rkinds
+#:for itype in ikinds    
+    pure subroutine laplace_5p_sparse_coo_${itype}$_${rtype}$ (dims, ir, jc, a, neumann)
+        !! Computes sparse matrix COO representation of a standard 5-point
+        !! stencil in arbitrary dimensional setting.
+        use :: stencil
+        implicit none
+
+        integer(${itype}$), dimension(:),           intent(in) :: dims
+        !! grid dimensions
+        logical,                          optional, intent(in) :: neumann
+        !! whether to consider Neumann boundary conditions
+        
+        integer(${itype}$), dimension(:), intent(out) :: ir
+        integer(${itype}$), dimension(:), intent(out) :: jc
+        real(${rtype}$),    dimension(:), intent(out) :: a
+
+        integer(${itype}$)                          :: ii
+        real(${rtype}$),   dimension(3**size(dims)) :: sten
+        logical,           dimension(3**size(dims)) :: mask
+        integer(${itype}$)                          :: numel
+
+        sten = stencil_laplace_5p_${itype}$_${rtype}$ (size(dims, 1, ${itype}$))
+        mask = (abs(sten) > epsilon(1.0_${rtype}$))
+        numel = stencil2sparse_size ([(3_${itype}$, ii=1, size(dims))], dims, mask)
+
+        ! Get COO representation of Laplacian
+        call const_stencil2sparse ([(3_${itype}$, ii=1, size(dims))], dims, mask, sten, ir, jc, a)
+
+        if (present(neumann)) then
+            if (neumann) then
+                do ii = 1, numel
+                    if (ir(ii) == jc(ii)) then
+                        a(ii) = a(ii) + real(count(mask) - count(ir == ir(ii)), ${rtype}$)
+                    end if
+                end do
+            end if
+        end if
+    end subroutine laplace_5p_sparse_coo_${itype}$_${rtype}$
+#:endfor    
+#:endfor        
+
+#:for rtype in rkinds
+#:for itype in ikinds    
+    pure function apply_laplace_5p_${itype}$_${rtype}$ (dims, sig, neumann) result(res)
+        !! Apply standard Laplacian onto arbitrary dimensional signal.
+        use :: stencil, only: convolve, create_5p_stencil, stencilmask
+        implicit none
+
+        integer(${itype}$), dimension(:),                       intent(in) :: dims
+        !! grid dimensions
+        real(${rtype}$),    dimension(product(dims)),           intent(in) :: sig
+        !! input signal
+        logical,                                      optional, intent(in) :: neumann
+        !! whether to consider Neumann boundary conditions
+        
+        real(${rtype}$), dimension(product(dims)) :: res
+
+        integer(${itype}$), dimension(size(dims)) :: stl_5p
+        integer(${itype}$)                        :: ii
+
+        stl_5p = int([(3, ii=1,size(dims))], ${itype}$)
+
+        res = convolve ( dims, stl_5p, sig, &
+                & stencil_laplace_5p_${itype}$_${rtype}$ (size(dims, 1, ${itype}$)), &
+                & create_5p_stencil (size(dims, 1, ${itype}$)) )
+
+        if (present(neumann)) then
+            if (neumann) then
+                !! Handle Neumann conditions
+                do ii = 1, product(dims)
+                    res(ii) = res(ii) + (real(2**size(dims) - count( create_5p_stencil (size(dims)) .and. &
+                            stencilmask (stl_5p, dims, ii))+1, ${rtype}$)) * sig(ii)
+                end do
+            end if
+        end if
+    end function apply_laplace_5p_${itype}$_${rtype}$
+#:endfor    
+#:endfor        
+
+end module laplace
