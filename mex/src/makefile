@@ -13,6 +13,9 @@ clean:
 mod_miscfun.o : mod_miscfun.F08 mod_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
+mod_sparse.o : mod_sparse.F08 mod_miscfun.o
+	$(FC) $(FCFLAGS) -c $<
+
 mod_array.o : mod_array.F08 mod_miscfun.o
 	$(FC) $(FCFLAGS) -c $<
 
