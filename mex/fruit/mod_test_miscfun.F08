@@ -118,4 +118,73 @@ contains
 
     end subroutine check_huberloss
 
+    subroutine check_quicksort
+        implicit none
+
+        integer, dimension(4) :: x
+        real,    dimension(4) :: y
+
+        integer, dimension(3) :: x2
+        real,    dimension(3) :: y2
+
+        integer, dimension(2) :: x3
+        real,    dimension(2) :: y3
+
+        integer, dimension(5) :: x1
+        real,    dimension(5) :: y1
+
+        
+        x = [4, 2, 3, 1]
+        y = real(x)
+        call quicksort (x)
+        call quicksort (y)
+        
+        call assertEquals([1, 2, 3, 4], x, 4)
+        call assertEquals(real([1, 2, 3, 4]), y, 4)
+
+        x = [4, 2, 3, 1]
+        y = real([1, 3, 2, 4])
+
+        call quicksort (x, y)
+
+        call assertEquals([1, 2, 3, 4], x, 4)
+        call assertEquals(real([4, 3, 2, 1]), y, 4)
+
+        x2 = [1, 3, 2]
+        y2 = [3, 5, 4]
+
+        call quicksort(x2, y2)
+        
+        call assertEquals([1, 2, 3], x2, 3)
+        call assertEquals(real([3, 4, 5]), y2, 3)
+
+        x3 = [3, 2]
+        y3 = [5, 4]
+
+        call quicksort(x3, y3)
+
+        call assertEquals([2, 3], x3, 2)
+        call assertEquals(real([4, 5]), y3, 2)
+
+        x3 = [1, 3]
+        y3 = [3, 5]
+
+        call quicksort(x3, y3)
+
+        call assertEquals([1, 3], x3, 2)
+        call assertEquals(real([3, 5]), y3, 2)
+
+        x1 = [0, 1, 3, 2, 0]
+        y1 = [0, 3, 5, 4, 0]
+
+        call quicksort(x1, y1)
+
+        call assertEquals([0, 0, 1, 2, 3], x1, 5)
+        call assertEquals(real([0, 0, 3, 4, 5]), y1, 5)
+
+        x1 = [0, 1, 3, 2, 0]
+        call quicksort(x1)
+        call assertEquals([0, 0, 1, 2, 3], x1, 5)
+    end subroutine check_quicksort
+    
 end module test_miscfun

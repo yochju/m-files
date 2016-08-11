@@ -270,6 +270,15 @@ program fruit_driver
     write (*,*) ""
     call teardown_test_miscfun
 
+    call setup_test_miscfun
+    write (*,*) ".. running test: check_quicksort"
+    call set_unit_name('check_quicksort')
+    call run_test_case(check_quicksort, "check_quicksort")
+    write (*,*)
+    write (*,*) ".. done."
+    write (*,*) ""
+    call teardown_test_miscfun
+    
     ! !! sparse
 
     call setup_test_sparse
@@ -361,7 +370,17 @@ program fruit_driver
     write(*,*) ".. done."
     write(*,*) ""
     call teardown_test_sparse
-        
+
+    call setup_test_sparse
+    write(*,*) ".. running test: check_csrsort"
+    call set_unit_name('check_csrsort')
+    call run_test_case(check_csrsort, "check_csrsort")
+    write(*,*) ""
+    write(*,*) ".. done."
+    write(*,*) ""
+    call teardown_test_sparse
+    
+    
     ! !! stencil
 
     ! !        call setup_test_stencil

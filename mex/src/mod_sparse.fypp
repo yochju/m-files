@@ -157,7 +157,17 @@ module sparse
 #:endfor
 #:endfor            
     end interface aplb
+    
+    public csrsort
+    interface csrsort
+#:for rtype in rkinds
+#:for itype in ikinds
+        module procedure csrsort_${rtype}$_${itype}$
+#:endfor
+#:endfor            
+    end interface csrsort
 
+    
 contains
 
 #:for rtype in rkinds
@@ -577,7 +587,7 @@ contains
 #:endfor
 
 #:for rtype in rkinds
-#:for itype in ikinds                            
+#:for itype in ikinds                          
     !*****************************************************************************80
     !
     ! APLB performs the CSR matrix sum C = A + B.
@@ -714,10 +724,36 @@ contains
 
             ic(ii+1) = length+1
         end do
+
+        call csrsort (nrow, nnzc, ic, jc, c)
         
         deallocate(iw)
         
     end subroutine aplb_${rtype}$_${itype}$
+#:endfor
+
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds
+    subroutine csrsort_${rtype}$_${itype}$ ( nrow, nnz, ia, ja, a)
+        use miscfun, only : quicksort
+        !! sorts colum indices in a csr matrix
+        integer(${itype}$), intent(in) :: nrow
+        integer(${itype}$), intent(in) :: nnz
+
+        ! Matrix A in CSR
+        integer(${itype}$), intent(in),     dimension(nrow+1) :: ia
+        integer(${itype}$), intent(in out), dimension(nnz)    :: ja
+        real(${rtype}$),    intent(in out), dimension(nnz)    :: a
+
+        integer(${itype}$) :: ii
+
+        do ii = 1, nrow
+            call quicksort (ja(ia(ii):(ia(ii+1)-1)), a(ia(ii):(ia(ii+1)-1)))
+        end do
+
+    end subroutine csrsort_${rtype}$_${itype}$
 #:endfor
 
 #:endfor
