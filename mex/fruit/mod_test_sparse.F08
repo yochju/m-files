@@ -303,12 +303,36 @@ contains
                 [1, 2, 4, 7], [3, 1, 2, 2],       real([1,  1, 1, 1]), &
                 ir2, jc2, a2)
 
-        write(*,*) jc2
-        write(*,*) a2
-        
         call assertEquals([1, 4, 7, 10], ir2, 4)
         call assertEquals([1, 2, 3, 1, 2, 3, 1, 2, 3], jc2, 9)
         call assertEquals(real([1, -1, 1, 1, 1, 2, 3, 5, 5]), a2, 9)
     end subroutine check_aplb
+
+    subroutine check_csrsort
+
+        integer, dimension(7)  :: ir
+        integer, dimension(19) :: jc
+        real,    dimension(19) :: a
+
+        integer, dimension(4) :: ir2
+        integer, dimension(6) :: jc2
+        real,    dimension(6) :: a2
+
+        ir = [1, 3, 6, 9, 13, 17, 20]
+        jc = [1, 5, 1, 2, 6, 2, 3, 4, 1, 4, 3, 5, 2, 4, 5, 6, 5, 2, 6]
+        a  = real([10, -2, 3, 9, 3, 7, 8, 7, 3, 8, 7, 5, 8, 9, 9, 13, 4, 2, -1])
+
+        ir2 =      [1, 3, 4, 7]
+        jc2 =      [1, 2, 3, 1, 3, 2]
+        a2  = real([1, -1, 2, 3, 5, 4])
+
+        call csrsort(6, 19, ir, jc, a)
+        call assertEquals([1, 5, 1, 2, 6, 2, 3, 4, 1, 3, 4, 5, 2, 4, 5, 6, 2, 5, 6], jc, 19)
+
+        call csrsort(3, 6, ir2, jc2, a2)
+        call assertEquals([1, 2, 3, 1, 2, 3], jc2, 6)
+        call assertEquals(real([1, -1, 2, 3, 4, 5]), a2, 6)
+
+    end subroutine check_csrsort
 
 end module test_sparse
