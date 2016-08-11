@@ -12,9 +12,13 @@
 ! You should have received a copy of the GNU General Public License along with
 ! this program. If not, see <http://www.gnu.org/licenses/>.
 
-#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar ikinds [ 'INT32',  'INT64'  ]
 #:setvar rkinds [ 'REAL32', 'REAL64' ]
-#:setvar akinds [ 'INT32',  'INT64', 'REAL32', 'REAL64' ]
+#:setvar akinds [ 'INT32',   'INT64',   'REAL32', 'REAL64' ]
+#:setvar anames [ 'integer', 'integer', 'real',   'real'   ]
+#! create kinds_names as [('integer', 'INT32'), ('integer', 'INT64'), ('real', 'REAL32'), ('real', 'REAL64')]
+#:setvar kinds_names list(zip(anames, akinds))
+
 module miscfun
     !! author: Laurent Hoeltgen
     !! date:   01/08/2016
@@ -128,12 +132,12 @@ module miscfun
 
     public quicksort
     interface quicksort
-#:for rtype in rkinds
-        module procedure quicksort_${rtype}$
+#:for atype in akinds
+        module procedure quicksort_${atype}$
+#:for atype2 in akinds        
+        module procedure quicksort_2_${atype}$_${atype2}$
 #:endfor
-#:for itype in ikinds
-        module procedure quicksort_${itype}$
-#:endfor        
+#:endfor
     end interface quicksort
 contains
 
@@ -602,44 +606,50 @@ contains
 
 #:endfor
 
-#:for rtype in rkinds
-recursive subroutine quicksort_${rtype}$ (in)
-    real(${rtype}$), intent(in out),  dimension(:) :: in
-    
-    integer(INT64) :: iq
+#:for akind, atype in kinds_names
+    recursive subroutine quicksort_${atype}$ (in)
+        !! quicksort O(n log(n))
+        ${akind}$(${atype}$), intent(in out),  dimension(:) :: in
 
-    if (size(in) > 1) then
-        call partition_sort_${rtype}$_INT64 (in, iq)
-        call quicksort_${rtype}$ (in(  :iq-1))
-        call quicksort_${rtype}$ (in(iq:    ))
-    end if
-end subroutine quicksort_${rtype}$
+        integer(INT64) :: iq
+
+        if (size(in) > 1) then
+            call partition_sort_${atype}$_INT64 (in, iq)
+            call quicksort_${atype}$ (in(  :iq-1))
+            call quicksort_${atype}$ (in(iq:    ))
+        end if
+    end subroutine quicksort_${atype}$
+
+    #:for akind2, atype2 in kinds_names
+    recursive subroutine quicksort_2_${atype}$_${atype2}$ (in, in2)
+        !! quicksort where second argument is sorted like first
+        ${akind}$(${atype}$),   intent(in out),  dimension(:)        :: in
+        ${akind2}$(${atype2}$), intent(in out),  dimension(size(in)) :: in2
+
+        integer(INT64) :: iq
+
+        if (size(in) > 1) then
+            call partition_sort_${atype}$_${atype2}$_INT64 (in, in2, iq)
+            call quicksort_2_${atype}$_${atype2}$ (in(  :iq-1), in2(  :iq-1))
+            call quicksort_2_${atype}$_${atype2}$ (in(iq:    ), in2(iq:    ))
+        end if
+    end subroutine quicksort_2_${atype}$_${atype2}$
+    #:endfor
 #:endfor
-
-#:for itype in ikinds
-recursive subroutine quicksort_${itype}$ (in)
-    integer(${itype}$), intent(in out),  dimension(:) :: in
     
-    integer(INT64) :: iq
-    
-    if (size(in) > 1) then
-        call partition_sort_${itype}$_INT64 (in, iq)
-        call quicksort_${itype}$ (in(  :iq-1))
-        call quicksort_${itype}$ (in(iq:    ))
-    end if
-end subroutine quicksort_${itype}$
-#:endfor
-
 ! Internal routines
 
-#:for rtype in rkinds
-#:for itype in ikinds
-subroutine partition_sort_${rtype}$_${itype}$ (array, marker)
-    real(${rtype}$),    intent(in out), dimension(:) :: array
+#:for akind,  atype  in kinds_names    
+#:for itype in ikinds    
+    subroutine partition_sort_${atype}$_${itype}$ (array, marker)
+        !! internal routine for quicksort
+    ${akind}$(${atype}$), intent(in out), dimension(:) :: array
+    
     integer(${itype}$), intent(out)                  :: marker
+    
     integer(${itype}$)                               :: i, j
-    real(${rtype}$)                                  :: temp
-    real(${rtype}$)                                  :: x      ! pivot point
+    ${akind}$(${atype}$)                             :: temp
+    ${akind}$(${atype}$)                             :: x      ! pivot point
 
     x = array(1)
     i = 0
@@ -674,53 +684,66 @@ subroutine partition_sort_${rtype}$_${itype}$ (array, marker)
         
     end do
     
-end subroutine partition_sort_${rtype}$_${itype}$
-#:endfor
-#:endfor
+end subroutine partition_sort_${atype}$_${itype}$
 
-#:for rtype in ikinds
-#:for itype in ikinds
-subroutine partition_sort_${rtype}$_${itype}$ (array, marker)
-    integer(${rtype}$), intent(in out), dimension(:) :: array
+#:for akind2, atype2 in kinds_names
+subroutine partition_sort_${atype}$_${atype2}$_${itype}$ (array, array2, marker)
+    !! internal routine for quicksort_2
+    ${akind}$(${atype}$),   intent(in out), dimension(:)           :: array
+    ${akind2}$(${atype2}$), intent(in out), dimension(size(array)) :: array2
+
     integer(${itype}$), intent(out)                  :: marker
+    
     integer(${itype}$)                               :: i, j
-    integer(${rtype}$)                               :: temp
-    integer(${rtype}$)                               :: x      ! pivot point
+    ${akind}$(${atype}$)                             :: temp
+    ${akind2}$(${atype2}$)                           :: temp2
+    ${akind}$(${atype}$)                             :: x      ! pivot point
 
     x = array(1)
     i = 0
     j = size(array) + 1
     
-    do
+    do while (i < j)
         j = j-1
 
-        do
-            if (array(j) <= x) exit
+        do while (j >= 1)
+            if ( array(j) <= x ) then
+                exit
+            end if
+        
             j = j-1
         end do
 
         i = i+1
 
-        do
-            if (array(i) >= x) exit
+        do while (i <= size(array))
+            if ( array(i) >= x ) then
+                exit
+            end if
+            
             i = i+1
         end do
-        
+
         if (i < j) then
             temp = array(i)
             array(i) = array(j)
             array(j) = temp
-        else if (i == j) then
-            marker = i+1
-            return
-        else
-            marker = i
-            return
+
+            temp2 = array2(i)
+            array2(i) = array2(j)
+            array2(j) = temp2
         end if
-        
     end do
     
-end subroutine partition_sort_${rtype}$_${itype}$
+    if (i == j) then
+        marker = i+1
+        
+    else
+        marker = i
+    end if
+
+end subroutine partition_sort_${atype}$_${atype2}$_${itype}$
+#:endfor
 #:endfor
 #:endfor
 
