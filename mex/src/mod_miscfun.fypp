@@ -33,6 +33,13 @@ module miscfun
 
     integer(INT32), parameter, private :: NPAR = 8  ! Used for allowing parallelisation of certain routines.
 
+    public :: factorial
+    interface factorial
+#:for type in akinds
+        module procedure factorial_${type}$
+#:endfor
+    end interface factorial
+        
     public :: cumsum
     interface cumsum
 #:for type in akinds
@@ -139,8 +146,56 @@ module miscfun
 #:endfor
 #:endfor
     end interface quicksort
+
 contains
 
+#:for type in ikinds
+    pure function factorial_${type}$ (x) result(y)
+        !! Factorial integer version
+        integer(${type}$), intent(in) :: x
+        
+        integer(${type}$)             :: y
+
+        integer(${type}$)             :: ii
+        
+        if (x < 0) then
+            y = -1
+        else if (x < 2) then
+            y = 1
+        else
+            y = product( (/ (ii, ii=1, x) /) )
+        end if
+        
+    end function factorial_${type}$
+#:endfor
+
+#:for type in rkinds
+    pure function factorial_${type}$ (x) result(y)
+        !! Factorial floating point version
+        real(${type}$), intent(in) :: x
+        
+        real(${type}$)             :: y
+        
+        real(${type}$)             :: z
+
+        if (ceiling(x) /= floor(x)) then
+            y = gamma(x+1.0_${type}$)
+        else if (x < 0.0_${type}$) then
+            y = -1.0_${type}$
+        else if (x < 2.0_${type}$) then
+            y = 1.0_${type}$
+        else
+            y = 1.0_${type}$
+            z = x
+            do while (z > 1.0_${type}$)
+                y = y * z
+                z = z - 1.0_${type}$
+            end do    
+        end if
+    end function factorial_${type}$
+#:endfor
+    
+    
 #:for type in ikinds
     pure recursive function cumsum_${type}$ (arr) result(ans)
         !! Cumulative sum of an integer type array
@@ -746,5 +801,30 @@ end subroutine partition_sort_${atype}$_${atype2}$_${itype}$
 #:endfor
 #:endfor
 #:endfor
+
+    ! pure subroutine bsxfun (nr, nc, x, y, op, mat)
+    !     integer, intent(in) :: nr
+    !     integer, intent(in) :: nc
+    !     real, dimension(nr), intent(in) :: x
+    !     real, dimension(nc), intent(in) :: y
+    !     real, dimension(nr,nc), intent(out) :: mat
+
+    !     integer :: ii, jj
+
+    !     interface bsxfun_args
+    !         pure function op (x, y) result(z)
+    !             real, intent(in) :: x
+    !             real, intent(in) :: y
+    !             real :: z
+    !         end function op
+    !     end interface bsxfun_args
+
+    !     do jj = 1, nc
+    !         do ii = 1, nr
+    !             mat(ii,jj) = op(x(ii), y(jj))
+    !         end do
+    !     end do
+
+    ! end subroutine bsxfun
 
 end module miscfun
