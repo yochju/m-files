@@ -1,0 +1,146 @@
+! Copyright (C) 2016 Laurent Hoeltgen <hoeltgen@b-tu.de>
+!
+! This program is free software: you can redistribute it and/or modify it under
+! the terms of the GNU General Public License as published by the Free Software
+! Foundation, either version 3 of the License, or (at your option) any later
+! version.
+!
+! This program is distributed in the hope that it will be useful, but WITHOUT
+! ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+! FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License along with
+! this program. If not, see <http://www.gnu.org/licenses/>.
+
+#:setvar ikinds [ 'INT32',  'INT64' ]
+#:setvar rkinds [ 'REAL32', 'REAL64' ]
+module finitedifference
+    !! author: Laurent Hoeltgen
+    !! date:   01/08/2016
+    !! license: GPL
+    use :: iso_fortran_env
+    implicit none
+    private
+
+    ! type :: fdfilter
+    !     integer :: deriv_order
+
+    !     integer :: stencil_size
+    !     real    :: knots
+    !     real    :: coefficients
+
+    !     integer :: consistency
+
+    !     real :: grid_size
+
+    !     real :: tolerance
+    ! end type fdfilter
+
+    public fd_filter_1D
+    interface fd_filter_1D
+#:for itype in ikinds
+#:for rtype in rkinds    
+        module procedure fd_filter_1D_${itype}$_${rtype}$
+#:endfor
+#:endfor        
+    end interface fd_filter_1D
+
+    ! Interface to Lapack routines
+    interface getrf
+        subroutine dgetrf (M, N, A, LDA, IPIV, INFO)
+            integer          :: M, N, LDA, INFO
+            integer          :: IPIV(*)
+            double precision :: A(LDA, *)
+        end subroutine dgetrf
+
+        subroutine sgetrf (M, N, A, LDA, IPIV, INFO)
+            integer :: M, N, LDA, INFO
+            integer :: IPIV(*)
+            real    :: A(LDA, *)
+        end subroutine sgetrf
+    end interface getrf
+
+    interface getrs
+        subroutine dgetrs (TRANS, N, NRHS, A, LDA, IPIV, B, LDB, INFO)
+            character        :: TRANS
+            integer          :: N, NRHS, LDA, LDB, INFO
+            integer          :: IPIV(*)
+            double precision :: A( LDA, * ), B( LDB, * )
+        end subroutine dgetrs
+
+        subroutine sgetrs (TRANS, N, NRHS, A, LDA, IPIV, B, LDB, INFO)
+            character :: TRANS
+            integer   :: N, NRHS, LDA, LDB, INFO
+            integer   :: IPIV(N)
+            real      :: A(LDA, N)
+            real      :: B(LDB, NRHS)
+        end subroutine sgetrs
+    end interface getrs
+    
+contains
+
+#:for itype in ikinds
+#:for rtype in rkinds    
+    subroutine fd_filter_1D_${itype}$_${rtype}$ (siz, knots, order, grid_size, tolerance, coeffs, consistency)
+        integer(${itype}$),                  intent(in) :: siz
+        real(${rtype}$),     dimension(siz), intent(in) :: knots
+        integer(${itype}$),                  intent(in) :: order
+        real(${rtype}$),                     intent(in) :: grid_size
+        real(${rtype}$),                     intent(in) :: tolerance
+
+        real(${rtype}$),    dimension(siz), intent(out) :: coeffs
+        integer(${itype}$),                 intent(out) :: consistency
+
+        real(${rtype}$),    dimension(siz, siz) :: M
+        integer,            dimension(siz)      :: piv
+
+        integer(${itype}$) :: ii, jj
+        integer            :: info
+        
+        M = 0.0_${rtype}$
+        coeffs = 0.0_${rtype}$
+
+        do jj = 1, siz
+            do ii = 1, siz
+                M(ii,jj) = (knots(jj)**(ii-1))/gamma(real(ii))
+            end do
+        end do
+
+        coeffs(min(order, siz-1)+1) = 1.0_${rtype}$
+
+        call getrf (int(siz), int(siz), M, int(siz), piv, info)
+        if (info /= 0) then
+            consistency = -1
+        else
+            !! TODO: error no generic interface
+            !! call getrs ('N', int(siz), int(1), M, int(siz), piv, coeffs, int(siz), info)
+            if (info /= 0) then
+                consistency = -1
+            end if
+        end if
+
+        coeffs = coeffs/grid_size**order
+
+        ii = 0
+        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1.0_${rtype}$)))) <= min(tolerance, 1.0_${rtype}$) )
+            ii = ii + 1
+        end do
+
+        !! could not approximate desired derivative
+        if (.not. ( (ii /= order) .and. ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1, ${rtype}$)))) - 1.0_${rtype}$ <= tolerance ) )) then
+            consistency = -1
+        end if
+
+        ii = ii + 1
+
+        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1, ${rtype}$)))) <= tolerance )
+            ii = ii + 1
+        end do
+
+        consistency = ii - order
+
+    end subroutine fd_filter_1D_${itype}$_${rtype}$
+#:endfor
+#:endfor
+    
+end module finitedifference
