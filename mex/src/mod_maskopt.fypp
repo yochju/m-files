@@ -22,6 +22,76 @@ module maskopt
     implicit none
     private
 
+    public primal_energy
+    interface primal_energy
+        !! Interface to the primal energy function for various types
+#:for rtype in rkinds
+        module procedure primal_energy_${rtype}$ !! All arguments are ${rtype}$
+#:endfor        
+    end interface primal_energy
+
+    public eval_pde
+    interface eval_pde
+#:for rtype in rkinds
+#:for itype in ikinds        
+        module procedure eval_pde_${rtype}$_${itype}$
+#:endfor        
+#:endfor        
+    end interface eval_pde
 contains
+
+#:for rtype in rkinds
+    pure function primal_energy_${rtype}$ (u, c, f, ubar, cbar, lambda, epsi, mu) result(energy)
+        !! Energy Functional to be minimised in the primal formulation
+        implicit none
+
+        real(${rtype}$), dimension(:),       intent(in) :: u
+        !! current solution
+        real(${rtype}$), dimension(size(u)), intent(in) :: c
+        !! current mask
+        real(${rtype}$), dimension(size(u)), intent(in) :: f
+        !! original image data
+        real(${rtype}$), dimension(size(u)), intent(in) :: ubar
+        !! solution around which PDE was linearised
+        real(${rtype}$), dimension(size(u)), intent(in) :: cbar
+        !! mask around which PDE was linearised
+        real(${rtype}$),                     intent(in) :: lambda
+        !! Sparsity weight. Must be non-negative
+        real(${rtype}$),                     intent(in) :: epsi
+        !! Regularisation weight. Must be non-negative and should be small
+        real(${rtype}$),                     intent(in) :: mu
+        !! Regularisation weigh for the proximal term. Must be non-negative.
+        !! This value must be non-zero to evaluate the energy of the initial model.
+        !! Non-zero values are only relevant for the evaluation of the iterates.
+
+        real(${rtype}$) :: energy
+        !! Current energy of the input data
+
+        energy = sum( 0.5_${rtype}$ * (u-f)**2 + lambda * abs(c) + epsi * sum(c**2) + mu * ((u-ubar)**2 + (c-cbar)**2))
+    end function primal_energy_${rtype}$
+#:endfor
+
+#:for rtype in rkinds
+#:for itype in ikinds    
+    pure subroutine eval_pde_${rtype}$_${itype}$ (dims, u, c, f, err)
+        !! computes c (u-f) - (1-c) Laplace(u)
+        use :: laplace, only : apply_laplace_5p
+        
+        integer(${itype}$), dimension(:),             intent(in) :: dims
+        !! grid dimensions
+        real(${rtype}$),    dimension(product(dims)), intent(in) :: u
+        !! current solution
+        real(${rtype}$),    dimension(size(u)),       intent(in) :: c
+        !! current mask
+        real(${rtype}$),    dimension(size(u)),       intent(in) :: f
+        !! original image data
+        
+        real(${rtype}$),    dimension(size(u)),       intent(out) :: err
+        !! point wise signed error 
+
+        err = c * (u-f) - (1.0_${rtype}$ - c) * apply_laplace_5p (dims, u, .true.)
+    end subroutine eval_pde_${rtype}$_${itype}$
+#:endfor
+#:endfor
 
 end module maskopt

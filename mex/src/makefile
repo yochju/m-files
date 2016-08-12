@@ -10,6 +10,9 @@ clean:
 	$(RM) *.o *.mod *.dyn *.spi *.spl *.a \#* *.gcno *.gcda *.gcov gmon.out
 	$(MAKE) --directory=fedfjlib clean
 
+mod_maskopt.o : mod_maskopt.F08 mod_laplace.o
+	$(FC) $(FCFLAGS) -c $<
+
 mod_miscfun.o : mod_miscfun.F08 mod_constants.o
 	$(FC) $(FCFLAGS) -c $<
 
