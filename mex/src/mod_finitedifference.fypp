@@ -108,12 +108,12 @@ contains
 
         coeffs(min(order, siz-1)+1) = 1.0_${rtype}$
 
-        call getrf (int(siz), int(siz), M, int(siz), piv, info)
+        call ${compREAL(rtype)}$getrf (int(siz), int(siz), M, int(siz), piv, info)
         if (info /= 0) then
             consistency = -1
         else
-            !! TODO: error no generic interface
-            !! call getrs ('N', int(siz), int(1), M, int(siz), piv, coeffs, int(siz), info)
+            call ${compREAL(rtype)}$getrs ('N', int(siz, kind(info)), int(1, kind(info)), &
+                    & M, int(siz, kind(info)), piv, coeffs, int(siz, kind(info)), info)
             if (info /= 0) then
                 consistency = -1
             end if
