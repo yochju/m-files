@@ -32,7 +32,7 @@ mod_cmexinterface.o : mod_cmexinterface.F08 mod_stencil.o mod_miscfun.o
 	$(FC) $(FCFLAGS) -c $<
 
 %.F08 : %.fypp
-	$(PP) $< $@
+	$(PP) $(PPFLAGS) $< $@
 
 %.o : %.F08
 	$(FC) $(FCFLAGS) -c $<
