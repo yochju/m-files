@@ -18,6 +18,7 @@
 #:setvar anames [ 'integer', 'integer', 'real',   'real'   ]
 #! create kinds_names as [('integer', 'INT32'), ('integer', 'INT64'), ('real', 'REAL32'), ('real', 'REAL64')]
 #:setvar kinds_names list(zip(anames, akinds))
+#:setvar ranks range(0, 8)
 
 module miscfun
     !! author: Laurent Hoeltgen
@@ -147,6 +148,14 @@ module miscfun
 #:endfor
     end interface quicksort
 
+    interface maxRelError
+#:for rtype in rkinds
+#:for rank in ranks
+        module procedure maxRelError_${rank}$_${rtype}$
+#:endfor
+#:endfor
+  end interface maxRelError
+    
 contains
 
 #:for type in ikinds
@@ -826,5 +835,23 @@ end subroutine partition_sort_${atype}$_${atype2}$_${itype}$
     !     end do
 
     ! end subroutine bsxfun
+
+#:for rtype in rkinds 
+#:for rank in ranks
+pure function maxRelError_${rank}$_${rtype}$ (obtained, reference) result(res)
+    real(${rtype}$), ${ranksarray(rank)}$ intent(in) :: obtained
+    real(${rtype}$), ${ranksarray(rank)}$ intent(in) :: reference
+    real(${rtype}$)                                   :: res
+
+#:if rank == 0
+    res = abs((obtained - reference) / reference)
+#:else
+    res = maxval(abs((obtained - reference) / reference))
+#:endif
+
+end function maxRelError_${rank}$_${rtype}$
+#:endfor
+
+#:endfor
 
 end module miscfun
