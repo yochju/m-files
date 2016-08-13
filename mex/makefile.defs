@@ -25,6 +25,9 @@ export IFLAGS
 LDFLAGS :=-L.
 export LDFLAGS
 
+PPFLAGS :=-i ../tools/compREAL.py -i ../tools/ranks.py
+export PPFLAGS
+
 DEBUGFLAGS :=-fprofile-arcs -ftest-coverage -g -pg
 export DEBUGFLAGS
 
