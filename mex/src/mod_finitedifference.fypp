@@ -134,8 +134,9 @@ contains
 
         ii = ii + 1
 
+        ! The constraint on ii is not tight. It's just to prevent infinite loops
         do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1, ${rtype}$)))) <= min(tolerance, 1.0_${rtype}$) &
-                & .and. ii <= order )
+                & .and. ii <= 10*order )
             ii = ii + 1
         end do
 
