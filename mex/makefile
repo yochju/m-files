@@ -6,7 +6,7 @@ all:
 	$(MAKE) --directory=benchmark all
 
 clean:
-	$(RM) *.o *.mod *.mexmaci64
+	$(RM) *.o mod/*.mod *.mexmaci64
 	$(MAKE) --directory=src clean
 	$(MAKE) --directory=fruit clean
 	$(MAKE) --directory=benchmark clean
