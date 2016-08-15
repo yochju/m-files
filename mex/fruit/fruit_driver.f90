@@ -1,6 +1,7 @@
 program fruit_driver
     use :: fruit
     use :: test_array
+    use :: test_finitedifference
     ! use :: test_array_ops
     ! use :: test_gvo
     ! use :: test_img_fun
@@ -51,25 +52,14 @@ program fruit_driver
     write (*,*) ""
     call teardown_test_array
 
-    ! !! array_ops
-
-    ! call setup_test_array_ops
-    ! write (*,*) ".. running test: check_softshrinkage"
-    ! call set_unit_name('check_softshrinkage')
-    ! call run_test_case(check_softshrinkage, "check_softshrinkage")
-    ! write (*,*)
-    ! write (*,*) ".. done."
-    ! write (*,*) ""
-    ! call teardown_test_array_ops
-
-    ! call setup_test_array_ops
-    ! write (*,*) ".. running test: check_huberloss"
-    ! call set_unit_name('check_huberloss')
-    ! call run_test_case(check_softshrinkage, "check_huberloss")
-    ! write (*,*)
-    ! write (*,*) ".. done."
-    ! write (*,*) ""
-    ! call teardown_test_array_ops
+    call setup_test_finitedifference
+    write (*,*) ".. running test: check_fd_filter_1D"
+    call set_unit_name('check_fd_filter_1D')
+    call run_test_case(check_fd_filter_1D, "check_fd_filter_1D")
+    write (*,*)
+    write (*,*) ".. done."
+    write (*,*) ""
+    call teardown_test_finitedifference
 
     ! !! gvo
 

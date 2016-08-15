@@ -122,7 +122,8 @@ contains
         coeffs = coeffs/grid_size**order
 
         ii = 0
-        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1.0_${rtype}$)))) <= min(tolerance, 1.0_${rtype}$) )
+        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1.0_${rtype}$)))) <= min(tolerance, 1.0_${rtype}$) &
+                & .and. ii <= order )
             ii = ii + 1
         end do
 
@@ -133,7 +134,8 @@ contains
 
         ii = ii + 1
 
-        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1, ${rtype}$)))) <= tolerance )
+        do while ( abs(sum(coeffs*((grid_size*knots)**ii)/gamma(real(ii+1, ${rtype}$)))) <= min(tolerance, 1.0_${rtype}$) &
+                & .and. ii <= order )
             ii = ii + 1
         end do
 

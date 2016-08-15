@@ -9,7 +9,7 @@ COBJ = $(patsubst %.c,%.o,$(CSRC))
 
 IFLAGS := -I. -I../lib -J../mod/
 LDFLAGS :=-L. -L../lib
-LIBS = -lffiles
+LIBS = -lffiles -lblas -llapack
 
 all: $(FOBJ) $(COBJ)
 #	$(CP) *.mod ../mod/
